@@ -7,6 +7,14 @@ import { ScheduleItem } from '@/components/sections/SchedulesSection';
 // You need to generate a specific link for the "Schedules" tab using File > Share > Publish to Web > Schedules > CSV.
 const TEACHERS_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQqqvzypykY7PGqqOGqhXIGyU-HwzbTaxtKZC4hyrW_LWGwL42YNC7aNx-Ullc_YTuHtEKVxvZkdY-O/pub?gid=0&single=true&output=csv";
 const SCHEDULES_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQqqvzypykY7PGqqOGqhXIGyU-HwzbTaxtKZC4hyrW_LWGwL42YNC7aNx-Ullc_YTuHtEKVxvZkdY-O/pub?gid=1804855&single=true&output=csv";
+// Placeholder for the Gallery Sheet URL - User needs to provide this
+const GALLERY_SHEET_URL = process.env.NEXT_PUBLIC_GALLERY_SHEET_URL || "";
+
+export interface GalleryItem {
+    category: string;
+    imageUrl: string;
+    caption: string;
+}
 
 /**
  * Fetch and parse CSV data from a published Google Sheet
@@ -89,4 +97,20 @@ export async function getSchedules(): Promise<ScheduleItem[]> {
         location: row[3] || "Location",
         status: (row[4] as any) || "Available",
     }));
+}
+
+export async function getGalleryImages(category: string): Promise<GalleryItem[]> {
+    if (!GALLERY_SHEET_URL) return [];
+
+    const data = await getSheetData(GALLERY_SHEET_URL);
+
+    if (!data) return [];
+
+    return data
+        .map((row) => ({
+            category: row[0] ? row[0].trim() : "",
+            imageUrl: formatGoogleDriveUrl(row[1]) || "",
+            caption: row[2] || "",
+        }))
+        .filter((item) => item.category.toLowerCase() === category.toLowerCase() && item.imageUrl);
 }

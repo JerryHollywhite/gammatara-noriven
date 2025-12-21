@@ -1,10 +1,16 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ContactSection from "@/components/sections/ContactSection";
+import ProgramGallery from "@/components/sections/ProgramGallery";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle } from "lucide-react";
+import { getGalleryImages } from "@/lib/googleSheets";
 
-export default function KindergartenPage() {
+export const revalidate = 60;
+
+export default async function KindergartenPage() {
+    const galleryImages = await getGalleryImages("Kindergarten");
+
     return (
         <main className="min-h-screen bg-white">
             <Navbar />
@@ -67,6 +73,9 @@ export default function KindergartenPage() {
                     </div>
                 </div>
             </section>
+
+            {/* Dynamic Gallery */}
+            <ProgramGallery images={galleryImages} title="Kindergarten Moments" />
 
             <ContactSection />
             <Footer />

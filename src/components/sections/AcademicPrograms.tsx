@@ -60,7 +60,11 @@ export default function AcademicPrograms({ programImages = {} }: AcademicProgram
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {updatedPrograms.map((program) => (
-                        <div key={program.id} className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                        <Link
+                            key={program.id}
+                            href={`/programs/${program.id}`}
+                            className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 block"
+                        >
                             <div className="relative h-48 overflow-hidden">
                                 <Image
                                     src={program.image}
@@ -82,11 +86,11 @@ export default function AcademicPrograms({ programImages = {} }: AcademicProgram
                                 <p className="text-slate-600 text-sm mb-4 line-clamp-3">
                                     {program.description}
                                 </p>
-                                <Link href={`/programs/${program.id}`} className="inline-flex items-center text-primary font-semibold text-sm hover:text-blue-700 transition-colors">
+                                <span className="inline-flex items-center text-primary font-semibold text-sm group-hover:text-blue-700 transition-colors">
                                     Learn more <ArrowRight className="ml-1 w-4 h-4" />
-                                </Link>
+                                </span>
                             </div>
-                        </div>
+                        </Link>
                     ))}
                 </div>
             </div>

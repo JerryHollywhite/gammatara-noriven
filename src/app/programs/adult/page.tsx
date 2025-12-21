@@ -1,4 +1,4 @@
-```
+
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ContactSection from "@/components/sections/ContactSection";
@@ -20,10 +20,9 @@ export default async function AdultProfessionalPage() {
 
             <PageHeader
                 title="Adult & Professional"
-                subtitle="Practical skills for career advancement. Tailored coaching for professionals looking to upskill and stay competitive."
+                subtitle="Practical skills for career advancement."
                 backgroundImage={siteImages["Hero_Adult"]}
-            >
-            </div>
+            />
 
             {/* Content Section */}
             <section className="py-20">

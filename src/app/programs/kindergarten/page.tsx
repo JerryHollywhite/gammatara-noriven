@@ -1,4 +1,4 @@
-```javascript
+
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ContactSection from "@/components/sections/ContactSection";
@@ -13,13 +13,16 @@ export const revalidate = 60;
 export default async function KindergartenPage() {
     const galleryImages = await getGalleryImages("Kindergarten");
     const siteImages = await getSiteImages();
-    const heroImage = siteImages["Hero_Kindergarten"]; // Keep this for PageHeader backgroundImage prop
 
     return (
         <main className="min-h-screen bg-white">
             <Navbar />
 
-            </div>
+            <PageHeader
+                title="Kindergarten Program"
+                subtitle="Building strong foundations for cognitive and social skills."
+                backgroundImage={siteImages["Hero_Kindergarten"]}
+            />
 
             {/* Content Section */}
             <section className="py-20">

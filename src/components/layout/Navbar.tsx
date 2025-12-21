@@ -1,92 +1,75 @@
-```javascript
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Menu, X } from "lucide-react"; // ChevronDown removed as Programs is no longer a dropdown
+import Image from "next/image";
+import { Menu, X } from "lucide-react";
 import { clsx } from "clsx";
 
 // Navigation Items - Updated to point to real pages
 const navItems = [
     { name: "Home", href: "/" },
     { name: "About Us", href: "/about" },
-    { name: "Programs", href: "/programs" }, // Changed from #programs
+    { name: "Programs", href: "/programs" },
     { name: "Gallery", href: "/gallery" },
 ];
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
-    const [scrolled, setScrolled] = useState(false); // Added scrolled state
+    const [scrolled, setScrolled] = useState(false);
 
-    // Removed isProgramsOpen state as Programs is now a direct link
+    useEffect(() => {
+        const handleScroll = () => {
+            setScrolled(window.scrollY > 20);
+        };
+        window.addEventListener("scroll", handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
 
     return (
-        <nav className="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
+        <nav
+            className={clsx(
+                "fixed w-full z-50 transition-all duration-300 border-b",
+                scrolled
+                    ? "bg-white/95 backdrop-blur-md border-slate-200 shadow-sm py-2"
+                    : "bg-white/80 backdrop-blur-sm border-transparent py-4"
+            )}
+        >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between h-20 items-center">
+                <div className="flex justify-between items-center">
                     {/* Logo */}
-                    <div className="flex-shrink-0 flex items-center gap-2">
-                        <Link href="/" className="flex items-center gap-2">
-                            <span className="text-2xl font-bold font-heading text-primary">
-                                Gamma Tara
-                            </span>
-                        </Link>
-                    </div>
-
-                    {/* Desktop Menu */}
-                    <div className="hidden md:flex items-center space-x-8">
-                        <Link
-                            href="/"
-                            className="text-slate-900 hover:text-primary font-medium transition-colors"
-                        >
-                            Home
-                        </Link>
-                        <Link
-                            href="#about"
-                            className="text-slate-900 hover:text-primary font-medium transition-colors"
-                        >
-                            About Us
-                        </Link>
-
-                        {/* Programs Dropdown */}
-                        <div className="relative group">
-                            <button
-                                className="flex items-center text-slate-900 hover:text-primary font-medium transition-colors focus:outline-none"
-                                onClick={() => setIsProgramsOpen(!isProgramsOpen)}
-                                onMouseEnter={() => setIsProgramsOpen(true)}
-                                onMouseLeave={() => setIsProgramsOpen(false)}
-                            >
-                                Programs <ChevronDown className="ml-1 w-4 h-4" />
-                            </button>
-
-                            {isProgramsOpen && (
-                                <div
-                                    className="absolute left-0 mt-0 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none overflow-hidden"
-                                    onMouseEnter={() => setIsProgramsOpen(true)}
-                                    onMouseLeave={() => setIsProgramsOpen(false)}
-                                >
-                                    <div className="py-1">
-                                        <Link href="#program-kindergarten" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary">Kindergarten</Link>
-                                        <Link href="#program-primary" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary">Primary School</Link>
-                                        <Link href="#program-secondary" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary">Secondary School</Link>
-                                        <Link href="#program-adult" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary">Adult Course</Link>
-                                    </div>
-                                </div>
-                            )}
+                    <Link href="/" className="flex items-center gap-2 group">
+                        <div className="relative w-10 h-10 overflow-hidden bg-primary/10 rounded-lg p-1 transition-transform group-hover:scale-105">
+                            <Image
+                                src="https://lh3.googleusercontent.com/d/1wW4iFwO9OaQv6pX4YlZgC2jUqK5qV9X_"
+                                alt="Gamma Tara Logo"
+                                width={40}
+                                height={40}
+                                className="object-contain"
+                            />
                         </div>
+                        <span className={clsx(
+                            "font-heading font-bold text-xl tracking-tight transition-colors",
+                            scrolled ? "text-slate-900" : "text-slate-800"
+                        )}>
+                            Gamma Tara
+                        </span>
+                    </Link>
 
-                        <Link
-                            href="#teachers"
-                            className="text-slate-900 hover:text-primary font-medium transition-colors"
-                        >
-                            Teachers
-                        </Link>
-                        <Link
-                            href="#gallery"
-                            className="text-slate-900 hover:text-primary font-medium transition-colors"
-                        >
-                            Gallery
-                        </Link>
+                    {/* Desktop Navigation */}
+                    <div className="hidden md:flex items-center space-x-8">
+                        {navItems.map((item) => (
+                            <Link
+                                key={item.name}
+                                href={item.href}
+                                className={clsx(
+                                    "font-medium transition-colors hover:text-primary",
+                                    scrolled ? "text-slate-700" : "text-slate-800"
+                                )}
+                            >
+                                {item.name}
+                            </Link>
+                        ))}
 
                         <Link
                             href="#contact"
@@ -100,7 +83,7 @@ export default function Navbar() {
                     <div className="md:hidden flex items-center">
                         <button
                             onClick={() => setIsOpen(!isOpen)}
-                            className="text-gray-700 hover:text-primary focus:outline-none"
+                            className="text-gray-700 hover:text-primary focus:outline-none p-2"
                         >
                             {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                         </button>
@@ -110,38 +93,18 @@ export default function Navbar() {
 
             {/* Mobile Menu */}
             {isOpen && (
-                <div className="md:hidden bg-white border-t border-gray-100 shadow-lg absolute w-full">
+                <div className="md:hidden bg-white border-t border-gray-100 shadow-lg absolute w-full left-0 top-full">
                     <div className="px-4 pt-2 pb-6 space-y-1">
-                        <Link
-                            href="/"
-                            className="block px-3 py-3 rounded-md text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-primary"
-                            onClick={() => setIsOpen(false)}
-                        >
-                            Home
-                        </Link>
-                        <Link
-                            href="#about"
-                            className="block px-3 py-3 rounded-md text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-primary"
-                            onClick={() => setIsOpen(false)}
-                        >
-                            About Us
-                        </Link>
-                        <div className="px-3 py-3">
-                            <div className="font-medium text-gray-900 mb-2">Programs</div>
-                            <div className="pl-4 space-y-2 border-l-2 border-gray-100">
-                                <Link href="#program-kindergarten" className="block text-sm text-gray-600 hover:text-primary" onClick={() => setIsOpen(false)}>Kindergarten</Link>
-                                <Link href="#program-primary" className="block text-sm text-gray-600 hover:text-primary" onClick={() => setIsOpen(false)}>Primary School</Link>
-                                <Link href="#program-secondary" className="block text-sm text-gray-600 hover:text-primary" onClick={() => setIsOpen(false)}>Secondary School</Link>
-                                <Link href="#program-adult" className="block text-sm text-gray-600 hover:text-primary" onClick={() => setIsOpen(false)}>Adult Course</Link>
-                            </div>
-                        </div>
-                        <Link
-                            href="#teachers"
-                            className="block px-3 py-3 rounded-md text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-primary"
-                            onClick={() => setIsOpen(false)}
-                        >
-                            Teachers
-                        </Link>
+                        {navItems.map((item) => (
+                            <Link
+                                key={item.name}
+                                href={item.href}
+                                className="block px-3 py-3 rounded-md text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-primary"
+                                onClick={() => setIsOpen(false)}
+                            >
+                                {item.name}
+                            </Link>
+                        ))}
                         <Link
                             href="#contact"
                             className="mt-4 block w-full text-center bg-primary text-white px-4 py-3 rounded-full font-semibold shadow-md active:bg-primary/90"

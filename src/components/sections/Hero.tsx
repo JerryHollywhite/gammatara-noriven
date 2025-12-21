@@ -76,6 +76,6 @@ export default function Hero({ backgroundImage }: HeroProps) {
                     </div>
                 </motion.div>
             </div>
-        </div>
+        </section>
     );
 }

@@ -1,4 +1,4 @@
-```
+
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ContactSection from "@/components/sections/ContactSection";
@@ -18,26 +18,19 @@ export default async function SecondarySchoolPage() {
     return (
         <main className="min-h-screen bg-white">
             <Navbar />
-            
-            <PageHeader 
+
+            <PageHeader
                 title="Secondary School Program"
                 subtitle="Bridging the gap to higher education."
                 backgroundImage={siteImages["Hero_Secondary"]}
             />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 relative z-20">
-                <div className="mb-8">
-                    <Link href="/#programs" className="text-primary hover:text-primary/80 font-medium inline-flex items-center gap-2 transition-colors">
+                <div className="mb-0">
+                    <Link href="/programs" className="text-white/90 hover:text-white font-medium inline-flex items-center gap-2 transition-colors bg-black/20 px-4 py-2 rounded-full backdrop-blur-sm">
                         <ArrowLeft className="w-4 h-4" /> Back to Programs
                     </Link>
                 </div>
-
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-heading text-slate-900 mb-6">
-                    Secondary School <span className="text-primary block text-2xl md:text-3xl mt-2 font-sans font-medium">SMP & SMA</span>
-                </h1>
-                <p className="text-xl text-slate-600 max-w-2xl leading-relaxed">
-                    Bridging the gap to higher education. Advanced tutoring to conquer exams and shape future career aspirations.
-                </p>
             </div>
 
             {/* Content Section */}

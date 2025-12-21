@@ -40,10 +40,13 @@ interface AcademicProgramsProps {
 }
 
 export default function AcademicPrograms({ programImages = {} }: AcademicProgramsProps) {
-    const updatedPrograms = programs.map(p => ({
-        ...p,
-        image: programImages[`Card_${p.title}`] || programImages[`Card_${p.id}`] || p.image
-    }));
+    const updatedPrograms = programs.map(p => {
+        const capitalizedId = p.id.charAt(0).toUpperCase() + p.id.slice(1);
+        return {
+            ...p,
+            image: programImages[`Card_${capitalizedId}`] || programImages[`Card_${p.title}`] || p.image
+        };
+    });
 
     return (
         <section id="programs" className="py-24 bg-slate-50">

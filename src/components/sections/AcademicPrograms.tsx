@@ -73,7 +73,7 @@ export default function AcademicPrograms() {
                                 <p className="text-slate-600 text-sm mb-4 line-clamp-3">
                                     {program.description}
                                 </p>
-                                <Link href={`#program-${program.id}`} className="inline-flex items-center text-primary font-semibold text-sm hover:text-blue-700 transition-colors">
+                                <Link href={`/programs/${program.id}`} className="inline-flex items-center text-primary font-semibold text-sm hover:text-blue-700 transition-colors">
                                     Learn more <ArrowRight className="ml-1 w-4 h-4" />
                                 </Link>
                             </div>

@@ -26,13 +26,13 @@ export default function Navbar() {
                     <div className="hidden md:flex items-center space-x-8">
                         <Link
                             href="/"
-                            className="text-foreground hover:text-primary font-medium transition-colors"
+                            className="text-slate-900 hover:text-primary font-medium transition-colors"
                         >
                             Home
                         </Link>
                         <Link
                             href="#about"
-                            className="text-foreground hover:text-primary font-medium transition-colors"
+                            className="text-slate-900 hover:text-primary font-medium transition-colors"
                         >
                             About Us
                         </Link>
@@ -40,7 +40,7 @@ export default function Navbar() {
                         {/* Programs Dropdown */}
                         <div className="relative group">
                             <button
-                                className="flex items-center text-foreground hover:text-primary font-medium transition-colors focus:outline-none"
+                                className="flex items-center text-slate-900 hover:text-primary font-medium transition-colors focus:outline-none"
                                 onClick={() => setIsProgramsOpen(!isProgramsOpen)}
                                 onMouseEnter={() => setIsProgramsOpen(true)}
                                 onMouseLeave={() => setIsProgramsOpen(false)}
@@ -66,13 +66,13 @@ export default function Navbar() {
 
                         <Link
                             href="#teachers"
-                            className="text-foreground hover:text-primary font-medium transition-colors"
+                            className="text-slate-900 hover:text-primary font-medium transition-colors"
                         >
                             Teachers
                         </Link>
                         <Link
                             href="#gallery"
-                            className="text-foreground hover:text-primary font-medium transition-colors"
+                            className="text-slate-900 hover:text-primary font-medium transition-colors"
                         >
                             Gallery
                         </Link>

@@ -35,6 +35,44 @@ export async function getSheetData(range: string) {
     }
 }
 
+/**
+ * Helper to convert Google Drive share links to direct image sources.
+ * Handles:
+ * - https://drive.google.com/file/d/FILE_ID/view...
+ * - https://drive.google.com/open?id=FILE_ID
+ */
+function formatGoogleDriveUrl(url: string | undefined): string | undefined {
+    if (!url) return undefined;
+
+    try {
+        // If it's already a direct link or other hosting, return as is
+        if (!url.includes('drive.google.com')) return url;
+
+        let fileId = '';
+
+        // Pattern 1: /file/d/FILE_ID/view
+        const match1 = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+        if (match1 && match1[1]) {
+            fileId = match1[1];
+        }
+        // Pattern 2: id=FILE_ID
+        else {
+            const match2 = url.match(/id=([a-zA-Z0-9_-]+)/);
+            if (match2 && match2[1]) {
+                fileId = match2[1];
+            }
+        }
+
+        if (fileId) {
+            return `https://drive.google.com/uc?export=view&id=${fileId}`;
+        }
+
+        return url;
+    } catch (e) {
+        return url;
+    }
+}
+
 export async function getTeachers(): Promise<Teacher[]> {
     const data = await getSheetData('Teachers!A2:E');
 
@@ -47,7 +85,8 @@ export async function getTeachers(): Promise<Teacher[]> {
         role: row[1] || "Tutor",
         education: row[2] || "Degree",
         accolades: row[3] ? row[3].split(',').map((s: string) => s.trim()) : [],
-        image: row[4] || `https://ui-avatars.com/api/?name=${encodeURIComponent(row[0])}&background=random`
+        // Use the helper to process column E (Image URL)
+        image: formatGoogleDriveUrl(row[4]) || `https://ui-avatars.com/api/?name=${encodeURIComponent(row[0])}&background=random`
     }));
 }
 

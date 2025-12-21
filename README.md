@@ -1,36 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Gamma Tara Learning Centre Website
+
+This is the modern, high-converting website for Gamma Tara Learning Centre, built with Next.js 15, Tailwind CSS, and Google Sheets integration.
 
 ## Getting Started
 
-First, run the development server:
+1.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+2.  **Run the development server:**
+    ```bash
+    npm run dev
+    ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+3.  **Open [http://localhost:3000](http://localhost:3000)** with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deployment (Git -> Vercel)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+To set up the automatic deployment pipeline requested:
 
-## Learn More
+1.  **Create a Repository on GitHub:**
+    - Go to [GitHub.com/new](https://github.ne) and create a new repository named `gamma-tara-web`.
 
-To learn more about Next.js, take a look at the following resources:
+2.  **Push your code:**
+    Run these commands in your terminal:
+    ```bash
+    git remote add origin https://github.com/YOUR_USERNAME/gamma-tara-web.git
+    git branch -M main
+    git push -u origin main
+    ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3.  **Connect in Vercel:**
+    - Go to your Vercel Dashboard.
+    - Click "Add New..." -> "Project".
+    - Import the `gamma-tara-web` repository you just created.
+    - **Important:** Add your Environment Variables (`GOOGLE_SHEETS_...`) in the Vercel Project Settings.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Environment Variables
 
-## Deploy on Vercel
+To enable the dynamic data features (Hall of Fame, Schedules), you need to set these in `.env.local` (local) and Vercel Settings (production):
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `GOOGLE_SHEETS_CLIENT_EMAIL`
+- `GOOGLE_SHEETS_PRIVATE_KEY`
+- `GOOGLE_SHEET_ID`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+See `src/lib/googleSheets.ts` for details on how to get these keys.

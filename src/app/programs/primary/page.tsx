@@ -4,6 +4,7 @@ import Footer from "@/components/layout/Footer";
 import ContactSection from "@/components/sections/ContactSection";
 import ProgramGallery from "@/components/sections/ProgramGallery";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, CheckCircle } from "lucide-react";
 import { getGalleryImages, getSiteImages } from "@/lib/googleSheets";
 import PageHeader from "@/components/layout/PageHeader";
@@ -38,10 +39,19 @@ export default async function PrimarySchoolPage() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid md:grid-cols-2 gap-12 items-center">
                         <div className="relative h-[400px] rounded-2xl overflow-hidden shadow-xl bg-slate-200">
-                            {/* Placeholder for actual image */}
-                            <div className="absolute inset-0 flex items-center justify-center text-slate-400 bg-slate-100">
-                                Image: Primary School Students
-                            </div>
+                            {siteImages["Content_Primary"] ? (
+                                <Image
+                                    src={siteImages["Content_Primary"]}
+                                    alt="Primary School Activities"
+                                    fill
+                                    className="object-cover"
+                                    sizes="(max-width: 768px) 100vw, 50vw"
+                                />
+                            ) : (
+                                <div className="absolute inset-0 flex items-center justify-center text-slate-400 bg-slate-100">
+                                    Image: Primary School Students (Add 'Content_Primary' to Sheet)
+                                </div>
+                            )}
                         </div>
 
                         <div>

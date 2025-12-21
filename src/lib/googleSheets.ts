@@ -147,7 +147,7 @@ export async function getSiteImages(): Promise<Record<string, string>> {
 }
 
 // Placeholder - User needs to update this GID
-const SITE_CONTENT_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQqqvzypykY7PGqqOGqhXIGyU-HwzbTaxtKZC4hyrW_LWGwL42YNC7aNx-Ullc_YTuHtEKVxvZkdY-O/pub?gid=0&single=true&output=csv"; // Defaulting to 0, user must update
+const SITE_CONTENT_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQqqvzypykY7PGqqOGqhXIGyU-HwzbTaxtKZC4hyrW_LWGwL42YNC7aNx-Ullc_YTuHtEKVxvZkdY-O/pub?gid=532554259&single=true&output=csv"; // Defaulting to 0, user must update
 
 export async function getSiteContent(): Promise<Record<string, string>> {
     // If user hasn't set up the new tab yet, return empty to fallback to default text

@@ -1,26 +1,51 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8fafc; /* Slate 50 */
+  --foreground: #0f172a; /* Slate 900 */
+  --primary: #1e3a8a; /* Blue 900 */
+  --primary-foreground: #ffffff;
+  --secondary: #f59e0b; /* Amber 500 */
+  --secondary-foreground: #0f172a;
+  --muted: #f1f5f9; /* Slate 100 */
+  --muted-foreground: #64748b; /* Slate 500 */
+  --card: #ffffff;
+  --card-foreground: #0f172a;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  
+  --font-sans: var(--font-inter);
+  --font-heading: var(--font-outfit);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0f172a; /* Slate 950 */
+    --foreground: #f8fafc; /* Slate 50 */
+    --primary: #3b82f6; /* Blue 500 */
+    --primary-foreground: #ffffff;
+    --secondary: #fbbf24; /* Amber 400 */
+    --secondary-foreground: #0f172a;
+    --muted: #1e293b; /* Slate 800 */
+    --muted-foreground: #94a3b8; /* Slate 400 */
+    --card: #1e293b;
+    --card-foreground: #f8fafc;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), sans-serif;
 }

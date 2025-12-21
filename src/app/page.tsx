@@ -38,8 +38,17 @@ export default async function Home() {
       <AcademicPrograms programImages={siteImages} />
       <HallOfFame teachers={teachers} />
       <Testimonials />
-      <ContactSection />
-      <Footer />
+      <ContactSection
+        address={siteContent["Contact_Address"]}
+        phone={siteContent["Contact_Phone"]}
+        email={siteContent["Contact_Email"]}
+      />
+      <Footer
+        address={siteContent["Contact_Address"]}
+        phone={siteContent["Contact_Phone"]}
+        email={siteContent["Contact_Email"]}
+        copyright={siteContent["Footer_Copyright"]}
+      />
     </main>
   );
 }

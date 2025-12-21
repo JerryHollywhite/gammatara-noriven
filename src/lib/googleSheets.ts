@@ -1,33 +1,38 @@
-import { google } from 'googleapis';
+import Papa from 'papaparse';
 import { Teacher } from '@/components/sections/HallOfFame';
 import { ScheduleItem } from '@/components/sections/SchedulesSection';
 
-// SCOPES for reading Sheets
-const SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
+// You can move these to .env.local later for cleaner config
+// TEACHERS_SHEET_URL: The link provided by the user (with gid=0)
+const TEACHERS_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQqqvzypykY7PGqqOGqhXIGyU-HwzbTaxtKZC4hyrW_LWGwL42YNC7aNx-Ullc_YTuHtEKVxvZkdY-O/pub?gid=0&single=true&output=csv";
+// SCHEDULES_SHEET_URL: We need to ask the user for this second link
+const SCHEDULES_SHEET_URL = process.env.NEXT_PUBLIC_SCHEDULES_SHEET_URL || "";
 
-export async function getSheetData(range: string) {
+/**
+ * Fetch and parse CSV data from a published Google Sheet
+ */
+export async function getSheetData(url: string) {
     try {
-        if (!process.env.GOOGLE_SHEETS_PRIVATE_KEY || !process.env.GOOGLE_SHEETS_CLIENT_EMAIL) {
-            console.warn("Google Sheets credentials missing. Returning empty.");
+        if (!url) return null;
+
+        const response = await fetch(url, { next: { revalidate: 60 } }); // ISR: Cache for 60s
+        if (!response.ok) {
+            console.error(`Failed to fetch CSV: ${response.statusText}`);
             return null;
         }
+        const csvText = await response.text();
 
-        const auth = new google.auth.GoogleAuth({
-            credentials: {
-                client_email: process.env.GOOGLE_SHEETS_CLIENT_EMAIL,
-                private_key: process.env.GOOGLE_SHEETS_PRIVATE_KEY.replace(/\\n/g, '\n'),
-            },
-            scopes: SCOPES,
+        const { data } = Papa.parse(csvText, {
+            header: false, // We assume row 1 is header, but we'll skip it manually to be safe or use it
+            skipEmptyLines: true,
         });
 
-        const sheets = google.sheets({ version: 'v4', auth });
+        // Remove the header row (index 0)
+        if (data && data.length > 0) {
+            data.shift();
+        }
 
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: process.env.GOOGLE_SHEET_ID,
-            range,
-        });
-
-        return response.data.values;
+        return data as string[][];
 
     } catch (error) {
         console.error('Error fetching sheet data:', error);
@@ -37,36 +42,24 @@ export async function getSheetData(range: string) {
 
 /**
  * Helper to convert Google Drive share links to direct image sources.
- * Handles:
- * - https://drive.google.com/file/d/FILE_ID/view...
- * - https://drive.google.com/open?id=FILE_ID
  */
 function formatGoogleDriveUrl(url: string | undefined): string | undefined {
     if (!url) return undefined;
 
     try {
-        // If it's already a direct link or other hosting, return as is
         if (!url.includes('drive.google.com')) return url;
 
         let fileId = '';
-
-        // Pattern 1: /file/d/FILE_ID/view
         const match1 = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-        if (match1 && match1[1]) {
-            fileId = match1[1];
-        }
-        // Pattern 2: id=FILE_ID
+        if (match1 && match1[1]) fileId = match1[1];
         else {
             const match2 = url.match(/id=([a-zA-Z0-9_-]+)/);
-            if (match2 && match2[1]) {
-                fileId = match2[1];
-            }
+            if (match2 && match2[1]) fileId = match2[1];
         }
 
         if (fileId) {
             return `https://drive.google.com/uc?export=view&id=${fileId}`;
         }
-
         return url;
     } catch (e) {
         return url;
@@ -74,10 +67,8 @@ function formatGoogleDriveUrl(url: string | undefined): string | undefined {
 }
 
 export async function getTeachers(): Promise<Teacher[]> {
-    const data = await getSheetData('Teachers!A2:E');
+    const data = await getSheetData(TEACHERS_SHEET_URL);
 
-    // Return empty array if no data (page will use fallback if truly empty array returned, 
-    // but better to return null if we want explicit fallback logic, for now we let component handle empty)
     if (!data) return [];
 
     return data.map((row) => ({
@@ -85,18 +76,23 @@ export async function getTeachers(): Promise<Teacher[]> {
         role: row[1] || "Tutor",
         education: row[2] || "Degree",
         accolades: row[3] ? row[3].split(',').map((s: string) => s.trim()) : [],
-        // Use the helper to process column E (Image URL)
         image: formatGoogleDriveUrl(row[4]) || `https://ui-avatars.com/api/?name=${encodeURIComponent(row[0])}&background=random`
     }));
 }
 
 export async function getSchedules(): Promise<ScheduleItem[]> {
-    const data = await getSheetData('Schedules!A2:E');
+    // If we don't have the URL yet, return empty or mock
+    if (!SCHEDULES_SHEET_URL) {
+        // console.warn("Schedules Sheet URL is missing.");
+        return [];
+    }
+
+    const data = await getSheetData(SCHEDULES_SHEET_URL);
 
     if (!data) return [];
 
     return data.map((row) => ({
-        course: row[0] || "Upcoming Available Class",
+        course: row[0] || "Available Class",
         day: row[1] || "TBA",
         time: row[2] || "TBA",
         location: row[3] || "Gamma Tara",

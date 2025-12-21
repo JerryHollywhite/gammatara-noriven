@@ -1,7 +1,14 @@
 import Link from "next/link";
 import { Facebook, Instagram, Youtube, MapPin, Phone, Mail, MessageCircle } from "lucide-react";
 
-export default function Footer() {
+interface FooterProps {
+    address?: string;
+    phone?: string;
+    email?: string;
+    copyright?: string;
+}
+
+export default function Footer({ address, phone, email, copyright }: FooterProps) {
     return (
         <footer className="bg-slate-900 text-slate-300 py-12 border-t border-slate-800">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -43,22 +50,22 @@ export default function Footer() {
                         <div className="space-y-3">
                             <div className="flex items-start gap-3">
                                 <MapPin className="w-5 h-5 text-primary-foreground/70 mt-1 shrink-0" />
-                                <span>Ruko Cahaya Garden Blok AA No. 28-29,<br />Kel. Sei Panas, Batam 29433.</span>
+                                <span>{address || "Ruko Cahaya Garden Blok AA No. 28-29, Kel. Sei Panas, Batam 29433."}</span>
                             </div>
                             <div className="flex items-center gap-3">
                                 <Phone className="w-5 h-5 text-primary-foreground/70 shrink-0" />
-                                <span>+62 851 1718 8131</span>
+                                <span>{phone || "+62 851 1718 8131"}</span>
                             </div>
                             <div className="flex items-center gap-3">
                                 <Mail className="w-5 h-5 text-primary-foreground/70 shrink-0" />
-                                <span>gammatara88@gmail.com</span>
+                                <span>{email || "gammatara88@gmail.com"}</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div className="mt-12 pt-8 border-t border-slate-800 text-center text-sm text-slate-500">
-                    &copy; {new Date().getFullYear()} Gamma Tara Learning Centre. All Rights Reserved.
+                    &copy; {new Date().getFullYear()} {copyright || "Gamma Tara Learning Centre. All Rights Reserved."}
                 </div>
             </div>
         </footer>

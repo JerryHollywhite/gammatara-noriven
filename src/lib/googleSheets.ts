@@ -145,3 +145,27 @@ export async function getSiteImages(): Promise<Record<string, string>> {
 
     return imageMap;
 }
+
+// Placeholder - User needs to update this GID
+const SITE_CONTENT_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQqqvzypykY7PGqqOGqhXIGyU-HwzbTaxtKZC4hyrW_LWGwL42YNC7aNx-Ullc_YTuHtEKVxvZkdY-O/pub?gid=0&single=true&output=csv"; // Defaulting to 0, user must update
+
+export async function getSiteContent(): Promise<Record<string, string>> {
+    // If user hasn't set up the new tab yet, return empty to fallback to default text
+    try {
+        const data = await getSheetData(SITE_CONTENT_SHEET_URL);
+        if (!data) return {};
+
+        const contentMap: Record<string, string> = {};
+        data.forEach((row) => {
+            const key = row[0] ? row[0].trim() : "";
+            const content = row[1] ? row[1].trim() : "";
+            if (key && content) {
+                contentMap[key] = content;
+            }
+        });
+        return contentMap;
+    } catch (error) {
+        console.warn("Failed to fetch site content, using defaults");
+        return {};
+    }
+}

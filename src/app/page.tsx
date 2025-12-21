@@ -7,7 +7,7 @@ import HallOfFame from "@/components/sections/HallOfFame";
 import Testimonials from "@/components/sections/Testimonials";
 import ContactSection from "@/components/sections/ContactSection";
 import SchedulesSection from "@/components/sections/SchedulesSection";
-import { getTeachers, getSchedules, getSiteImages, getGalleryImages } from "@/lib/googleSheets";
+import { getTeachers, getSchedules, getSiteImages, getGalleryImages, getSiteContent } from "@/lib/googleSheets";
 import PromoCarousel from "@/components/sections/PromoCarousel";
 
 // Revalidate data every 60 seconds (ISR)
@@ -17,14 +17,23 @@ export default async function Home() {
   const teachers = await getTeachers();
   const schedules = await getSchedules();
   const siteImages = await getSiteImages();
+  const siteContent = await getSiteContent();
   const promoImages = await getGalleryImages("Promo");
 
   return (
     <main className="min-h-screen bg-white font-sans text-slate-900">
       <Navbar />
-      <Hero backgroundImage={siteImages["Hero_Home"]} />
+      <Hero
+        backgroundImage={siteImages["Hero_Home"]}
+        title={siteContent["Home_Hero_Title"]}
+        subtitle={siteContent["Home_Hero_Subtitle"]}
+        ctaText={siteContent["Home_Hero_CTA"]}
+      />
       <PromoCarousel promos={promoImages} />
-      <USPSection />
+      <USPSection
+        title={siteContent["Why_Title"]}
+        subtitle={siteContent["Why_Subtitle"]}
+      />
       <SchedulesSection schedules={schedules} />
       <AcademicPrograms programImages={siteImages} />
       <HallOfFame teachers={teachers} />

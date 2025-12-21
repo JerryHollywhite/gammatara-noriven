@@ -3,7 +3,13 @@
 import { Button } from "../ui/Button";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
 
-export default function ContactSection() {
+interface ContactSectionProps {
+    address?: string;
+    phone?: string;
+    email?: string;
+}
+
+export default function ContactSection({ address, phone, email }: ContactSectionProps) {
     return (
         <section id="contact" className="py-24 bg-slate-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -27,7 +33,7 @@ export default function ContactSection() {
                                 <div>
                                     <h4 className="font-bold text-slate-900">Visit Us</h4>
                                     <p className="text-slate-600">
-                                        Ruko Cahaya Garden Blok AA No. 28-29,<br />Kel. Sei Panas, Batam 29433.
+                                        {address || "Ruko Cahaya Garden Blok AA No. 28-29, Kel. Sei Panas, Batam 29433."}
                                     </p>
                                 </div>
                             </div>
@@ -38,7 +44,9 @@ export default function ContactSection() {
                                 </div>
                                 <div>
                                     <h4 className="font-bold text-slate-900">Call or WhatsApp</h4>
-                                    <p className="text-slate-600">+62 851 1718 8131</p>
+                                    <p className="text-slate-600">
+                                        {phone || "+62 851 1718 8131"}
+                                    </p>
                                 </div>
                             </div>
 
@@ -48,7 +56,9 @@ export default function ContactSection() {
                                 </div>
                                 <div>
                                     <h4 className="font-bold text-slate-900">Email Us</h4>
-                                    <p className="text-slate-600">gammatara88@gmail.com</p>
+                                    <p className="text-slate-600">
+                                        {email || "gammatara88@gmail.com"}
+                                    </p>
                                 </div>
                             </div>
                         </div>

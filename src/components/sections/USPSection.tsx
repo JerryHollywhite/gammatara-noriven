@@ -24,16 +24,21 @@ const features = [
     },
 ];
 
-export default function USPSection() {
+interface USPSectionProps {
+    title?: string;
+    subtitle?: string;
+}
+
+export default function USPSection({ title, subtitle }: USPSectionProps) {
     return (
         <section id="why-choose-us" className="py-24 bg-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center max-w-3xl mx-auto mb-16">
                     <h2 className="text-3xl md:text-4xl font-bold font-heading text-slate-900 mb-4">
-                        Why Gamma Tara is the Right Choice
+                        {title || "Why Gamma Tara is the Right Choice"}
                     </h2>
                     <p className="text-lg text-slate-600">
-                        We focus on what matters most: your child's growth, confidence, and results.
+                        {subtitle || "We focus on what matters most: your child's growth, confidence, and results."}
                     </p>
                 </div>
 

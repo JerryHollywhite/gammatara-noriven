@@ -8,9 +8,12 @@ import { motion } from "framer-motion";
 
 interface HeroProps {
     backgroundImage?: string;
+    title?: string;
+    subtitle?: string;
+    ctaText?: string;
 }
 
-export default function Hero({ backgroundImage }: HeroProps) {
+export default function Hero({ backgroundImage, title, subtitle, ctaText }: HeroProps) {
     return (
         <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
             {/* Background Image with Overlay */}
@@ -39,18 +42,17 @@ export default function Hero({ backgroundImage }: HeroProps) {
                     </div>
 
                     <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold font-heading mb-6 leading-tight tracking-tight drop-shadow-sm">
-                        Unlock Your Child’s <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-white">Best Academic Potential</span>
+                        {title || "Unlock Your Child’s Best Academic Potential"}
                     </h1>
 
                     <p className="text-lg md:text-2xl text-slate-200 mb-8 max-w-3xl mx-auto leading-relaxed font-light">
-                        With personalized guidance, high-achieving mentors, and small class sizes (Max 4-7 Students), we ensure your child gets the focus they truly deserve.
+                        {subtitle || "With personalized guidance, high-achieving mentors, and small class sizes (Max 4-7 Students), we ensure your child gets the focus they truly deserve."}
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                         <Link href="#contact">
                             <Button size="lg" className="rounded-full text-lg w-full sm:w-auto h-14">
-                                Check Class Availability <ArrowRight className="ml-2 w-5 h-5" />
+                                {ctaText || "Check Class Availability"} <ArrowRight className="ml-2 w-5 h-5" />
                             </Button>
                         </Link>
                         <Link href="#programs">

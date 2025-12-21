@@ -66,7 +66,7 @@ export default function HallOfFame({ teachers = [] }: HallOfFameProps) {
         <section id="teachers" className="py-24 bg-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center max-w-3xl mx-auto mb-16">
-                    <span className="text-secondary font-bold tracking-widest uppercase text-xs">The Dream Team</span>
+                    <span className="text-secondary font-bold tracking-widest uppercase text-xs">World-Class Mentors</span>
                     <h2 className="text-3xl md:text-4xl font-bold font-heading text-slate-900 mt-2 mb-4">
                         Meet Our Expert Mentors
                     </h2>

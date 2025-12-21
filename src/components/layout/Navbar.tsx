@@ -1,13 +1,24 @@
+```javascript
 "use client";
 
 import { useState } from "react";
 import Link from "next/link";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X } from "lucide-react"; // ChevronDown removed as Programs is no longer a dropdown
 import { clsx } from "clsx";
+
+// Navigation Items - Updated to point to real pages
+const navItems = [
+    { name: "Home", href: "/" },
+    { name: "About Us", href: "/about" },
+    { name: "Programs", href: "/programs" }, // Changed from #programs
+    { name: "Gallery", href: "/gallery" },
+];
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
-    const [isProgramsOpen, setIsProgramsOpen] = useState(false);
+    const [scrolled, setScrolled] = useState(false); // Added scrolled state
+
+    // Removed isProgramsOpen state as Programs is now a direct link
 
     return (
         <nav className="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm">

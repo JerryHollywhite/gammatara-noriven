@@ -99,7 +99,7 @@ export async function getSchedules(): Promise<ScheduleItem[]> {
     }));
 }
 
-export async function getGalleryImages(category: string): Promise<GalleryItem[]> {
+export async function getGalleryImages(category?: string): Promise<GalleryItem[]> {
     if (!GALLERY_SHEET_URL) return [];
 
     const data = await getSheetData(GALLERY_SHEET_URL);
@@ -108,11 +108,20 @@ export async function getGalleryImages(category: string): Promise<GalleryItem[]>
 
     return data
         .map((row) => ({
-            category: row[0] ? row[0].trim() : "",
+            category: row[0] || "",
             imageUrl: formatGoogleDriveUrl(row[1]) || "",
-            caption: row[2] || "",
+            caption: row[2] || ""
         }))
-        .filter((item) => item.category.toLowerCase() === category.toLowerCase() && item.imageUrl);
+        .filter((item) => {
+            const isValid = !!item.imageUrl;
+            // If category is provided, filter by it. Otherwise return all valid images that are NOT reserved keys
+            if (category) {
+                return isValid && item.category.toLowerCase() === category.toLowerCase();
+            }
+            // Filter out "System/Reserved" keys like Hero_, Card_, Promo if fetching "All" gallery
+            const isReserved = item.category.startsWith("Hero_") || item.category.startsWith("Card_") || item.category === "Promo";
+            return isValid && !isReserved;
+        });
 }
 
 export async function getSiteImages(): Promise<Record<string, string>> {

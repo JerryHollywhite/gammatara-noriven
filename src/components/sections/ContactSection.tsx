@@ -27,7 +27,7 @@ export default function ContactSection() {
                                 <div>
                                     <h4 className="font-bold text-slate-900">Visit Us</h4>
                                     <p className="text-slate-600">
-                                        Ruko Cahaya Garden Blok AA No. 28-29,<br />Sei Panas, Batam.
+                                        Ruko Cahaya Garden Blok AA No. 28-29,<br />Kel. Sei Panas, Batam 29433.
                                     </p>
                                 </div>
                             </div>

@@ -43,7 +43,7 @@ export default function Footer() {
                         <div className="space-y-3">
                             <div className="flex items-start gap-3">
                                 <MapPin className="w-5 h-5 text-primary-foreground/70 mt-1 shrink-0" />
-                                <span>Ruko Cahaya Garden Blok AA No. 28-29,<br />Sei Panas, Batam.</span>
+                                <span>Ruko Cahaya Garden Blok AA No. 28-29,<br />Kel. Sei Panas, Batam 29433.</span>
                             </div>
                             <div className="flex items-center gap-3">
                                 <Phone className="w-5 h-5 text-primary-foreground/70 shrink-0" />

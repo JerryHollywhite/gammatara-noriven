@@ -4,17 +4,17 @@ import { Quote } from "lucide-react";
 
 const testimonials = [
     {
-        content: "Best tutor ever! Explanations are clear and simple. Concepts that were hard before became easy to understand.",
+        content: "Belajar matematika bareng Ko Riven di Gamma Tara benar-benar pengalaman yang seru dan menyenangkan! Penjelasannya jelas, mudah dipahami, dan cara mengajarnya bikin konsep yang sulit jadi terasa simpel. Pokoknya, matematika jadi lebih menarik dan nggak membosankan. Best tutor ever!",
         author: "Chelsy Kho",
         role: "Alumni",
     },
     {
-        content: "Very helpful for subjects I was weak in. The teachers are friendly and the environment is very supportive.",
+        content: "Bimbel ini sangat membantu saya dengan mata pelajaran yang saya kurang kuasai sebelumnya. Dengan guru yang friendly dan antusias dalam mengajar serta lingkungan yang nyaman, saya bisa fokus belajar dan merasa termotivasi. Terima kasih Ko Riven dan para tutor untuk bimbingannya.",
         author: "Valeron Tan",
         role: "Alumni",
     },
     {
-        content: "Super recommended. Learning is fun & balanced. I never felt stressed, yet my grades improved significantly.",
+        content: "Pengalaman belajar sama Ko Riven di Gamma Tara sangat fun & balance sih, kadang hrs serius belajarnya tpi di campur sama candaan jadi lebih fun. Teknik cara ngajarnya juga mudah di mengerti apalagi MATEMATIKA, jdi overall super recommended",
         author: "Nicole Gracia",
         role: "Alumni",
     },

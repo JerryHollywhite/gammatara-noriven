@@ -2,11 +2,11 @@ import Papa from 'papaparse';
 import { Teacher } from '@/components/sections/HallOfFame';
 import { ScheduleItem } from '@/components/sections/SchedulesSection';
 
-// You can move these to .env.local later for cleaner config
-// TEACHERS_SHEET_URL: The link provided by the user (with gid=0)
+// DATA SOURCE LINKS
+// Note: If you see Teacher names in the Schedules section, it means these two links are identical.
+// You need to generate a specific link for the "Schedules" tab using File > Share > Publish to Web > Schedules > CSV.
 const TEACHERS_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQqqvzypykY7PGqqOGqhXIGyU-HwzbTaxtKZC4hyrW_LWGwL42YNC7aNx-Ullc_YTuHtEKVxvZkdY-O/pub?gid=0&single=true&output=csv";
-// SCHEDULES_SHEET_URL: We need to ask the user for this second link
-const SCHEDULES_SHEET_URL = process.env.NEXT_PUBLIC_SCHEDULES_SHEET_URL || "";
+const SCHEDULES_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQqqvzypykY7PGqqOGqhXIGyU-HwzbTaxtKZC4hyrW_LWGwL42YNC7aNx-Ullc_YTuHtEKVxvZkdY-O/pub?gid=0&single=true&output=csv";
 
 /**
  * Fetch and parse CSV data from a published Google Sheet
@@ -23,11 +23,11 @@ export async function getSheetData(url: string) {
         const csvText = await response.text();
 
         const { data } = Papa.parse(csvText, {
-            header: false, // We assume row 1 is header, but we'll skip it manually to be safe or use it
+            header: false,
             skipEmptyLines: true,
         });
 
-        // Remove the header row (index 0)
+        // Remove the header row (index 0) if it exists
         if (data && data.length > 0) {
             data.shift();
         }
@@ -40,9 +40,6 @@ export async function getSheetData(url: string) {
     }
 }
 
-/**
- * Helper to convert Google Drive share links to direct image sources.
- */
 function formatGoogleDriveUrl(url: string | undefined): string | undefined {
     if (!url) return undefined;
 
@@ -81,21 +78,15 @@ export async function getTeachers(): Promise<Teacher[]> {
 }
 
 export async function getSchedules(): Promise<ScheduleItem[]> {
-    // If we don't have the URL yet, return empty or mock
-    if (!SCHEDULES_SHEET_URL) {
-        // console.warn("Schedules Sheet URL is missing.");
-        return [];
-    }
-
     const data = await getSheetData(SCHEDULES_SHEET_URL);
 
     if (!data) return [];
 
     return data.map((row) => ({
         course: row[0] || "Available Class",
-        day: row[1] || "TBA",
-        time: row[2] || "TBA",
-        location: row[3] || "Gamma Tara",
+        day: row[1] || "Sorted Day",
+        time: row[2] || "Time",
+        location: row[3] || "Location",
         status: (row[4] as any) || "Available",
     }));
 }

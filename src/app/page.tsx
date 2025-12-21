@@ -7,7 +7,8 @@ import HallOfFame from "@/components/sections/HallOfFame";
 import Testimonials from "@/components/sections/Testimonials";
 import ContactSection from "@/components/sections/ContactSection";
 import SchedulesSection from "@/components/sections/SchedulesSection";
-import { getTeachers, getSchedules, getSiteImages } from "@/lib/googleSheets";
+import { getTeachers, getSchedules, getSiteImages, getGalleryImages } from "@/lib/googleSheets";
+import PromoCarousel from "@/components/sections/PromoCarousel";
 
 // Revalidate data every 60 seconds (ISR)
 export const revalidate = 60;
@@ -16,11 +17,13 @@ export default async function Home() {
   const teachers = await getTeachers();
   const schedules = await getSchedules();
   const siteImages = await getSiteImages();
+  const promoImages = await getGalleryImages("Promo");
 
   return (
     <main className="min-h-screen bg-white font-sans text-slate-900">
       <Navbar />
       <Hero backgroundImage={siteImages["Hero_Home"]} />
+      <PromoCarousel promos={promoImages} />
       <USPSection />
       <SchedulesSection schedules={schedules} />
       <AcademicPrograms programImages={siteImages} />

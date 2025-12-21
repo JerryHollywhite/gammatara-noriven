@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import ScrollAnimation from "../ui/ScrollAnimation";
 
 const programs = [
     {
@@ -51,49 +52,52 @@ export default function AcademicPrograms({ programImages = {} }: AcademicProgram
     return (
         <section id="programs" className="py-24 bg-slate-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center max-w-3xl mx-auto mb-16">
-                    <span className="text-primary font-semibold tracking-wider uppercase text-sm">Pathways to Excellence</span>
-                    <h2 className="text-3xl md:text-4xl font-bold font-heading text-slate-900 mt-2 mb-4">
-                        Our Academic Programs
-                    </h2>
-                    <p className="text-lg text-slate-600">
-                        Tailored learning journeys for every stage of development.
-                    </p>
-                </div>
+                <ScrollAnimation>
+                    <div className="text-center max-w-3xl mx-auto mb-16">
+                        <span className="text-primary font-semibold tracking-wider uppercase text-sm">Pathways to Excellence</span>
+                        <h2 className="text-3xl md:text-4xl font-bold font-heading text-slate-900 mt-2 mb-4">
+                            Our Academic Programs
+                        </h2>
+                        <p className="text-lg text-slate-600">
+                            Tailored learning journeys for every stage of development.
+                        </p>
+                    </div>
+                </ScrollAnimation>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {updatedPrograms.map((program) => (
-                        <Link
-                            key={program.id}
-                            href={`/programs/${program.id}`}
-                            className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 block"
-                        >
-                            <div className="relative h-48 overflow-hidden">
-                                <Image
-                                    src={program.image}
-                                    alt={program.title}
-                                    fill
-                                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent opacity-60" />
-                                <div className="absolute bottom-4 left-4">
-                                    <span className="inline-block px-2 py-1 bg-secondary text-secondary-foreground text-xs font-bold rounded uppercase">
-                                        {program.age}
+                    {updatedPrograms.map((program, index) => (
+                        <ScrollAnimation key={program.id} delay={index * 0.1}>
+                            <Link
+                                href={`/programs/${program.id}`}
+                                className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 block h-full border border-slate-100/80"
+                            >
+                                <div className="relative h-48 overflow-hidden">
+                                    <Image
+                                        src={program.image}
+                                        alt={program.title}
+                                        fill
+                                        className="object-cover group-hover:scale-110 transition-transform duration-700"
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-80" />
+                                    <div className="absolute bottom-4 left-4">
+                                        <span className="inline-block px-3 py-1 bg-secondary/90 backdrop-blur-sm text-secondary-foreground text-xs font-bold rounded-full uppercase shadow-md">
+                                            {program.age}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="p-6">
+                                    <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-primary transition-colors">{program.title}</h3>
+                                    <p className="text-slate-600 text-sm mb-4 line-clamp-3 leading-relaxed">
+                                        {program.description}
+                                    </p>
+                                    <span className="inline-flex items-center text-primary font-bold text-sm group-hover:translate-x-1 transition-transform">
+                                        Learn more <ArrowRight className="ml-1 w-4 h-4" />
                                     </span>
                                 </div>
-                            </div>
-
-                            <div className="p-6">
-                                <h3 className="text-xl font-bold text-slate-900 mb-2">{program.title}</h3>
-                                <p className="text-slate-600 text-sm mb-4 line-clamp-3">
-                                    {program.description}
-                                </p>
-                                <span className="inline-flex items-center text-primary font-semibold text-sm group-hover:text-blue-700 transition-colors">
-                                    Learn more <ArrowRight className="ml-1 w-4 h-4" />
-                                </span>
-                            </div>
-                        </Link>
+                            </Link>
+                        </ScrollAnimation>
                     ))}
                 </div>
             </div>

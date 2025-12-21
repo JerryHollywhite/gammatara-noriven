@@ -27,7 +27,8 @@ export default function Hero({ backgroundImage, title, subtitle, ctaText }: Hero
                     sizes="100vw"
                 />
                 <div className="absolute inset-0 bg-slate-900/60 mix-blend-multiply" />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-slate-900/10" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-slate-900/40" />
+                <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-transparent to-slate-900/30" />
             </div>
 
             <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">

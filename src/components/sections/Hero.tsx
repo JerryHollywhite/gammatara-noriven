@@ -1,21 +1,28 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image"; // Added Image import
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "../ui/Button";
 import { motion } from "framer-motion";
 
-export default function Hero() {
+interface HeroProps {
+    backgroundImage?: string;
+}
+
+export default function Hero({ backgroundImage }: HeroProps) {
     return (
-        <div className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
+        <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
             {/* Background Image with Overlay */}
-            <div
-                className="absolute inset-0 z-0 bg-cover bg-center"
-                style={{
-                    // Using a high-quality Unsplash image as placeholder for "Teacher helping student"
-                    backgroundImage: "url('https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=2787&auto=format&fit=crop')",
-                }}
-            >
+            <div className="absolute inset-0 z-0">
+                <Image
+                    src={backgroundImage || "https://images.unsplash.com/photo-1577896337318-2869d3240e4e?q=80&w=2070&auto=format&fit=crop"}
+                    alt="Gamma Tara Learning Centre"
+                    fill
+                    className="object-cover"
+                    priority
+                    sizes="100vw"
+                />
                 <div className="absolute inset-0 bg-slate-900/60 mix-blend-multiply" />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-slate-900/10" />
             </div>

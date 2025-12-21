@@ -114,3 +114,25 @@ export async function getGalleryImages(category: string): Promise<GalleryItem[]>
         }))
         .filter((item) => item.category.toLowerCase() === category.toLowerCase() && item.imageUrl);
 }
+
+export async function getSiteImages(): Promise<Record<string, string>> {
+    if (!GALLERY_SHEET_URL) return {};
+
+    const data = await getSheetData(GALLERY_SHEET_URL);
+
+    if (!data) return {};
+
+    const imageMap: Record<string, string> = {};
+
+    data.forEach((row) => {
+        const key = row[0] ? row[0].trim() : "";
+        const url = formatGoogleDriveUrl(row[1]);
+
+        // Only set if key exists and hasn't been set (first match wins) AND url is valid
+        if (key && url && !imageMap[key]) {
+            imageMap[key] = url;
+        }
+    });
+
+    return imageMap;
+}

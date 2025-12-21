@@ -35,7 +35,16 @@ const programs = [
     }
 ];
 
-export default function AcademicPrograms() {
+interface AcademicProgramsProps {
+    programImages?: Record<string, string>;
+}
+
+export default function AcademicPrograms({ programImages = {} }: AcademicProgramsProps) {
+    const updatedPrograms = programs.map(p => ({
+        ...p,
+        image: programImages[`Card_${p.title}`] || programImages[`Card_${p.id}`] || p.image
+    }));
+
     return (
         <section id="programs" className="py-24 bg-slate-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -50,7 +59,7 @@ export default function AcademicPrograms() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {programs.map((program) => (
+                    {updatedPrograms.map((program) => (
                         <div key={program.id} className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                             <div className="relative h-48 overflow-hidden">
                                 <Image

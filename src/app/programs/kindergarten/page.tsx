@@ -4,20 +4,25 @@ import ContactSection from "@/components/sections/ContactSection";
 import ProgramGallery from "@/components/sections/ProgramGallery";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle } from "lucide-react";
-import { getGalleryImages } from "@/lib/googleSheets";
+import { getGalleryImages, getSiteImages } from "@/lib/googleSheets";
 
 export const revalidate = 60;
 
 export default async function KindergartenPage() {
     const galleryImages = await getGalleryImages("Kindergarten");
+    const siteImages = await getSiteImages();
+    const heroImage = siteImages["Hero_Kindergarten"];
 
     return (
         <main className="min-h-screen bg-white">
             <Navbar />
 
             {/* Hero Section */}
-            <div className="relative pt-32 pb-20 lg:pt-40 lg:pb-28 bg-slate-50 overflow-hidden">
-                <div className="absolute inset-0 bg-grid-slate-100/[0.5] -z-10" />
+            <div
+                className="relative pt-32 pb-20 lg:pt-40 lg:pb-28 bg-slate-50 overflow-hidden"
+                style={heroImage ? { backgroundImage: `url(${heroImage})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
+            >
+                <div className={`absolute inset-0 ${heroImage ? 'bg-white/80' : 'bg-grid-slate-100/[0.5]'} -z-10`} />
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
                     <div className="mb-8">
                         <Link href="/#programs" className="text-primary hover:text-primary/80 font-medium inline-flex items-center gap-2 transition-colors">

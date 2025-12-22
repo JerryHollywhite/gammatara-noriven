@@ -104,7 +104,7 @@ export async function updateUserStatus(email: string, status: string) {
     }
 }
 
-export async function getModulesForRole(role: string) {
+export async function getModulesForUser(email: string, role: string) {
     try {
         // 1. Get Access Rules
         const accessResponse = await sheets.spreadsheets.values.get({
@@ -115,8 +115,12 @@ export async function getModulesForRole(role: string) {
         const rows = accessResponse.data.values;
         if (!rows) return [];
 
-        // Filter folders for this role
-        const allowedFolders = rows.filter(row => row[0] === role || row[0] === 'All');
+        // Filter folders for this user (Match Email OR Role OR 'All')
+        // We assume Column A (row[0]) can contain either an Email or a Role.
+        const allowedFolders = rows.filter(row => {
+            const accessKey = row[0]?.toLowerCase();
+            return accessKey === email.toLowerCase() || accessKey === role.toLowerCase() || accessKey === 'all';
+        });
 
         // 2. Fetch Files from Drive for each folder
         const modules = [];
@@ -134,6 +138,7 @@ export async function getModulesForRole(role: string) {
                 });
 
                 modules.push({
+                    id: folderId,
                     folderName,
                     description,
                     files: fileRes.data.files || []

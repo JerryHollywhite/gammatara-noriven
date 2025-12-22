@@ -7,7 +7,9 @@ import { getSiteImages, getSiteContent } from "@/lib/googleSheets";
 
 export const revalidate = 60;
 
-export default async function ProgramsPage() {
+export default async function ProgramsPage(props: { searchParams: Promise<{ lang?: string }> }) {
+    const searchParams = await props.searchParams;
+    const lang = (searchParams?.lang as 'id' | 'en' | 'cn') || 'id';
     const [siteImages, siteContent] = await Promise.all([
         getSiteImages(),
         getSiteContent()

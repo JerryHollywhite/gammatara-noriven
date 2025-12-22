@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Menu, X } from "lucide-react";
 import { clsx } from "clsx";
+import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
 
 // Navigation Items - Updated to point to real pages
 const navItems = [
@@ -15,7 +16,11 @@ const navItems = [
     { name: "Gallery", href: "/gallery" },
 ];
 
-export default function Navbar() {
+interface NavbarProps {
+    logoUrl?: string;
+}
+
+export default function Navbar({ logoUrl }: NavbarProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
 
@@ -42,7 +47,7 @@ export default function Navbar() {
                     <Link href="/" className="flex items-center gap-2 group">
                         <div className="relative w-10 h-10 overflow-hidden bg-primary/10 rounded-lg p-1 transition-transform group-hover:scale-105">
                             <Image
-                                src="https://lh3.googleusercontent.com/d/1wW4iFwO9OaQv6pX4YlZgC2jUqK5qV9X_"
+                                src={logoUrl || "https://drive.google.com/uc?export=view&id=1QwTFI0BxqAy2i74TzJb9RkR_dqUvQyIl"}
                                 alt="Gamma Tara Logo"
                                 width={40}
                                 height={40}
@@ -71,6 +76,8 @@ export default function Navbar() {
                                 {item.name}
                             </Link>
                         ))}
+
+                        <LanguageSwitcher />
 
                         <Link
                             href="#contact"
@@ -106,6 +113,9 @@ export default function Navbar() {
                                 {item.name}
                             </Link>
                         ))}
+                        <div className="px-3 py-2">
+                            <LanguageSwitcher />
+                        </div>
                         <Link
                             href="#contact"
                             className="mt-4 block w-full text-center bg-primary text-white px-4 py-3 rounded-full font-semibold shadow-md active:bg-primary/90"

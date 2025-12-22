@@ -11,16 +11,19 @@ import PageHeader from "@/components/layout/PageHeader";
 
 export const revalidate = 60;
 
-export default async function KindergartenPage() {
+export default async function KindergartenPage(props: { searchParams: Promise<{ lang?: string }> }) {
+    const searchParams = await props.searchParams;
+    const lang = (searchParams?.lang as 'id' | 'en' | 'cn') || 'id';
+
     const [galleryImages, siteImages, siteContent] = await Promise.all([
         getGalleryImages("Kindergarten"),
         getSiteImages(),
-        getSiteContent()
+        getSiteContent(lang)
     ]);
 
     return (
         <main className="min-h-screen bg-white">
-            <Navbar />
+            <Navbar logoUrl={siteImages["Logo"]} />
 
             <PageHeader
                 title={siteContent["Kindergarten_Page_Title"] || "Kindergarten Program"}

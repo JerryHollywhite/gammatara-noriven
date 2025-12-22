@@ -11,16 +11,19 @@ import PageHeader from "@/components/layout/PageHeader";
 
 export const revalidate = 60;
 
-export default async function AdultPage() {
+export default async function AdultPage(props: { searchParams: Promise<{ lang?: string }> }) {
+    const searchParams = await props.searchParams;
+    const lang = (searchParams?.lang as 'id' | 'en' | 'cn') || 'id';
+
     const [galleryImages, siteImages, siteContent] = await Promise.all([
         getGalleryImages("Adult"),
         getSiteImages(),
-        getSiteContent()
+        getSiteContent(lang)
     ]);
 
     return (
         <main className="min-h-screen bg-white">
-            <Navbar />
+            <Navbar logoUrl={siteImages["Logo"]} />
 
             <PageHeader
                 title={siteContent["Adult_Page_Title"] || "Adult & Professional Program"}

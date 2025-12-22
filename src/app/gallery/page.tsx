@@ -7,23 +7,29 @@ import { getGalleryImages, getSiteImages, getSiteContent } from "@/lib/googleShe
 
 export const revalidate = 60;
 
-export default async function GalleryPage() {
-    const [siteImages, siteContent, allImages] = await Promise.all([
+export default async function GalleryPage(props: { searchParams: Promise<{ lang?: string }> }) {
+    const searchParams = await props.searchParams;
+    const lang = (searchParams?.lang as 'id' | 'en' | 'cn') || 'id';
+
+    const [galleryImages, siteImages, siteContent] = await Promise.all([
+        getGalleryImages(), // Get ALL images for the main gallery
         getSiteImages(),
-        getSiteContent(),
-        getGalleryImages()
+        getSiteContent(lang)
     ]);
+
+    // Group images by category for filtering
+    const categories = ["All", "Kindergarten", "Primary", "Secondary", "Adult"];
 
     return (
         <main className="min-h-screen bg-white">
-            <Navbar />
+            <Navbar logoUrl={siteImages["Logo"]} />
             <PageHeader
                 title={siteContent["Gallery_Header_Title"] || "Our Gallery"}
                 subtitle={siteContent["Gallery_Header_Subtitle"] || "Capturing moments of learning, joy, and growth."}
                 backgroundImage={siteImages["Hero_Gallery"]}
             />
 
-            <ProgramGallery images={allImages} title={siteContent["Gallery_Section_Title"] || "All Moments"} />
+            <ProgramGallery images={galleryImages} title={siteContent["Gallery_Section_Title"] || "All Moments"} />
 
             <div className="bg-slate-50 py-12">
                 <ContactSection

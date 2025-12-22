@@ -26,7 +26,6 @@ export interface Testimonial {
 const TEACHERS_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQqqvzypykY7PGqqOGqhXIGyU-HwzbTaxtKZC4hyrW_LWGwL42YNC7aNx-Ullc_YTuHtEKVxvZkdY-O/pub?gid=0&single=true&output=csv";
 const SCHEDULES_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQqqvzypykY7PGqqOGqhXIGyU-HwzbTaxtKZC4hyrW_LWGwL42YNC7aNx-Ullc_YTuHtEKVxvZkdY-O/pub?gid=1804855&single=true&output=csv";
 const TESTIMONIALS_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQqqvzypykY7PGqqOGqhXIGyU-HwzbTaxtKZC4hyrW_LWGwL42YNC7aNx-Ullc_YTuHtEKVxvZkdY-O/pub?gid=1776102288&single=true&output=csv";
-// Placeholder for the Gallery Sheet URL - User needs to provide this
 const GALLERY_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQqqvzypykY7PGqqOGqhXIGyU-HwzbTaxtKZC4hyrW_LWGwL42YNC7aNx-Ullc_YTuHtEKVxvZkdY-O/pub?gid=159415718&single=true&output=csv";
 
 export interface GalleryItem {
@@ -185,17 +184,24 @@ export async function getSiteImages(): Promise<Record<string, string>> {
 // Placeholder - User needs to update this GID
 const SITE_CONTENT_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQqqvzypykY7PGqqOGqhXIGyU-HwzbTaxtKZC4hyrW_LWGwL42YNC7aNx-Ullc_YTuHtEKVxvZkdY-O/pub?gid=532554259&single=true&output=csv"; // Defaulting to 0, user must update
 
-export async function getSiteContent(): Promise<Record<string, string>> {
+export async function getSiteContent(lang: 'id' | 'en' | 'cn' = 'id'): Promise<Record<string, string>> {
     // If user hasn't set up the new tab yet, return empty to fallback to default text
     try {
         const data = await getSheetData(SITE_CONTENT_SHEET_URL);
         if (!data) return {};
 
         const contentMap: Record<string, string> = {};
+
+        // Determine column index based on language (Key is col 0)
+        // ID = col 1, EN = col 2, CN = col 3
+        const langIndex = lang === 'en' ? 2 : lang === 'cn' ? 3 : 1;
+
         data.forEach((row) => {
             const key = row[0] ? row[0].trim() : "";
-            const content = row[1] ? row[1].trim() : "";
-            if (key && content) {
+            // Ensure the row has enough columns, fallback to ID (col 1) or empty
+            const content = row[langIndex] ? row[langIndex].trim() : (row[1] || "");
+
+            if (key) {
                 contentMap[key] = content;
             }
         });

@@ -13,19 +13,23 @@ import PromoCarousel from "@/components/sections/PromoCarousel";
 // Revalidate data every 60 seconds (ISR)
 export const revalidate = 60;
 
-export default async function Home() {
-  const [teachers, schedules, siteImages, siteContent, promoImages, testimonials] = await Promise.all([
+export default async function Home(props: { searchParams: Promise<{ lang?: string }> }) {
+  const searchParams = await props.searchParams;
+  const lang = (searchParams?.lang as 'id' | 'en' | 'cn') || 'id';
+
+  const [teachers, galleryImages, testimonials, siteImages, siteContent, schedules, promoImages] = await Promise.all([
     getTeachers(),
-    getSchedules(),
+    getGalleryImages(),
+    getTestimonials(),
     getSiteImages(),
-    getSiteContent(),
-    getGalleryImages("Promo"),
-    getTestimonials()
+    getSiteContent(lang),
+    getSchedules(),
+    getGalleryImages("Promo")
   ]);
 
   return (
     <main className="min-h-screen bg-white font-sans text-slate-900">
-      <Navbar />
+      <Navbar logoUrl={siteImages["Logo"]} />
       <Hero
         backgroundImage={siteImages["Hero_Home"]}
         title={siteContent["Home_Hero_Title"]}

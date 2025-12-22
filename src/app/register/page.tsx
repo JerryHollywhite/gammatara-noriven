@@ -114,7 +114,7 @@ export default function RegisterPage() {
                             <label htmlFor="name" className="block text-sm font-medium text-slate-700">Full Name</label>
                             <div className="mt-1">
                                 <input id="name" name="name" type="text" required value={formData.name} onChange={handleChange}
-                                    className="appearance-none block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm text-slate-900" />
+                                    className="appearance-none block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm text-black bg-white" />
                             </div>
                         </div>
 
@@ -123,7 +123,7 @@ export default function RegisterPage() {
                             <label htmlFor="email" className="block text-sm font-medium text-slate-700">Email address</label>
                             <div className="mt-1">
                                 <input id="email" name="email" type="email" required value={formData.email} onChange={handleChange}
-                                    className="appearance-none block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm" />
+                                    className="appearance-none block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm text-black bg-white" />
                             </div>
                         </div>
 
@@ -132,7 +132,7 @@ export default function RegisterPage() {
                             <label htmlFor="phone" className="block text-sm font-medium text-slate-700">WhatsApp / Phone</label>
                             <div className="mt-1">
                                 <input id="phone" name="phone" type="text" required value={formData.phone} onChange={handleChange}
-                                    className="appearance-none block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm" />
+                                    className="appearance-none block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm text-black bg-white" />
                             </div>
                         </div>
 
@@ -141,7 +141,7 @@ export default function RegisterPage() {
                             <label htmlFor="role" className="block text-sm font-medium text-slate-700">I am a...</label>
                             <div className="mt-1">
                                 <select id="role" name="role" value={formData.role} onChange={handleChange}
-                                    className="block w-full px-3 py-2 border border-slate-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                                    className="block w-full px-3 py-2 border border-slate-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm text-black"
                                 >
                                     <option value="Student">Student</option>
                                     <option value="Teacher">Teacher</option>
@@ -155,7 +155,7 @@ export default function RegisterPage() {
                             <label htmlFor="password" className="block text-sm font-medium text-slate-700">Password</label>
                             <div className="mt-1">
                                 <input id="password" name="password" type="password" required value={formData.password} onChange={handleChange}
-                                    className="appearance-none block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm" />
+                                    className="appearance-none block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm text-black bg-white" />
                             </div>
                         </div>
 
@@ -164,7 +164,7 @@ export default function RegisterPage() {
                             <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700">Confirm Password</label>
                             <div className="mt-1">
                                 <input id="confirmPassword" name="confirmPassword" type="password" required value={formData.confirmPassword} onChange={handleChange}
-                                    className="appearance-none block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm" />
+                                    className="appearance-none block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm text-black bg-white" />
                             </div>
                         </div>
 

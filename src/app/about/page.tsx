@@ -14,8 +14,8 @@ export default async function AboutPage() {
         <main className="min-h-screen bg-white font-sans">
             <Navbar />
             <PageHeader
-                title="About Gamma Tara"
-                subtitle="Nurturing minds, building character, and shaping the future."
+                title={siteContent["About_Header_Title"] || "About Gamma Tara"}
+                subtitle={siteContent["About_Header_Subtitle"] || "Nurturing minds, building character, and shaping the future."}
                 backgroundImage={siteImages["Hero_About"]}
             />
 
@@ -39,12 +39,14 @@ Komitmen teguh Riven untuk mempromosikan pembelajaran seumur hidup dan pertumbuh
                 address={siteContent["Contact_Address"]}
                 phone={siteContent["Contact_Phone"]}
                 email={siteContent["Contact_Email"]}
+                siteContent={siteContent}
             />
             <Footer
                 address={siteContent["Contact_Address"]}
                 phone={siteContent["Contact_Phone"]}
                 email={siteContent["Contact_Email"]}
                 copyright={siteContent["Footer_Copyright"]}
+                siteContent={siteContent}
             />
         </main>
     );

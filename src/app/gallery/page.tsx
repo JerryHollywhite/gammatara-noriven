@@ -8,25 +8,38 @@ import { getGalleryImages, getSiteImages } from "@/lib/googleSheets";
 export const revalidate = 60;
 
 export default async function GalleryPage() {
-    const siteImages = await getSiteImages();
-    // Fetch all gallery images (excluding reserved ones like Hero_*)
-    const allImages = await getGalleryImages();
+    const [siteImages, siteContent, allImages] = await Promise.all([
+        getSiteImages(),
+        getSiteContent(),
+        getGalleryImages()
+    ]);
 
     return (
         <main className="min-h-screen bg-white">
             <Navbar />
             <PageHeader
-                title="Our Gallery"
-                subtitle="Capturing moments of learning, joy, and growth."
+                title={siteContent["Gallery_Header_Title"] || "Our Gallery"}
+                subtitle={siteContent["Gallery_Header_Subtitle"] || "Capturing moments of learning, joy, and growth."}
                 backgroundImage={siteImages["Hero_Gallery"]}
             />
 
-            <ProgramGallery images={allImages} title="All Moments" />
+            <ProgramGallery images={allImages} title={siteContent["Gallery_Section_Title"] || "All Moments"} />
 
             <div className="bg-slate-50 py-12">
-                <ContactSection />
+                <ContactSection
+                    address={siteContent["Contact_Address"]}
+                    phone={siteContent["Contact_Phone"]}
+                    email={siteContent["Contact_Email"]}
+                    siteContent={siteContent}
+                />
             </div>
-            <Footer />
+            <Footer
+                address={siteContent["Contact_Address"]}
+                phone={siteContent["Contact_Phone"]}
+                email={siteContent["Contact_Email"]}
+                copyright={siteContent["Footer_Copyright"]}
+                siteContent={siteContent}
+            />
         </main>
     );
 }

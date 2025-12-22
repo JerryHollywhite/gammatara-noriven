@@ -6,22 +6,25 @@ import ProgramGallery from "@/components/sections/ProgramGallery";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, CheckCircle } from "lucide-react";
-import { getGalleryImages, getSiteImages } from "@/lib/googleSheets";
+import { getGalleryImages, getSiteImages, getSiteContent } from "@/lib/googleSheets";
 import PageHeader from "@/components/layout/PageHeader";
 
 export const revalidate = 60;
 
-export default async function AdultProfessionalPage() {
-    const galleryImages = await getGalleryImages("Adult");
-    const siteImages = await getSiteImages();
+export default async function AdultPage() {
+    const [galleryImages, siteImages, siteContent] = await Promise.all([
+        getGalleryImages("Adult"),
+        getSiteImages(),
+        getSiteContent()
+    ]);
 
     return (
         <main className="min-h-screen bg-white">
             <Navbar />
 
             <PageHeader
-                title="Adult & Professional"
-                subtitle="Practical skills for career advancement."
+                title={siteContent["Adult_Page_Title"] || "Adult & Professional Program"}
+                subtitle={siteContent["Adult_Page_Subtitle"] || "Practical skills for career advancement."}
                 backgroundImage={siteImages["Hero_Adult"]}
             />
 
@@ -33,29 +36,26 @@ export default async function AdultProfessionalPage() {
                             {siteImages["Content_Adult"] ? (
                                 <Image
                                     src={siteImages["Content_Adult"]}
-                                    alt="Adult Professional Class"
+                                    alt="Professional Learning"
                                     fill
                                     className="object-cover"
                                     sizes="(max-width: 768px) 100vw, 50vw"
                                 />
                             ) : (
                                 <div className="absolute inset-0 flex items-center justify-center text-slate-400 bg-slate-100">
-                                    Image: Professionals in Workshop (Add 'Content_Adult' to Sheet)
+                                    Image: Professional Learning (Add 'Content_Adult' to Sheet)
                                 </div>
                             )}
                         </div>
 
                         <div>
-                            <h3 className="text-2xl font-bold text-slate-900 mb-6">Lifelong Learning</h3>
-                            <p className="text-slate-600 mb-6">
-                                In today's fast-paced world, continuous learning is key. We offer focused courses designed for busy working adults.
-                            </p>
+                            <h3 className="text-2xl font-bold text-slate-900 mb-6">{siteContent["Adult_Content_Title"] || "Upskill and Stay Competitive"}</h3>
                             <div className="space-y-4">
                                 {[
-                                    "English for Business: Communicate effectively in global markets.",
-                                    "TOEFL / IELTS Prep: Certification for study or work abroad.",
-                                    "Specialized Workshops: Data analysis, public speaking, and more.",
-                                    "Flexible Schedule: Evening and weekend classes available."
+                                    siteContent["Adult_Feature_1"] || "English Conversation: Build confidence in speaking.",
+                                    siteContent["Adult_Feature_2"] || "Business Writing: Professional email and report writing.",
+                                    siteContent["Adult_Feature_3"] || "Mandarin for Business: Practical language skills.",
+                                    siteContent["Adult_Feature_4"] || "Flexible Schedule: Evening and weekend classes available."
                                 ].map((item, i) => (
                                     <div key={i} className="flex gap-3 items-start">
                                         <CheckCircle className="w-6 h-6 text-secondary flex-shrink-0 mt-0.5" />
@@ -69,7 +69,7 @@ export default async function AdultProfessionalPage() {
                                     href="#contact"
                                     className="inline-block bg-primary text-white text-lg font-semibold px-8 py-3 rounded-full hover:bg-primary/90 transition-colors shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform transition-all"
                                 >
-                                    Check Class Availability
+                                    {siteContent["Adult_Page_CTA"] || "Check Class Availability"}
                                 </Link>
                             </div>
                         </div>
@@ -78,10 +78,21 @@ export default async function AdultProfessionalPage() {
             </section>
 
             {/* Dynamic Gallery */}
-            <ProgramGallery images={galleryImages} title="Professional Development" />
+            <ProgramGallery images={galleryImages} title={siteContent["Adult_Gallery_Title"] || "Professional Moments"} />
 
-            <ContactSection />
-            <Footer />
+            <ContactSection
+                address={siteContent["Contact_Address"]}
+                phone={siteContent["Contact_Phone"]}
+                email={siteContent["Contact_Email"]}
+                siteContent={siteContent}
+            />
+            <Footer
+                address={siteContent["Contact_Address"]}
+                phone={siteContent["Contact_Phone"]}
+                email={siteContent["Contact_Email"]}
+                copyright={siteContent["Footer_Copyright"]}
+                siteContent={siteContent}
+            />
         </main>
     );
 }

@@ -6,33 +6,27 @@ import ProgramGallery from "@/components/sections/ProgramGallery";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, CheckCircle } from "lucide-react";
-import { getGalleryImages, getSiteImages } from "@/lib/googleSheets";
+import { getGalleryImages, getSiteImages, getSiteContent } from "@/lib/googleSheets";
 import PageHeader from "@/components/layout/PageHeader";
 
 export const revalidate = 60;
 
-export default async function PrimarySchoolPage() {
-    const galleryImages = await getGalleryImages("Primary");
-    const siteImages = await getSiteImages();
-    const heroImage = siteImages["Hero_Primary"];
+export default async function PrimaryPage() {
+    const [galleryImages, siteImages, siteContent] = await Promise.all([
+        getGalleryImages("Primary"),
+        getSiteImages(),
+        getSiteContent()
+    ]);
 
     return (
         <main className="min-h-screen bg-white">
             <Navbar />
 
             <PageHeader
-                title="Primary School Program"
-                subtitle="Developing independence and mastering basics."
+                title={siteContent["Primary_Page_Title"] || "Primary School Program"}
+                subtitle={siteContent["Primary_Page_Subtitle"] || "Developing independence and mastering basics."}
                 backgroundImage={siteImages["Hero_Primary"]}
             />
-
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 relative z-20">
-                <div className="mb-0">
-                    <Link href="/programs" className="text-white/90 hover:text-white font-medium inline-flex items-center gap-2 transition-colors bg-black/20 px-4 py-2 rounded-full backdrop-blur-sm">
-                        <ArrowLeft className="w-4 h-4" /> Back to Programs
-                    </Link>
-                </div>
-            </div>
 
             {/* Content Section */}
             <section className="py-20">
@@ -49,22 +43,19 @@ export default async function PrimarySchoolPage() {
                                 />
                             ) : (
                                 <div className="absolute inset-0 flex items-center justify-center text-slate-400 bg-slate-100">
-                                    Image: Primary School Students (Add 'Content_Primary' to Sheet)
+                                    Image: Primary Kids Learning (Add 'Content_Primary' to Sheet)
                                 </div>
                             )}
                         </div>
 
                         <div>
-                            <h3 className="text-2xl font-bold text-slate-900 mb-6">Mastering the Basics</h3>
-                            <p className="text-slate-600 mb-6">
-                                Primary school is a crucial time for building academic confidence. We focus on ensuring every student truly understands the core concepts before moving forward.
-                            </p>
+                            <h3 className="text-2xl font-bold text-slate-900 mb-6">{siteContent["Primary_Content_Title"] || "Building Confidence in Core Subjects"}</h3>
                             <div className="space-y-4">
                                 {[
-                                    "Core Subjects: Mathematics, Science, English, & Bahasa.",
-                                    "Homework Help: Daily guidance to ensure assignments are understood.",
-                                    "Exam Preparation: Specific drills for mid-terms and finals.",
-                                    "Character Building: Encouraging discipline and curiosity."
+                                    siteContent["Primary_Feature_1"] || "Core Mastery: Strong focus on Math, Science, and Languages.",
+                                    siteContent["Primary_Feature_2"] || "Homework Help: Guided assistance for daily school tasks.",
+                                    siteContent["Primary_Feature_3"] || "Critical Thinking: Encouraging problem-solving skills.",
+                                    siteContent["Primary_Feature_4"] || "Character Building: Instilling discipline and responsibility."
                                 ].map((item, i) => (
                                     <div key={i} className="flex gap-3 items-start">
                                         <CheckCircle className="w-6 h-6 text-secondary flex-shrink-0 mt-0.5" />
@@ -78,7 +69,7 @@ export default async function PrimarySchoolPage() {
                                     href="#contact"
                                     className="inline-block bg-primary text-white text-lg font-semibold px-8 py-3 rounded-full hover:bg-primary/90 transition-colors shadow-lg hover:shadow-xl hover:-translate-y-0.5 transform transition-all"
                                 >
-                                    Check Class Availability
+                                    {siteContent["Primary_Page_CTA"] || "Check Class Availability"}
                                 </Link>
                             </div>
                         </div>
@@ -87,10 +78,21 @@ export default async function PrimarySchoolPage() {
             </section>
 
             {/* Dynamic Gallery */}
-            <ProgramGallery images={galleryImages} title="Student Activities" />
+            <ProgramGallery images={galleryImages} title={siteContent["Primary_Gallery_Title"] || "Primary School Moments"} />
 
-            <ContactSection />
-            <Footer />
+            <ContactSection
+                address={siteContent["Contact_Address"]}
+                phone={siteContent["Contact_Phone"]}
+                email={siteContent["Contact_Email"]}
+                siteContent={siteContent}
+            />
+            <Footer
+                address={siteContent["Contact_Address"]}
+                phone={siteContent["Contact_Phone"]}
+                email={siteContent["Contact_Email"]}
+                copyright={siteContent["Footer_Copyright"]}
+                siteContent={siteContent}
+            />
         </main>
     );
 }

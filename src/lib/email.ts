@@ -3,8 +3,7 @@ import nodemailer from 'nodemailer';
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL, // Usually we need a real Gmail here, not service account email for SMTP
-        // BUT, since we are using Service Account for Sheets, maybe the user wants to use a personal Gmail for SMTP?
+        // We are using Service Account for Sheets, maybe the user wants to use a personal Gmail for SMTP?
         // OR the user has not set up SMTP.
         // For now, I will assume GOOGLE_SMTP_USER and GOOGLE_SMTP_PASS env vars exist or will be added.
         // If not, I'll fallback to a console log mock for development/demo if credentials fail.

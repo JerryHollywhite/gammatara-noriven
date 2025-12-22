@@ -91,8 +91,13 @@ export default function RegisterPage() {
                     <ArrowLeft className="w-4 h-4 mr-2" /> Back to Home
                 </Link>
                 <div className="flex justify-center">
-                    <div className="relative w-16 h-16 rounded-xl overflow-hidden shadow-lg">
-                        <Image src="/logo.png" alt="Gamma Tara" fill className="object-cover" />
+                    <div className="relative w-24 h-24 rounded-xl overflow-hidden mb-2">
+                        <Image
+                            src="https://drive.google.com/thumbnail?id=1QwTFI0BxqAy2i74TzJb9RkR_dqUvQyIl&sz=s1000"
+                            alt="Gamma Tara Logo"
+                            fill
+                            className="object-contain"
+                        />
                     </div>
                 </div>
                 <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900 font-heading">

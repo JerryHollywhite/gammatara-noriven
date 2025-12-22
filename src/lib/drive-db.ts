@@ -126,9 +126,15 @@ export async function getModulesForUser(email: string, role: string) {
         const modules = [];
 
         for (const folder of allowedFolders) {
-            const folderId = folder[1];
+            let folderId = folder[1];
             const folderName = folder[2];
             const description = folder[3];
+
+            // Auto-extract ID if user pasted a full URL
+            if (folderId.includes("drive.google.com")) {
+                const parts = folderId.split("/");
+                folderId = parts[parts.length - 1].split("?")[0]; // Handle query params
+            }
 
             try {
                 // List files in folder

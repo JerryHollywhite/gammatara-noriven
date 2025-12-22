@@ -11,9 +11,10 @@ interface HeroProps {
     title?: string;
     subtitle?: string;
     ctaText?: string;
+    siteContent?: Record<string, string>;
 }
 
-export default function Hero({ backgroundImage, title, subtitle, ctaText }: HeroProps) {
+export default function Hero({ backgroundImage, title, subtitle, ctaText, siteContent = {} }: HeroProps) {
     return (
         <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
             {/* Background Image with Overlay */}
@@ -39,7 +40,9 @@ export default function Hero({ backgroundImage, title, subtitle, ctaText }: Hero
                 >
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-6">
                         <span className="flex h-2 w-2 rounded-full bg-secondary animate-pulse"></span>
-                        <span className="text-sm font-medium tracking-wide uppercase">New Intake Open for 2025</span>
+                        <span className="text-sm font-medium tracking-wide uppercase">
+                            {siteContent["Home_Hero_Badge"] || "New Intake Open for 2025"}
+                        </span>
                     </div>
 
                     <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold font-heading mb-6 leading-tight tracking-tight drop-shadow-sm">
@@ -58,7 +61,7 @@ export default function Hero({ backgroundImage, title, subtitle, ctaText }: Hero
                         </Link>
                         <Link href="#programs">
                             <Button variant="outline" size="lg" className="rounded-full text-lg w-full sm:w-auto h-14 bg-white/5 border-white/20 text-white hover:bg-white hover:text-slate-900 backdrop-blur-sm">
-                                Explore Programs
+                                {siteContent["Home_Hero_Secondary_CTA"] || "Explore Programs"}
                             </Button>
                         </Link>
                     </div>
@@ -66,15 +69,15 @@ export default function Hero({ backgroundImage, title, subtitle, ctaText }: Hero
                     <div className="mt-12 flex flex-wrap justify-center gap-6 md:gap-12 text-sm md:text-base font-medium text-slate-300">
                         <div className="flex items-center gap-2">
                             <CheckCircle2 className="w-5 h-5 text-secondary" />
-                            <span>Small Class Sizes (4-7 Max)</span>
+                            <span>{siteContent["Home_Hero_Feature_1"] || "Small Class Sizes (4-7 Max)"}</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <CheckCircle2 className="w-5 h-5 text-secondary" />
-                            <span>Personalized Curriculum</span>
+                            <span>{siteContent["Home_Hero_Feature_2"] || "Personalized Curriculum"}</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <CheckCircle2 className="w-5 h-5 text-secondary" />
-                            <span>Proven Track Record</span>
+                            <span>{siteContent["Home_Hero_Feature_3"] || "Proven Track Record"}</span>
                         </div>
                     </div>
                 </motion.div>

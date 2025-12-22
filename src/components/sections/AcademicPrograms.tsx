@@ -99,7 +99,7 @@ export default function AcademicPrograms({ programImages = {}, siteContent = {} 
                                         {program.description}
                                     </p>
                                     <span className="inline-flex items-center text-primary font-bold text-sm group-hover:translate-x-1 transition-transform">
-                                        Learn more <ArrowRight className="ml-1 w-4 h-4" />
+                                        {siteContent["Program_Card_CTA"] || "Learn more"} <ArrowRight className="ml-1 w-4 h-4" />
                                     </span>
                                 </div>
                             </Link>

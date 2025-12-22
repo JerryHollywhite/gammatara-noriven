@@ -30,6 +30,7 @@ export default async function Home() {
         title={siteContent["Home_Hero_Title"]}
         subtitle={siteContent["Home_Hero_Subtitle"]}
         ctaText={siteContent["Home_Hero_CTA"]}
+        siteContent={siteContent}
       />
       <PromoCarousel
         promos={promoImages}
@@ -56,6 +57,7 @@ export default async function Home() {
         phone={siteContent["Contact_Phone"]}
         email={siteContent["Contact_Email"]}
         copyright={siteContent["Footer_Copyright"]}
+        siteContent={siteContent}
       />
     </main>
   );

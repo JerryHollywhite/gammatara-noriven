@@ -34,7 +34,7 @@ export default function ContactSection({ address, phone, email, siteContent = {}
                                     <MapPin className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <h4 className="font-bold text-slate-900">Visit Us</h4>
+                                    <h4 className="font-bold text-slate-900">{siteContent["Contact_Label_Address"] || "Visit Us"}</h4>
                                     <p className="text-slate-600">
                                         {address || "Ruko Cahaya Garden Blok AA No. 28-29, Kel. Sei Panas, Batam 29433."}
                                     </p>
@@ -46,7 +46,7 @@ export default function ContactSection({ address, phone, email, siteContent = {}
                                     <Phone className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <h4 className="font-bold text-slate-900">Call or WhatsApp</h4>
+                                    <h4 className="font-bold text-slate-900">{siteContent["Contact_Label_Phone"] || "Call or WhatsApp"}</h4>
                                     <p className="text-slate-600">
                                         {phone || "+62 851 1718 8131"}
                                     </p>
@@ -58,7 +58,7 @@ export default function ContactSection({ address, phone, email, siteContent = {}
                                     <Mail className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <h4 className="font-bold text-slate-900">Email Us</h4>
+                                    <h4 className="font-bold text-slate-900">{siteContent["Contact_Label_Email"] || "Email Us"}</h4>
                                     <p className="text-slate-600">
                                         {email || "gammatara88@gmail.com"}
                                     </p>
@@ -73,27 +73,27 @@ export default function ContactSection({ address, phone, email, siteContent = {}
                         <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <label htmlFor="name" className="text-sm font-medium text-slate-700">Student Name</label>
+                                    <label htmlFor="name" className="text-sm font-medium text-slate-700">{siteContent["Contact_Form_Label_StudentName"] || "Student Name"}</label>
                                     <input type="text" id="name" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" placeholder="Enter name" />
                                 </div>
                                 <div className="space-y-2">
-                                    <label htmlFor="grade" className="text-sm font-medium text-slate-700">Current Grade</label>
+                                    <label htmlFor="grade" className="text-sm font-medium text-slate-700">{siteContent["Contact_Form_Label_Grade"] || "Current Grade"}</label>
                                     <input type="text" id="grade" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" placeholder="e.g. Grade 5" />
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <label htmlFor="parentName" className="text-sm font-medium text-slate-700">Parent's Name</label>
+                                <label htmlFor="parentName" className="text-sm font-medium text-slate-700">{siteContent["Contact_Form_Label_ParentName"] || "Parent's Name"}</label>
                                 <input type="text" id="parentName" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" placeholder="Enter parent's name" />
                             </div>
 
                             <div className="space-y-2">
-                                <label htmlFor="contact" className="text-sm font-medium text-slate-700">WhatsApp / Phone</label>
+                                <label htmlFor="contact" className="text-sm font-medium text-slate-700">{siteContent["Contact_Form_Label_Phone"] || "WhatsApp / Phone"}</label>
                                 <input type="tel" id="contact" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" placeholder="+62..." />
                             </div>
 
                             <div className="space-y-2">
-                                <label htmlFor="program" className="text-sm font-medium text-slate-700">Program Interest</label>
+                                <label htmlFor="program" className="text-sm font-medium text-slate-700">{siteContent["Contact_Form_Label_Program"] || "Program Interest"}</label>
                                 <select id="program" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white">
                                     <option value="">Select a program...</option>
                                     <option value="kindergarten">Kindergarten</option>
@@ -104,11 +104,11 @@ export default function ContactSection({ address, phone, email, siteContent = {}
                             </div>
 
                             <Button className="w-full text-lg h-12 mt-2">
-                                Send Message <Send className="ml-2 w-4 h-4" />
+                                {siteContent["Contact_Form_Button_Label"] || "Send Message"} <Send className="ml-2 w-4 h-4" />
                             </Button>
 
                             <p className="text-xs text-center text-slate-500 mt-4">
-                                We will contact you shortly to confirm your slot.
+                                {siteContent["Contact_Form_Success_Message"] || "We will contact you shortly to confirm your slot."}
                             </p>
                         </form>
                     </div>

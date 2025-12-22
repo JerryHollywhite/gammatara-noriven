@@ -6,9 +6,10 @@ interface FooterProps {
     phone?: string;
     email?: string;
     copyright?: string;
+    siteContent?: Record<string, string>;
 }
 
-export default function Footer({ address, phone, email, copyright }: FooterProps) {
+export default function Footer({ address, phone, email, copyright, siteContent = {} }: FooterProps) {
     return (
         <footer className="bg-slate-900 text-slate-300 py-12 border-t border-slate-800">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -18,7 +19,7 @@ export default function Footer({ address, phone, email, copyright }: FooterProps
                     <div className="space-y-4">
                         <h3 className="text-2xl font-bold font-heading text-white">Gamma Tara</h3>
                         <p className="max-w-xs text-slate-400">
-                            Unlock Your Potential. We provide personalized guidance to help every student achieve their best academic results.
+                            {siteContent["Footer_Description"] || "Unlock Your Potential. We provide personalized guidance to help every student achieve their best academic results."}
                         </p>
                         <div className="flex space-x-4 pt-2">
                             <Link href="#" className="hover:text-primary-foreground transition-colors"><Facebook className="w-5 h-5" /></Link>
@@ -35,18 +36,18 @@ export default function Footer({ address, phone, email, copyright }: FooterProps
 
                     {/* Quick Links */}
                     <div className="space-y-4">
-                        <h4 className="text-lg font-semibold text-white">Programs</h4>
+                        <h4 className="text-lg font-semibold text-white">{siteContent["Footer_Label_Programs"] || "Programs"}</h4>
                         <ul className="space-y-2">
-                            <li><Link href="#program-kindergarten" className="hover:text-white transition-colors">Kindergarten (Ages 4-6)</Link></li>
-                            <li><Link href="#program-primary" className="hover:text-white transition-colors">Primary School (Grades 1-6)</Link></li>
-                            <li><Link href="#program-secondary" className="hover:text-white transition-colors">Secondary School (SMP & SMA)</Link></li>
-                            <li><Link href="#program-adult" className="hover:text-white transition-colors">Adult & Professional</Link></li>
+                            <li><Link href="#program-kindergarten" className="hover:text-white transition-colors">{siteContent["Footer_Link_Kindergarten"] || "Kindergarten (Ages 4-6)"}</Link></li>
+                            <li><Link href="#program-primary" className="hover:text-white transition-colors">{siteContent["Footer_Link_Primary"] || "Primary School (Grades 1-6)"}</Link></li>
+                            <li><Link href="#program-secondary" className="hover:text-white transition-colors">{siteContent["Footer_Link_Secondary"] || "Secondary School (SMP & SMA)"}</Link></li>
+                            <li><Link href="#program-adult" className="hover:text-white transition-colors">{siteContent["Footer_Link_Adult"] || "Adult & Professional"}</Link></li>
                         </ul>
                     </div>
 
                     {/* Contact Info */}
                     <div className="space-y-4">
-                        <h4 className="text-lg font-semibold text-white">Contact Us</h4>
+                        <h4 className="text-lg font-semibold text-white">{siteContent["Footer_Label_Contact"] || "Contact Us"}</h4>
                         <div className="space-y-3">
                             <div className="flex items-start gap-3">
                                 <MapPin className="w-5 h-5 text-primary-foreground/70 mt-1 shrink-0" />

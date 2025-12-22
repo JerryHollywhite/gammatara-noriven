@@ -65,7 +65,7 @@ export default function Footer({ address, phone, email, copyright }: FooterProps
                 </div>
 
                 <div className="mt-12 pt-8 border-t border-slate-800 text-center text-sm text-slate-500">
-                    &copy; {new Date().getFullYear()} {copyright || "Gamma Tara Learning Centre. All Rights Reserved."}
+                    {copyright || `© ${new Date().getFullYear()} Gamma Tara Learning Centre. All Rights Reserved.`}
                 </div>
             </div>
         </footer>

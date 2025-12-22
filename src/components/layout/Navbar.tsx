@@ -3,12 +3,13 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogIn, LogOut, BookOpen } from "lucide-react";
 import { clsx } from "clsx";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
+import { useSession, signIn, signOut } from "next-auth/react";
 
-// Navigation Items - Updated to point to real pages
-const navItems = [
+// Standard Public Navigation Items
+const publicNavItems = [
     { name: "Home", href: "/" },
     { name: "About Us", href: "/about" },
     { name: "Programs", href: "/programs" },
@@ -21,6 +22,7 @@ interface NavbarProps {
 }
 
 export default function Navbar({ logoUrl }: NavbarProps) {
+    const { data: session } = useSession();
     const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
 
@@ -31,6 +33,12 @@ export default function Navbar({ logoUrl }: NavbarProps) {
         window.addEventListener("scroll", handleScroll);
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
+
+    // Combine public items with protected items
+    const navItems = [...publicNavItems];
+    if (session) {
+        navItems.push({ name: "Modules", href: "/modules" });
+    }
 
     return (
         <nav
@@ -63,25 +71,50 @@ export default function Navbar({ logoUrl }: NavbarProps) {
                     </Link>
 
                     {/* Desktop Navigation */}
-                    <div className="hidden md:flex items-center space-x-8">
+                    <div className="hidden md:flex items-center space-x-6">
                         {navItems.map((item) => (
                             <Link
                                 key={item.name}
                                 href={item.href}
                                 className={clsx(
                                     "font-medium transition-colors hover:text-primary",
-                                    scrolled ? "text-slate-700" : "text-slate-800"
+                                    scrolled ? "text-slate-700" : "text-slate-800",
+                                    item.name === "Modules" && "text-primary font-bold"
                                 )}
                             >
                                 {item.name}
                             </Link>
                         ))}
 
+                        <div className="h-6 w-px bg-slate-300 mx-2" />
+
                         <LanguageSwitcher />
+
+                        {!session ? (
+                            <button
+                                onClick={() => signIn()}
+                                className="flex items-center gap-2 text-slate-700 font-medium hover:text-primary transition-colors"
+                            >
+                                <LogIn className="w-4 h-4" /> Login
+                            </button>
+                        ) : (
+                            <div className="flex items-center gap-4">
+                                <span className="text-sm font-medium text-slate-600 truncate max-w-[100px]">
+                                    {session.user?.name?.split(' ')[0]}
+                                </span>
+                                <button
+                                    onClick={() => signOut()}
+                                    className="flex items-center gap-2 text-slate-700 font-medium hover:text-red-600 transition-colors"
+                                    title="Logout"
+                                >
+                                    <LogOut className="w-4 h-4" />
+                                </button>
+                            </div>
+                        )}
 
                         <Link
                             href="#contact"
-                            className="bg-primary text-white px-6 py-2.5 rounded-full font-semibold shadow-lg hover:shadow-xl hover:bg-primary/90 transition-all transform hover:-translate-y-0.5"
+                            className="bg-primary text-white px-5 py-2 rounded-full font-semibold shadow-lg hover:shadow-xl hover:bg-primary/90 transition-all transform hover:-translate-y-0.5 text-sm"
                         >
                             Contact Us
                         </Link>
@@ -101,21 +134,45 @@ export default function Navbar({ logoUrl }: NavbarProps) {
 
             {/* Mobile Menu */}
             {isOpen && (
-                <div className="md:hidden bg-white border-t border-gray-100 shadow-lg absolute w-full left-0 top-full">
-                    <div className="px-4 pt-2 pb-6 space-y-1">
+                <div className="md:hidden bg-white border-t border-gray-100 shadow-lg absolute w-full left-0 top-full max-h-[90vh] overflow-y-auto">
+                    <div className="px-4 pt-2 pb-6 space-y-2">
                         {navItems.map((item) => (
                             <Link
                                 key={item.name}
                                 href={item.href}
-                                className="block px-3 py-3 rounded-md text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-primary"
+                                className={clsx(
+                                    "block px-3 py-3 rounded-md text-base font-medium hover:bg-gray-50 hover:text-primary",
+                                    item.name === "Modules" ? "text-primary bg-primary/5" : "text-gray-900"
+                                )}
                                 onClick={() => setIsOpen(false)}
                             >
                                 {item.name}
                             </Link>
                         ))}
-                        <div className="px-3 py-2">
-                            <LanguageSwitcher />
+
+                        <div className="border-t border-gray-100 my-2 pt-2">
+                            <div className="px-3 py-2 flex justify-between items-center">
+                                <span className="text-sm text-gray-500">Language</span>
+                                <LanguageSwitcher />
+                            </div>
                         </div>
+
+                        {!session ? (
+                            <button
+                                onClick={() => { signIn(); setIsOpen(false); }}
+                                className="w-full text-left px-3 py-3 rounded-md text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-primary flex items-center gap-2"
+                            >
+                                <LogIn className="w-4 h-4" /> Login
+                            </button>
+                        ) : (
+                            <button
+                                onClick={() => { signOut(); setIsOpen(false); }}
+                                className="w-full text-left px-3 py-3 rounded-md text-base font-medium text-red-600 hover:bg-red-50 flex items-center gap-2"
+                            >
+                                <LogOut className="w-4 h-4" /> Logout ({session.user?.name?.split(' ')[0]})
+                            </button>
+                        )}
+
                         <Link
                             href="#contact"
                             className="mt-4 block w-full text-center bg-primary text-white px-4 py-3 rounded-full font-semibold shadow-md active:bg-primary/90"

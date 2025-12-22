@@ -29,7 +29,11 @@ export default async function Home() {
         subtitle={siteContent["Home_Hero_Subtitle"]}
         ctaText={siteContent["Home_Hero_CTA"]}
       />
-      <PromoCarousel promos={promoImages} />
+      <PromoCarousel
+        promos={promoImages}
+        title={siteContent["Promo_Title"]}
+        description={siteContent["Promo_Desc"]}
+      />
       <USPSection
         title={siteContent["Why_Title"]}
         subtitle={siteContent["Why_Subtitle"]}

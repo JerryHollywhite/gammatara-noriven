@@ -8,9 +8,11 @@ import { GalleryItem } from "@/lib/googleSheets";
 
 interface PromoCarouselProps {
     promos: GalleryItem[];
+    title?: string;
+    description?: string;
 }
 
-export default function PromoCarousel({ promos }: PromoCarouselProps) {
+export default function PromoCarousel({ promos, title, description }: PromoCarouselProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
 
     // Auto-rotate every 5 seconds
@@ -31,11 +33,18 @@ export default function PromoCarousel({ promos }: PromoCarouselProps) {
     };
 
     if (!promos || promos.length === 0) {
-        return null;
+        return null; // Only hide if no images. Title/Desc alone might not warrant a section.
     }
 
     return (
-        <section className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
+        <section className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12">
+            {(title || description) && (
+                <div className="text-center mb-8">
+                    {title && <h2 className="text-2xl md:text-3xl font-bold font-heading text-slate-900 mb-2">{title}</h2>}
+                    {description && <p className="text-slate-600 max-w-2xl mx-auto">{description}</p>}
+                </div>
+            )}
+
             <div className="relative aspect-[21/9] md:aspect-[21/7] w-full overflow-hidden rounded-2xl shadow-xl bg-slate-900">
                 <AnimatePresence mode="wait">
                     <motion.div
@@ -55,12 +64,12 @@ export default function PromoCarousel({ promos }: PromoCarouselProps) {
                         />
                         {/* Caption Overlay */}
                         {promos[currentIndex].caption && (
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-8 md:p-12">
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-6 md:p-8">
                                 <motion.p
-                                    initial={{ opacity: 0, y: 20 }}
+                                    initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.3 }}
-                                    className="text-white text-lg md:text-2xl font-bold max-w-2xl bg-black/40 p-4 rounded-lg backdrop-blur-sm"
+                                    className="text-white text-xs md:text-sm font-medium max-w-xl bg-black/60 px-3 py-2 rounded-md backdrop-blur-sm"
                                 >
                                     {promos[currentIndex].caption}
                                 </motion.p>

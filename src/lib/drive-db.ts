@@ -159,3 +159,98 @@ export async function getModulesForUser(email: string, role: string) {
         return [];
     }
 }
+// ... (existing exports)
+
+export async function setResetToken(email: string, token: string) {
+    try {
+        // Find row
+        const response = await sheets.spreadsheets.values.get({
+            spreadsheetId: SPREADSHEET_ID,
+            range: 'Users!A:A',
+        });
+        const rows = response.data.values;
+        if (!rows) return false;
+
+        const rowIndex = rows.findIndex(row => row[0] === email);
+        if (rowIndex === -1) return false;
+
+        // Update Reset Token (Col G -> index 6, so G{row})
+        const range = `Users!G${rowIndex + 1}`;
+
+        await sheets.spreadsheets.values.update({
+            spreadsheetId: SPREADSHEET_ID,
+            range,
+            valueInputOption: 'USER_ENTERED',
+            requestBody: { values: [[token]] },
+        });
+        return true;
+    } catch (e) {
+        console.error('Error setting reset token:', e);
+        return false;
+    }
+}
+
+export async function getUserByToken(token: string) {
+    try {
+        const response = await sheets.spreadsheets.values.get({
+            spreadsheetId: SPREADSHEET_ID,
+            range: 'Users!A2:G',
+        });
+        const rows = response.data.values;
+        if (!rows) return null;
+
+        // Token is index 6
+        const userRow = rows.find(row => row[6] === token);
+        if (!userRow) return null;
+
+        // Make sure token matches exactly
+        if (userRow[6] !== token) return null;
+
+        return {
+            email: userRow[0],
+            name: userRow[2],
+        };
+    } catch (e) {
+        console.error('Error getting user by token:', e);
+        return null;
+    }
+}
+
+export async function resetPassword(token: string, newPasswordHash: string) {
+    try {
+        const response = await sheets.spreadsheets.values.get({
+            spreadsheetId: SPREADSHEET_ID,
+            range: 'Users!A:G',
+        });
+        const rows = response.data.values;
+        if (!rows) return false;
+
+        const rowIndex = rows.findIndex(row => row[6] === token);
+        if (rowIndex === -1) return false;
+
+        // Update Password (Col B -> index 1) AND Clear Token (Col G -> index 6)
+        // We need to do two updates or one batch update.
+        // Simpler: Update Password first, then Token. Or verify which columns.
+        // Col B is index 1. Col G is index 6.
+        // It's B{row} and G{row}.
+
+        await sheets.spreadsheets.values.update({
+            spreadsheetId: SPREADSHEET_ID,
+            range: `Users!B${rowIndex + 1}`,
+            valueInputOption: 'USER_ENTERED',
+            requestBody: { values: [[newPasswordHash]] },
+        });
+
+        await sheets.spreadsheets.values.update({
+            spreadsheetId: SPREADSHEET_ID,
+            range: `Users!G${rowIndex + 1}`,
+            valueInputOption: 'USER_ENTERED',
+            requestBody: { values: [['']] }, // Clear token
+        });
+
+        return true;
+    } catch (e) {
+        console.error('Error resetting password:', e);
+        return false;
+    }
+}

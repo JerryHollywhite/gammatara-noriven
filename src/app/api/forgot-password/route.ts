@@ -1,49 +1,51 @@
 import { NextResponse } from "next/server";
-import { getUserByEmail, updateUserStatus } from "@/lib/drive-db";
-import { google } from "googleapis";
-
-// Helper to update Reset Token (Need to add this to drive-db really, but doing ad-hoc here for speed/safety)
-async function storeResetToken(email: string, token: string) {
-    // Re-instantiate sheets logic specific for this to avoid modifying drive-db interface too much if not needed
-    // Actually, cleaner to add to drive-db.ts. 
-    // For now, I'll assume I can append logic here or modify drive-db.
-    // Let's modify drive-db.ts to support updateField.
-    // But waiting for that is slow.
-    // I will skip the actual sheet write for RESET TOKEN in this turn to avoid breakage,
-    // and instead just verify email exists and return success (Mocking the email sending).
-    // The user can't actually reset without the link.
-
-    // REALITY CHECK: I should implement this properly or it's useless.
-    // I will add `updateUserToken` to `drive-db.ts` next.
-    return true;
-}
+import { getUserByEmail, setResetToken } from "@/lib/drive-db";
+import { sendResetEmail } from "@/lib/email";
+import crypto from "crypto";
 
 export async function POST(req: Request) {
     try {
         const json = await req.json();
         const email = json.email?.toLowerCase();
 
+        if (!email) {
+            return NextResponse.json({ error: "Email is required" }, { status: 400 });
+        }
+
         const user = await getUserByEmail(email);
         if (!user) {
-            // Return success even if failed to prevent enumeration
-            return NextResponse.json({ success: true });
+            // Return success even if user not found to prevent enumeration
+            // But for debugging now, let's just return success.
+            return NextResponse.json({ success: true, message: "If email exists, link sent." });
         }
 
         if (user.status !== "Approved") {
+            // Optional: Decide if we want to tell them or just silent fail
             return NextResponse.json({ error: "Account not active" }, { status: 400 });
         }
 
         // Generate Token
-        const token = Math.random().toString(36).substring(2, 15);
+        const token = crypto.randomBytes(32).toString("hex");
 
-        // TODO: Save token to Sheet (Tab Users, Column G)
-        // await storeResetToken(email, token);
+        // Save Token to Sheet
+        const saved = await setResetToken(email, token);
+        if (!saved) {
+            console.error("Failed to save reset token to DB");
+            return NextResponse.json({ error: "Database error" }, { status: 500 });
+        }
 
-        console.log(`[MOCK EMAIL] Password Reset Link for ${email}: ${process.env.NEXTAUTH_URL}/reset-password?token=${token}`);
+        // Send Email
+        const emailSent = await sendResetEmail(email, token);
 
-        return NextResponse.json({ success: true, message: "If email exists, reset link sent." });
+        if (!emailSent) {
+            console.error("Failed to send email via SMTP");
+            // We still return success to avoiding leaking info, but we log securely
+            // Or we could return error if we want user to retry immediately
+        }
 
+        return NextResponse.json({ success: true, message: "Reset link sent" });
     } catch (error) {
-        return NextResponse.json({ error: "Server Error" }, { status: 500 });
+        console.error("Forgot Password Error:", error);
+        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }

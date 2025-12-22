@@ -1,5 +1,4 @@
 import Papa from 'papaparse';
-import Papa from 'papaparse';
 import { ScheduleItem } from '@/components/sections/SchedulesSection';
 
 export interface Teacher {
@@ -9,7 +8,6 @@ export interface Teacher {
     accolades: string[];
     image: string;
 }
-import { ScheduleItem } from '@/components/sections/SchedulesSection';
 
 // DATA SOURCE LINKS
 // Note: If you see Teacher names in the Schedules section, it means these two links are identical.

@@ -14,11 +14,13 @@ import PromoCarousel from "@/components/sections/PromoCarousel";
 export const revalidate = 60;
 
 export default async function Home() {
-  const teachers = await getTeachers();
-  const schedules = await getSchedules();
-  const siteImages = await getSiteImages();
-  const siteContent = await getSiteContent();
-  const promoImages = await getGalleryImages("Promo");
+  const [teachers, schedules, siteImages, siteContent, promoImages] = await Promise.all([
+    getTeachers(),
+    getSchedules(),
+    getSiteImages(),
+    getSiteContent(),
+    getGalleryImages("Promo")
+  ]);
 
   return (
     <main className="min-h-screen bg-white font-sans text-slate-900">

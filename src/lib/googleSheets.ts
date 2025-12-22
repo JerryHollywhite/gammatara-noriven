@@ -3,9 +3,12 @@ import { ScheduleItem } from '@/components/sections/SchedulesSection';
 
 export interface Teacher {
     name: string;
+    shortName: string;
     role: string;
+    subjects: string;
     education: string;
-    accolades: string[];
+    experience: string[];
+    achievements: string[];
     image: string;
 }
 
@@ -85,10 +88,13 @@ export async function getTeachers(): Promise<Teacher[]> {
 
     return data.map((row) => ({
         name: row[0] || "Unknown",
-        role: row[1] || "Tutor",
-        education: row[2] || "Degree",
-        accolades: row[3] ? row[3].split(',').map((s: string) => s.trim()) : [],
-        image: formatGoogleDriveUrl(row[4]) || `https://ui-avatars.com/api/?name=${encodeURIComponent(row[0])}&background=random`
+        shortName: row[1] || row[0]?.split(' ')[0] || "Teacher",
+        role: row[2] || "Tutor",
+        subjects: row[3] || "General Subjects",
+        education: row[4] || "Degree",
+        experience: row[5] ? row[5].split(';').map((s: string) => s.trim()).filter(s => s) : [],
+        achievements: row[6] ? row[6].split(';').map((s: string) => s.trim()).filter(s => s) : [],
+        image: formatGoogleDriveUrl(row[7]) || `https://ui-avatars.com/api/?name=${encodeURIComponent(row[0])}&background=random`
     }));
 }
 

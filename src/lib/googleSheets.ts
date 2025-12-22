@@ -12,11 +12,20 @@ export interface Teacher {
     image: string;
 }
 
+export interface Testimonial {
+    name: string;
+    role: string;
+    quoteId: string;
+    quoteEn: string;
+    photo: string;
+}
+
 // DATA SOURCE LINKS
 // Note: If you see Teacher names in the Schedules section, it means these two links are identical.
 // You need to generate a specific link for the "Schedules" tab using File > Share > Publish to Web > Schedules > CSV.
 const TEACHERS_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQqqvzypykY7PGqqOGqhXIGyU-HwzbTaxtKZC4hyrW_LWGwL42YNC7aNx-Ullc_YTuHtEKVxvZkdY-O/pub?gid=0&single=true&output=csv";
 const SCHEDULES_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQqqvzypykY7PGqqOGqhXIGyU-HwzbTaxtKZC4hyrW_LWGwL42YNC7aNx-Ullc_YTuHtEKVxvZkdY-O/pub?gid=1804855&single=true&output=csv";
+const TESTIMONIALS_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQqqvzypykY7PGqqOGqhXIGyU-HwzbTaxtKZC4hyrW_LWGwL42YNC7aNx-Ullc_YTuHtEKVxvZkdY-O/pub?gid=1776102288&single=true&output=csv";
 // Placeholder for the Gallery Sheet URL - User needs to provide this
 const GALLERY_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQqqvzypykY7PGqqOGqhXIGyU-HwzbTaxtKZC4hyrW_LWGwL42YNC7aNx-Ullc_YTuHtEKVxvZkdY-O/pub?gid=159415718&single=true&output=csv";
 
@@ -95,6 +104,20 @@ export async function getTeachers(): Promise<Teacher[]> {
         experience: row[5] ? row[5].split(';').map((s: string) => s.trim()).filter(s => s) : [],
         achievements: row[6] ? row[6].split(';').map((s: string) => s.trim()).filter(s => s) : [],
         image: formatGoogleDriveUrl(row[7]) || `https://ui-avatars.com/api/?name=${encodeURIComponent(row[0])}&background=random`
+    }));
+}
+
+export async function getTestimonials(): Promise<Testimonial[]> {
+    const data = await getSheetData(TESTIMONIALS_SHEET_URL);
+
+    if (!data) return [];
+
+    return data.map((row) => ({
+        name: row[0] || "Student",
+        role: row[1] || "Alumni",
+        quoteId: row[2] || "Saya sangat senang belajar di sini.",
+        quoteEn: row[3] || "I am very happy learning here.",
+        photo: formatGoogleDriveUrl(row[4]) || `https://ui-avatars.com/api/?name=${encodeURIComponent(row[0] || "Student")}&background=random`
     }));
 }
 

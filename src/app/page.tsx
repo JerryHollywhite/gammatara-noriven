@@ -7,19 +7,20 @@ import HallOfFame from "@/components/sections/HallOfFame";
 import Testimonials from "@/components/sections/Testimonials";
 import ContactSection from "@/components/sections/ContactSection";
 import SchedulesSection from "@/components/sections/SchedulesSection";
-import { getTeachers, getSchedules, getSiteImages, getGalleryImages, getSiteContent } from "@/lib/googleSheets";
+import { getTeachers, getSchedules, getSiteImages, getGalleryImages, getSiteContent, getTestimonials } from "@/lib/googleSheets";
 import PromoCarousel from "@/components/sections/PromoCarousel";
 
 // Revalidate data every 60 seconds (ISR)
 export const revalidate = 60;
 
 export default async function Home() {
-  const [teachers, schedules, siteImages, siteContent, promoImages] = await Promise.all([
+  const [teachers, schedules, siteImages, siteContent, promoImages, testimonials] = await Promise.all([
     getTeachers(),
     getSchedules(),
     getSiteImages(),
     getSiteContent(),
-    getGalleryImages("Promo")
+    getGalleryImages("Promo"),
+    getTestimonials()
   ]);
 
   return (
@@ -45,7 +46,7 @@ export default async function Home() {
       <SchedulesSection schedules={schedules} siteContent={siteContent} />
       <AcademicPrograms programImages={siteImages} siteContent={siteContent} />
       <HallOfFame teachers={teachers} siteContent={siteContent} />
-      <Testimonials siteContent={siteContent} />
+      <Testimonials testimonials={testimonials} siteContent={siteContent} />
       <ContactSection
         address={siteContent["Contact_Address"]}
         phone={siteContent["Contact_Phone"]}

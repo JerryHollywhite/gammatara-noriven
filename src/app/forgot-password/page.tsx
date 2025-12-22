@@ -44,7 +44,7 @@ export default function ForgotPasswordPage() {
                                     <label htmlFor="email" className="block text-sm font-medium text-slate-700">Email address</label>
                                     <input
                                         type="email" required
-                                        value={email} onChange={(e) => setEmail(e.target.value)}
+                                        value={email} onChange={(e) => setEmail(e.target.value.toLowerCase())}
                                         className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm text-slate-900"
                                     />
                                 </div>

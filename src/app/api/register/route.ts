@@ -47,7 +47,8 @@ async function sendTelegramNotification(user: any) {
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { name, email, password, role, phone } = body;
+        const { name, password, role, phone } = body;
+        const email = body.email?.toLowerCase();
 
         if (!name || !email || !password || !role) {
             return NextResponse.json({ error: "Missing fields" }, { status: 400 });

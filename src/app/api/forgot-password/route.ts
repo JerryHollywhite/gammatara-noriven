@@ -20,7 +20,8 @@ async function storeResetToken(email: string, token: string) {
 
 export async function POST(req: Request) {
     try {
-        const { email } = await req.json();
+        const json = await req.json();
+        const email = json.email?.toLowerCase();
 
         const user = await getUserByEmail(email);
         if (!user) {

@@ -63,9 +63,9 @@ export default function SchedulesSection({ schedules = [], siteContent = {} }: S
                         <div key={index} className="bg-slate-50 rounded-xl p-6 border border-slate-100 hover:shadow-md transition-shadow">
                             <div className="flex justify-between items-start mb-4">
                                 <h3 className="font-bold text-lg text-slate-900">{item.course}</h3>
-                                <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${item.status === 'Full' ? 'bg-red-100 text-red-600' :
-                                    item.status === 'Filling Fast' ? 'bg-amber-100 text-amber-600' :
-                                        'bg-green-100 text-green-600'
+                                <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${(item.status || "").toLowerCase().includes("full") ? 'bg-red-100 text-red-600' :
+                                        (item.status || "").toLowerCase().includes("filling") ? 'bg-amber-100 text-amber-600' :
+                                            'bg-green-100 text-green-600'
                                     }`}>
                                     {item.status}
                                 </span>

@@ -1,7 +1,9 @@
 "use client";
 
+import { useState, useRef } from "react";
 import { Button } from "../ui/Button";
-import { Mail, Phone, MapPin, Send } from "lucide-react";
+import { Mail, Phone, MapPin, Send, Loader2 } from "lucide-react";
+import emailjs from '@emailjs/browser';
 
 interface ContactSectionProps {
     address?: string;
@@ -11,6 +13,37 @@ interface ContactSectionProps {
 }
 
 export default function ContactSection({ address, phone, email, siteContent = {} }: ContactSectionProps) {
+    const form = useRef<HTMLFormElement>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+    const sendEmail = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!form.current) return;
+
+        setIsSubmitting(true);
+        setSubmitStatus('idle');
+
+        // Legacy Credentials found: Service ID: service_yr1p11v, Template ID: template_5qn7y2u, Public Key: OA8lpQMKzh47P0n8a
+        emailjs
+            .sendForm('service_yr1p11v', 'template_5qn7y2u', form.current, {
+                publicKey: 'OA8lpQMKzh47P0n8a',
+            })
+            .then(
+                () => {
+                    setIsSubmitting(false);
+                    setSubmitStatus('success');
+                    if (form.current) form.current.reset();
+                    setTimeout(() => setSubmitStatus('idle'), 5000);
+                },
+                (error) => {
+                    console.error('FAILED...', error.text);
+                    setIsSubmitting(false);
+                    setSubmitStatus('error');
+                },
+            );
+    };
+
     return (
         <section id="contact" className="py-24 bg-slate-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -79,31 +112,56 @@ export default function ContactSection({ address, phone, email, siteContent = {}
                     {/* Contact Form */}
                     <div className="bg-white rounded-2xl shadow-xl p-8 border border-slate-100">
                         <h3 className="text-2xl font-bold text-slate-900 mb-6"> {siteContent["Contact_Form_Title"] || "Book a Consultation"}</h3>
-                        <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+                        <form ref={form} onSubmit={sendEmail} className="space-y-4">
+                            {/* Hidden fields typically used by EmailJS templates if they expect specific names */}
+                            <input type="hidden" name="to_name" value="Gamma Tara Team" />
+
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <label htmlFor="name" className="text-sm font-medium text-slate-700">{siteContent["Contact_Form_Label_StudentName"] || "Student Name"}</label>
-                                    <input type="text" id="name" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" placeholder="Enter name" />
+                                    <label htmlFor="from_name" className="text-sm font-medium text-slate-700">{siteContent["Contact_Form_Label_StudentName"] || "Student Name"}</label>
+                                    <input
+                                        type="text"
+                                        name="from_name" // Matching 'from_name' in legacy template
+                                        required
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                        placeholder="Enter name"
+                                    />
                                 </div>
                                 <div className="space-y-2">
                                     <label htmlFor="grade" className="text-sm font-medium text-slate-700">{siteContent["Contact_Form_Label_Grade"] || "Current Grade"}</label>
-                                    <input type="text" id="grade" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" placeholder="e.g. Grade 5" />
+                                    <input
+                                        type="text"
+                                        name="grade"
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                        placeholder="e.g. Grade 5"
+                                    />
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <label htmlFor="parentName" className="text-sm font-medium text-slate-700">{siteContent["Contact_Form_Label_ParentName"] || "Parent's Name"}</label>
-                                <input type="text" id="parentName" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" placeholder="Enter parent's name" />
+                                <label htmlFor="parent_name" className="text-sm font-medium text-slate-700">{siteContent["Contact_Form_Label_ParentName"] || "Parent's Name"}</label>
+                                <input
+                                    type="text"
+                                    name="parent_name"
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                    placeholder="Enter parent's name"
+                                />
                             </div>
 
                             <div className="space-y-2">
-                                <label htmlFor="contact" className="text-sm font-medium text-slate-700">{siteContent["Contact_Form_Label_Phone"] || "WhatsApp / Phone"}</label>
-                                <input type="tel" id="contact" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" placeholder="+62..." />
+                                <label htmlFor="phone" className="text-sm font-medium text-slate-700">{siteContent["Contact_Form_Label_Phone"] || "WhatsApp / Phone"}</label>
+                                <input
+                                    type="tel"
+                                    name="phone" // Matching 'phone' in legacy template
+                                    required
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                    placeholder="+62..."
+                                />
                             </div>
 
                             <div className="space-y-2">
                                 <label htmlFor="program" className="text-sm font-medium text-slate-700">{siteContent["Contact_Form_Label_Program"] || "Program Interest"}</label>
-                                <select id="program" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white">
+                                <select name="program" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white">
                                     <option value="">Select a program...</option>
                                     <option value="kindergarten">Kindergarten</option>
                                     <option value="primary">Primary School</option>
@@ -112,13 +170,34 @@ export default function ContactSection({ address, phone, email, siteContent = {}
                                 </select>
                             </div>
 
-                            <Button className="w-full text-lg h-12 mt-2">
-                                {siteContent["Contact_Form_Button_Label"] || "Send Message"} <Send className="ml-2 w-4 h-4" />
+                            <div className="space-y-2">
+                                <label htmlFor="message" className="text-sm font-medium text-slate-700">Message (Optional)</label>
+                                <textarea
+                                    name="message" // Matching 'message' in legacy template
+                                    rows={3}
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                    placeholder="Any specific questions?"
+                                />
+                            </div>
+
+                            <Button className="w-full text-lg h-12 mt-2" disabled={isSubmitting}>
+                                {isSubmitting ? (
+                                    <>Sending... <Loader2 className="ml-2 w-4 h-4 animate-spin" /></>
+                                ) : (
+                                    <>{siteContent["Contact_Form_Button_Label"] || "Send Message"} <Send className="ml-2 w-4 h-4" /></>
+                                )}
                             </Button>
 
-                            <p className="text-xs text-center text-slate-500 mt-4">
-                                {siteContent["Contact_Form_Success_Message"] || "We will contact you shortly to confirm your slot."}
-                            </p>
+                            {submitStatus === 'success' && (
+                                <div className="p-3 bg-green-50 text-green-700 rounded-lg text-sm text-center font-medium animate-in fade-in slide-in-from-top-2">
+                                    {siteContent["Contact_Form_Success_Message"] || "Message sent successfully! We will contact you shortly."}
+                                </div>
+                            )}
+                            {submitStatus === 'error' && (
+                                <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm text-center font-medium animate-in fade-in slide-in-from-top-2">
+                                    Failed to send message. Please try WhatsApp instead.
+                                </div>
+                            )}
                         </form>
                     </div>
                 </div>

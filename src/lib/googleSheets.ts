@@ -1,5 +1,14 @@
 import Papa from 'papaparse';
-import { Teacher } from '@/components/sections/HallOfFame';
+import Papa from 'papaparse';
+import { ScheduleItem } from '@/components/sections/SchedulesSection';
+
+export interface Teacher {
+    name: string;
+    role: string;
+    education: string;
+    accolades: string[];
+    image: string;
+}
 import { ScheduleItem } from '@/components/sections/SchedulesSection';
 
 // DATA SOURCE LINKS

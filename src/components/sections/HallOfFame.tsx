@@ -96,7 +96,7 @@ export default function HallOfFame({ teachers = [], siteContent = {} }: HallOfFa
                                 <div className="space-y-8">
                                     <div>
                                         <h4 className="text-2xl font-bold text-slate-900 mb-2 flex items-center gap-2">
-                                            <GraduationCap className="w-6 h-6 text-primary" /> Education
+                                            <GraduationCap className="w-6 h-6 text-primary" /> {siteContent["Teacher_Label_Education"] || "Education"}
                                         </h4>
                                         <p className="text-slate-700 text-lg leading-relaxed">
                                             {teachers[activeTeacher].education}
@@ -105,7 +105,7 @@ export default function HallOfFame({ teachers = [], siteContent = {} }: HallOfFa
 
                                     <div>
                                         <h4 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
-                                            <Briefcase className="w-5 h-5 text-secondary" /> Professional Experience
+                                            <Briefcase className="w-5 h-5 text-secondary" /> {siteContent["Teacher_Label_Experience"] || "Professional Experience"}
                                         </h4>
                                         <ul className="grid gap-3">
                                             {teachers[activeTeacher].experience.map((exp, i) => (
@@ -120,7 +120,7 @@ export default function HallOfFame({ teachers = [], siteContent = {} }: HallOfFa
                                     {teachers[activeTeacher].achievements.length > 0 && (
                                         <div>
                                             <h4 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
-                                                <Award className="w-5 h-5 text-yellow-500" /> Key Achievements
+                                                <Award className="w-5 h-5 text-yellow-500" /> {siteContent["Teacher_Label_Achievements"] || "Key Achievements"}
                                             </h4>
                                             <div className="grid gap-3">
                                                 {teachers[activeTeacher].achievements.map((acc, i) => (

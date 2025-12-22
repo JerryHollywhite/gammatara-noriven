@@ -1,72 +1,23 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
-import { Award, GraduationCap } from "lucide-react";
-
-export interface Teacher {
-    name: string;
-    role: string;
-    education: string;
-    accolades: string[];
-    image: string;
-}
+import { Award, GraduationCap, Briefcase, BookOpen } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { teachersData } from "@/data/teachers";
+import { clsx } from "clsx";
 
 interface HallOfFameProps {
-    teachers?: Teacher[];
     siteContent?: Record<string, string>;
 }
 
-export default function HallOfFame({ teachers = [], siteContent = {} }: HallOfFameProps) {
-    // Fallback data if no props provided (or waiting for API)
-    const displayTeachers = teachers.length > 0 ? teachers : [
-        {
-            name: "Noriven",
-            role: "Founder & Math Expert",
-            education: "S1 Ekonomi",
-            accolades: ["2nd Place, Teacher Olympiad (Math) 2022"],
-            image: "https://ui-avatars.com/api/?name=Noriven&background=1e3a8a&color=ffffff&size=200",
-        },
-        {
-            name: "Irma Wulandari",
-            role: "Chemistry, Math, English",
-            education: "ITS Chemical Engineering Graduate",
-            accolades: ["Student Success Mentor (PTN/SMA Unggulan)"],
-            image: "https://ui-avatars.com/api/?name=Irma+Wulandari&background=f59e0b&color=ffffff&size=200",
-        },
-        {
-            name: "Mahardika Wiryawan",
-            role: "Biology, Math, English",
-            education: "S1 Pendidikan Biologi",
-            accolades: ["Biology Olympiad Participant"],
-            image: "https://ui-avatars.com/api/?name=Mahardika&background=1e3a8a&color=ffffff&size=200",
-        },
-        {
-            name: "Fitrah Nadia Rizqiyyah",
-            role: "Chemistry Expert",
-            education: "S1 Pendidikan Kimia International",
-            accolades: ["Advisor for International Writing (Malaysia/WICE)"],
-            image: "https://ui-avatars.com/api/?name=Fitrah+Nadia&background=f59e0b&color=ffffff&size=200",
-        },
-        {
-            name: "Redafa Amorta",
-            role: "English Expert",
-            education: "D4 Teknik Mekatronika",
-            accolades: ["National English Debate Winner 2023"],
-            image: "https://ui-avatars.com/api/?name=Redafa&background=1e3a8a&color=ffffff&size=200",
-        },
-        {
-            name: "Hanna Priskilla",
-            role: "English Expert",
-            education: "D4 Teknologi Rekayasa Perangkat Lunak",
-            accolades: ["1st Place Tour Guiding Competition"],
-            image: "https://ui-avatars.com/api/?name=Hanna&background=f59e0b&color=ffffff&size=200",
-        },
-    ];
+export default function HallOfFame({ siteContent = {} }: HallOfFameProps) {
+    const [activeTeacher, setActiveTeacher] = useState(0);
 
     return (
-        <section id="teachers" className="py-24 bg-white">
+        <section id="teachers" className="py-24 bg-white font-sans">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center max-w-3xl mx-auto mb-16">
+                <div className="text-center max-w-3xl mx-auto mb-12">
                     <span className="text-secondary font-bold tracking-widest uppercase text-xs">
                         {siteContent["Teachers_Header_Label"] || "World-Class Mentors"}
                     </span>
@@ -78,36 +29,107 @@ export default function HallOfFame({ teachers = [], siteContent = {} }: HallOfFa
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {displayTeachers.map((teacher, index) => (
-                        <div key={index} className="flex flex-col items-center text-center p-6 rounded-2xl bg-white border border-slate-100 hover:border-primary/20 shadow-sm hover:shadow-xl transition-all duration-300 group">
-                            <div className="relative w-32 h-32 mb-6 rounded-full overflow-hidden border-4 border-slate-50 group-hover:border-secondary transition-colors">
+                {/* Teacher Tabs (Scrollable on mobile) */}
+                <div className="flex overflow-x-auto pb-6 gap-3 mb-8 no-scrollbar justify-start md:justify-center px-4 snap-x">
+                    {teachersData.map((teacher, index) => (
+                        <button
+                            key={index}
+                            onClick={() => setActiveTeacher(index)}
+                            className={clsx(
+                                "flex items-center gap-3 px-5 py-3 rounded-full border transition-all duration-300 whitespace-nowrap snap-center shrink-0",
+                                activeTeacher === index
+                                    ? "bg-primary text-white border-primary shadow-lg scale-105"
+                                    : "bg-white text-slate-600 border-slate-200 hover:border-primary/50 hover:bg-slate-50"
+                            )}
+                        >
+                            <div className="relative w-8 h-8 rounded-full overflow-hidden bg-slate-200 border border-white/20">
                                 <Image
                                     src={teacher.image}
-                                    alt={teacher.name}
+                                    alt={teacher.shortName}
                                     fill
                                     className="object-cover"
                                 />
                             </div>
-                            <h3 className="text-xl font-bold text-slate-900">{teacher.name}</h3>
-                            <div className="text-primary font-medium mb-1">{teacher.role}</div>
-                            <div className="text-slate-500 text-sm mb-4 flex items-center justify-center gap-1">
-                                <GraduationCap className="w-4 h-4" /> {teacher.education}
-                            </div>
-
-                            <div className="mt-auto px-4 py-3 w-full bg-slate-50 rounded-xl">
-                                <div className="flex items-center justify-center gap-2 text-sm font-semibold text-slate-700">
-                                    <Award className="w-4 h-4 text-secondary" />
-                                    <span>Accolades</span>
-                                </div>
-                                <ul className="mt-2 space-y-1">
-                                    {teacher.accolades.map((acc, i) => (
-                                        <li key={i} className="text-xs text-slate-600">{acc}</li>
-                                    ))}
-                                </ul>
-                            </div>
-                        </div>
+                            <span className="font-semibold text-sm">{teacher.shortName}</span>
+                        </button>
                     ))}
+                </div>
+
+                {/* Active Teacher Profile - Animated */}
+                <div className="min-h-[500px]">
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={activeTeacher}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.3 }}
+                            className="bg-slate-50 rounded-3xl p-6 md:p-12 shadow-inner border border-slate-100"
+                        >
+                            <div className="grid md:grid-cols-[300px_1fr] gap-10 items-start">
+                                {/* Profile Card */}
+                                <div className="bg-white p-6 rounded-2xl shadow-xl transform md:-translate-y-8 border-t-4 border-secondary text-center">
+                                    <div className="relative w-48 h-48 mx-auto mb-6 rounded-full overflow-hidden border-4 border-slate-50 shadow-md">
+                                        <Image
+                                            src={teachersData[activeTeacher].image}
+                                            alt={teachersData[activeTeacher].name}
+                                            fill
+                                            className="object-cover"
+                                        />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-slate-900">{teachersData[activeTeacher].name}</h3>
+                                    <div className="text-secondary font-semibold text-sm mt-1">{teachersData[activeTeacher].role}</div>
+                                    <div className="mt-6 flex flex-wrap justify-center gap-2">
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-medium">
+                                            <BookOpen className="w-3 h-3" /> {teachersData[activeTeacher].subjects.split(',')[0]}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Details */}
+                                <div className="space-y-8">
+                                    <div>
+                                        <h4 className="text-2xl font-bold text-slate-900 mb-2 flex items-center gap-2">
+                                            <GraduationCap className="w-6 h-6 text-primary" /> Education
+                                        </h4>
+                                        <p className="text-slate-700 text-lg leading-relaxed">
+                                            {teachersData[activeTeacher].education}
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <h4 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                            <Briefcase className="w-5 h-5 text-secondary" /> Professional Experience
+                                        </h4>
+                                        <ul className="grid gap-3">
+                                            {teachersData[activeTeacher].experience.map((exp, i) => (
+                                                <li key={i} className="flex gap-3 text-slate-700">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-secondary mt-2.5 shrink-0" />
+                                                    {exp}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+
+                                    {teachersData[activeTeacher].achievements.length > 0 && (
+                                        <div>
+                                            <h4 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                                <Award className="w-5 h-5 text-yellow-500" /> Key Achievements
+                                            </h4>
+                                            <div className="grid gap-3">
+                                                {teachersData[activeTeacher].achievements.map((acc, i) => (
+                                                    <div key={i} className="flex gap-3 bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
+                                                        <Award className="w-4 h-4 text-yellow-500 mt-1 shrink-0" />
+                                                        <span className="text-slate-700 text-sm">{acc}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </motion.div>
+                    </AnimatePresence>
                 </div>
             </div>
         </section>

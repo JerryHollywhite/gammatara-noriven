@@ -140,7 +140,7 @@ export async function getModulesForUser(email: string, role: string) {
                 // List files in folder
                 const fileRes = await drive.files.list({
                     q: `'${folderId}' in parents and trashed = false`,
-                    fields: 'files(id, name, mimeType, webViewLink, iconLink)',
+                    fields: 'files(id, name, mimeType, webViewLink, iconLink, modifiedTime)',
                 });
 
                 modules.push({

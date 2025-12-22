@@ -3,7 +3,7 @@ import Footer from "@/components/layout/Footer";
 import PageHeader from "@/components/layout/PageHeader";
 import ProgramGallery from "@/components/sections/ProgramGallery";
 import ContactSection from "@/components/sections/ContactSection";
-import { getGalleryImages, getSiteImages } from "@/lib/googleSheets";
+import { getGalleryImages, getSiteImages, getSiteContent } from "@/lib/googleSheets";
 
 export const revalidate = 60;
 

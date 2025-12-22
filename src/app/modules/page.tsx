@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import {
     Folder, FileText, Download, Search, Filter, SortAsc, Clock, Star,
     LayoutGrid, List as ListIcon, PlayCircle, Image as ImageIcon,
-    File as FileIcon, PieChart, BookOpen, Layers
+    File as FileIcon, PieChart, BookOpen, Layers, Eye
 } from "lucide-react";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
@@ -292,7 +292,7 @@ function ModuleCard({ module, viewMode, isFavorite, onToggleFavorite }: any) {
                                         {files.map((file: any) => (
                                             <a
                                                 key={file.id}
-                                                href={file.webViewLink}
+                                                href={`https://drive.google.com/file/d/${file.id}/preview`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="flex items-center gap-3 p-2 bg-slate-50 rounded-lg border border-slate-100 hover:border-primary/30 hover:bg-white hover:shadow-sm transition-all group/file"
@@ -315,7 +315,7 @@ function ModuleCard({ module, viewMode, isFavorite, onToggleFavorite }: any) {
                                                         </p>
                                                     )}
                                                 </div>
-                                                <Download className="w-4 h-4 text-slate-300 group-hover/file:text-primary opacity-0 group-hover/file:opacity-100 transition-all" />
+                                                <Eye className="w-4 h-4 text-slate-300 group-hover/file:text-primary opacity-0 group-hover/file:opacity-100 transition-all" />
                                             </a>
                                         ))}
                                     </div>

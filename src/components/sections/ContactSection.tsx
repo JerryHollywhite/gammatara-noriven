@@ -7,9 +7,10 @@ interface ContactSectionProps {
     address?: string;
     phone?: string;
     email?: string;
+    siteContent?: Record<string, string>;
 }
 
-export default function ContactSection({ address, phone, email }: ContactSectionProps) {
+export default function ContactSection({ address, phone, email, siteContent = {} }: ContactSectionProps) {
     return (
         <section id="contact" className="py-24 bg-slate-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -17,12 +18,14 @@ export default function ContactSection({ address, phone, email }: ContactSection
 
                     {/* Contact Info & Copy */}
                     <div>
-                        <span className="text-secondary font-bold tracking-widest uppercase text-xs">Get in Touch</span>
+                        <span className="text-secondary font-bold tracking-widest uppercase text-xs">
+                            {siteContent["Contact_Header_Label"] || "Get in Touch"}
+                        </span>
                         <h2 className="text-3xl md:text-4xl font-bold font-heading text-slate-900 mt-2 mb-6">
-                            Ready to Unlock Your Child's Potential?
+                            {siteContent["Contact_Header_Title"] || "Ready to Unlock Your Child's Potential?"}
                         </h2>
                         <p className="text-lg text-slate-600 mb-8">
-                            Book a free consultation or check class availability. We are here to answer all your questions about our programs and teaching methodology.
+                            {siteContent["Contact_Header_Subtitle"] || "Book a free consultation or check class availability. We are here to answer all your questions about our programs and teaching methodology."}
                         </p>
 
                         <div className="space-y-6">
@@ -66,7 +69,7 @@ export default function ContactSection({ address, phone, email }: ContactSection
 
                     {/* Contact Form */}
                     <div className="bg-white rounded-2xl shadow-xl p-8 border border-slate-100">
-                        <h3 className="text-2xl font-bold text-slate-900 mb-6">Book a Consultation</h3>
+                        <h3 className="text-2xl font-bold text-slate-900 mb-6"> {siteContent["Contact_Form_Title"] || "Book a Consultation"}</h3>
                         <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">

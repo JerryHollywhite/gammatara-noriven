@@ -27,9 +27,16 @@ const features = [
 interface USPSectionProps {
     title?: string;
     subtitle?: string;
+    siteContent?: Record<string, string>;
 }
 
-export default function USPSection({ title, subtitle }: USPSectionProps) {
+export default function USPSection({ title, subtitle, siteContent = {} }: USPSectionProps) {
+    const dynamicFeatures = features.map((f, i) => ({
+        ...f,
+        title: siteContent[`Why_Card_${i + 1}_Title`] || f.title,
+        description: siteContent[`Why_Card_${i + 1}_Desc`] || f.description,
+    }));
+
     return (
         <section id="why-choose-us" className="py-24 bg-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -45,7 +52,7 @@ export default function USPSection({ title, subtitle }: USPSectionProps) {
                 </ScrollAnimation>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
-                    {features.map((feature, index) => (
+                    {dynamicFeatures.map((feature, index) => (
                         <ScrollAnimation key={index} delay={index * 0.2}>
                             <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 hover:shadow-xl transition-all duration-300 border border-slate-100/50 hover:-translate-y-2 relative overflow-hidden group">
                                 <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-${feature.color.split("-")[1]}-50 to-transparent rounded-bl-full opacity-50 group-hover:scale-110 transition-transform`} />

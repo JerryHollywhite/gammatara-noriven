@@ -38,13 +38,17 @@ const programs = [
 
 interface AcademicProgramsProps {
     programImages?: Record<string, string>;
+    siteContent?: Record<string, string>;
 }
 
-export default function AcademicPrograms({ programImages = {} }: AcademicProgramsProps) {
+export default function AcademicPrograms({ programImages = {}, siteContent = {} }: AcademicProgramsProps) {
     const updatedPrograms = programs.map(p => {
         const capitalizedId = p.id.charAt(0).toUpperCase() + p.id.slice(1);
         return {
             ...p,
+            title: siteContent[`Program_${capitalizedId}_Title`] || p.title,
+            description: siteContent[`Program_${capitalizedId}_Desc`] || p.description,
+            age: siteContent[`Program_${capitalizedId}_Label`] || p.age,
             image: programImages[`Card_${capitalizedId}`] || programImages[`Card_${p.title}`] || p.image
         };
     });
@@ -54,12 +58,14 @@ export default function AcademicPrograms({ programImages = {} }: AcademicProgram
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <ScrollAnimation>
                     <div className="text-center max-w-3xl mx-auto mb-16">
-                        <span className="text-primary font-semibold tracking-wider uppercase text-sm">Pathways to Excellence</span>
+                        <span className="text-primary font-semibold tracking-wider uppercase text-sm">
+                            {siteContent["Program_Header_Label"] || "Pathways to Excellence"}
+                        </span>
                         <h2 className="text-3xl md:text-4xl font-bold font-heading text-slate-900 mt-2 mb-4">
-                            Our Academic Programs
+                            {siteContent["Program_Header_Title"] || "Our Academic Programs"}
                         </h2>
                         <p className="text-lg text-slate-600">
-                            Tailored learning journeys for every stage of development.
+                            {siteContent["Program_Header_Subtitle"] || "Tailored learning journeys for every stage of development."}
                         </p>
                     </div>
                 </ScrollAnimation>

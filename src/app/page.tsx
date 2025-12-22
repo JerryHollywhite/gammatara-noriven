@@ -33,15 +33,17 @@ export default async function Home() {
       <USPSection
         title={siteContent["Why_Title"]}
         subtitle={siteContent["Why_Subtitle"]}
+        siteContent={siteContent}
       />
-      <SchedulesSection schedules={schedules} />
-      <AcademicPrograms programImages={siteImages} />
-      <HallOfFame teachers={teachers} />
-      <Testimonials />
+      <SchedulesSection schedules={schedules} siteContent={siteContent} />
+      <AcademicPrograms programImages={siteImages} siteContent={siteContent} />
+      <HallOfFame teachers={teachers} siteContent={siteContent} />
+      <Testimonials siteContent={siteContent} />
       <ContactSection
         address={siteContent["Contact_Address"]}
         phone={siteContent["Contact_Phone"]}
         email={siteContent["Contact_Email"]}
+        siteContent={siteContent}
       />
       <Footer
         address={siteContent["Contact_Address"]}

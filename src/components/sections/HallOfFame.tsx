@@ -13,9 +13,10 @@ export interface Teacher {
 
 interface HallOfFameProps {
     teachers?: Teacher[];
+    siteContent?: Record<string, string>;
 }
 
-export default function HallOfFame({ teachers = [] }: HallOfFameProps) {
+export default function HallOfFame({ teachers = [], siteContent = {} }: HallOfFameProps) {
     // Fallback data if no props provided (or waiting for API)
     const displayTeachers = teachers.length > 0 ? teachers : [
         {
@@ -66,12 +67,14 @@ export default function HallOfFame({ teachers = [] }: HallOfFameProps) {
         <section id="teachers" className="py-24 bg-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center max-w-3xl mx-auto mb-16">
-                    <span className="text-secondary font-bold tracking-widest uppercase text-xs">World-Class Mentors</span>
+                    <span className="text-secondary font-bold tracking-widest uppercase text-xs">
+                        {siteContent["Teachers_Header_Label"] || "World-Class Mentors"}
+                    </span>
                     <h2 className="text-3xl md:text-4xl font-bold font-heading text-slate-900 mt-2 mb-4">
-                        Meet Our Expert Mentors
+                        {siteContent["Teachers_Header_Title"] || "Meet Our Expert Mentors"}
                     </h2>
                     <p className="text-lg text-slate-600">
-                        Passionate educators who are also high-achievers in their respective fields.
+                        {siteContent["Teachers_Header_Subtitle"] || "Passionate educators who are also high-achievers in their respective fields."}
                     </p>
                 </div>
 

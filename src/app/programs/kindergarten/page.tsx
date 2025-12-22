@@ -16,7 +16,7 @@ export default async function KindergartenPage(props: { searchParams: Promise<{ 
     const lang = (searchParams?.lang as 'id' | 'en' | 'cn') || 'id';
 
     const [galleryImages, siteImages, siteContent] = await Promise.all([
-        getGalleryImages("Kindergarten"),
+        getGalleryImages("Kindergarten", lang),
         getSiteImages(),
         getSiteContent(lang)
     ]);

@@ -12,7 +12,7 @@ export default async function GalleryPage(props: { searchParams: Promise<{ lang?
     const lang = (searchParams?.lang as 'id' | 'en' | 'cn') || 'id';
 
     const [galleryImages, siteImages, siteContent] = await Promise.all([
-        getGalleryImages(), // Get ALL images for the main gallery
+        getGalleryImages(undefined, lang), // Get ALL images for the main gallery
         getSiteImages(),
         getSiteContent(lang)
     ]);

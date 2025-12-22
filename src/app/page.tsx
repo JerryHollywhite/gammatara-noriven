@@ -18,13 +18,13 @@ export default async function Home(props: { searchParams: Promise<{ lang?: strin
   const lang = (searchParams?.lang as 'id' | 'en' | 'cn') || 'id';
 
   const [teachers, galleryImages, testimonials, siteImages, siteContent, schedules, promoImages] = await Promise.all([
-    getTeachers(),
-    getGalleryImages(),
-    getTestimonials(),
+    getTeachers(lang),
+    getGalleryImages(undefined, lang),
+    getTestimonials(lang),
     getSiteImages(),
     getSiteContent(lang),
-    getSchedules(),
-    getGalleryImages("Promo")
+    getSchedules(lang),
+    getGalleryImages("Promo", lang)
   ]);
 
   return (

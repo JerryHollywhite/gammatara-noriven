@@ -16,7 +16,7 @@ export default async function AdultPage(props: { searchParams: Promise<{ lang?: 
     const lang = (searchParams?.lang as 'id' | 'en' | 'cn') || 'id';
 
     const [galleryImages, siteImages, siteContent] = await Promise.all([
-        getGalleryImages("Adult"),
+        getGalleryImages("Adult", lang),
         getSiteImages(),
         getSiteContent(lang)
     ]);

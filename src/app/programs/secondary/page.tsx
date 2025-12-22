@@ -16,7 +16,7 @@ export default async function SecondaryPage(props: { searchParams: Promise<{ lan
     const lang = (searchParams?.lang as 'id' | 'en' | 'cn') || 'id';
 
     const [galleryImages, siteImages, siteContent] = await Promise.all([
-        getGalleryImages("Secondary"),
+        getGalleryImages("Secondary", lang),
         getSiteImages(),
         getSiteContent(lang)
     ]);

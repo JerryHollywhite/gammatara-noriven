@@ -15,8 +15,7 @@ export interface Teacher {
 export interface Testimonial {
     name: string;
     role: string;
-    quoteId: string;
-    quoteEn: string;
+    quote: string;
     photo: string;
 }
 
@@ -89,71 +88,82 @@ function formatGoogleDriveUrl(url: string | undefined): string | undefined {
     }
 }
 
-export async function getTeachers(): Promise<Teacher[]> {
+export async function getTeachers(lang: 'id' | 'en' | 'cn' = 'id'): Promise<Teacher[]> {
     const data = await getSheetData(TEACHERS_SHEET_URL);
 
     if (!data) return [];
 
+    // Columns: Name(0), ShortName(1), Role_ID(2)...
+    // Offsets for ID=0, EN=1, CN=2
+    const langOffset = lang === 'en' ? 1 : lang === 'cn' ? 2 : 0;
+
     return data.map((row) => ({
         name: row[0] || "Unknown",
         shortName: row[1] || row[0]?.split(' ')[0] || "Teacher",
-        role: row[2] || "Tutor",
-        subjects: row[3] || "General Subjects",
-        education: row[4] || "Degree",
-        experience: row[5] ? row[5].split(';').map((s: string) => s.trim()).filter(s => s) : [],
-        achievements: row[6] ? row[6].split(';').map((s: string) => s.trim()).filter(s => s) : [],
-        image: formatGoogleDriveUrl(row[7]) || `https://ui-avatars.com/api/?name=${encodeURIComponent(row[0])}&background=random`
+        role: row[2 + langOffset] || "Tutor",
+        subjects: row[5 + langOffset] || "General Subjects",
+        education: row[8 + langOffset] || "Degree",
+        experience: row[11 + langOffset] ? row[11 + langOffset].split(';').map((s: string) => s.trim()).filter(s => s) : [],
+        achievements: row[14 + langOffset] ? row[14 + langOffset].split(';').map((s: string) => s.trim()).filter(s => s) : [],
+        image: formatGoogleDriveUrl(row[17]) || `https://ui-avatars.com/api/?name=${encodeURIComponent(row[0])}&background=random`
     }));
 }
 
-export async function getTestimonials(): Promise<Testimonial[]> {
+export async function getTestimonials(lang: 'id' | 'en' | 'cn' = 'id'): Promise<Testimonial[]> {
     const data = await getSheetData(TESTIMONIALS_SHEET_URL);
 
     if (!data) return [];
 
+    // CSV: Name(0), Role(1), Quote_ID(2), Quote_EN(3), Quote_CN(4), Photo(5)
+    // Quote Index: ID=2, EN=3, CN=4
+    const quoteIndex = lang === 'en' ? 3 : lang === 'cn' ? 4 : 2;
+
     return data.map((row) => ({
         name: row[0] || "Student",
         role: row[1] || "Alumni",
-        quoteId: row[2] || "Saya sangat senang belajar di sini.",
-        quoteEn: row[3] || "I am very happy learning here.",
-        photo: formatGoogleDriveUrl(row[4]) || `https://ui-avatars.com/api/?name=${encodeURIComponent(row[0] || "Student")}&background=random`
+        quote: row[quoteIndex] || row[2] || "Saya sangat senang belajar di sini.", // Fallback to ID
+        photo: formatGoogleDriveUrl(row[5]) || `https://ui-avatars.com/api/?name=${encodeURIComponent(row[0] || "Student")}&background=random`
     }));
 }
 
-export async function getSchedules(): Promise<ScheduleItem[]> {
+export async function getSchedules(lang: 'id' | 'en' | 'cn' = 'id'): Promise<ScheduleItem[]> {
     const data = await getSheetData(SCHEDULES_SHEET_URL);
 
     if (!data) return [];
 
+    // CSV: Course_ID(0), Course_EN(1), Course_CN(2), Day_ID(3), Day_EN(4), Day_CN(5), Time(6), Location(7), Status_ID(8), Status_EN(9), Status_CN(10)
+    const langOffset = lang === 'en' ? 1 : lang === 'cn' ? 2 : 0;
+
     return data.map((row) => ({
-        course: row[0] || "Available Class",
-        day: row[1] || "Sorted Day",
-        time: row[2] || "Time",
-        location: row[3] || "Location",
-        status: (row[4] as any) || "Available",
+        course: row[0 + langOffset] || "Available Class",
+        day: row[3 + langOffset] || "Sorted Day",
+        time: row[6] || "Time",
+        location: row[7] || "Location",
+        status: (row[8 + langOffset] as any) || "Available",
     }));
 }
 
-export async function getGalleryImages(category?: string): Promise<GalleryItem[]> {
+export async function getGalleryImages(category?: string, lang: 'id' | 'en' | 'cn' = 'id'): Promise<GalleryItem[]> {
     if (!GALLERY_SHEET_URL) return [];
 
     const data = await getSheetData(GALLERY_SHEET_URL);
 
     if (!data) return [];
 
+    // CSV: Category(0), Image(1), Caption_ID(2), Caption_EN(3), Caption_CN(4)
+    const captionIndex = lang === 'en' ? 3 : lang === 'cn' ? 4 : 2;
+
     return data
         .map((row) => ({
             category: row[0] || "",
             imageUrl: formatGoogleDriveUrl(row[1]) || "",
-            caption: row[2] || ""
+            caption: row[captionIndex] || row[2] || ""
         }))
         .filter((item) => {
             const isValid = !!item.imageUrl;
-            // If category is provided, filter by it. Otherwise return all valid images that are NOT reserved keys
             if (category) {
                 return isValid && item.category.toLowerCase() === category.toLowerCase();
             }
-            // Filter out "System/Reserved" keys like Hero_, Card_, Promo if fetching "All" gallery
             const isReserved = item.category.startsWith("Hero_") || item.category.startsWith("Card_") || item.category === "Promo";
             return isValid && !isReserved;
         });

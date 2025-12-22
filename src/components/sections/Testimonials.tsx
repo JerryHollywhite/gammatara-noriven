@@ -83,7 +83,7 @@ export default function Testimonials({ testimonials = [], siteContent = {} }: Te
 
                                         <div className="text-center md:text-left flex-1">
                                             <p className="text-lg md:text-xl text-white italic leading-relaxed mb-6 font-light">
-                                                "{testimonials[currentIndex].quoteEn}"
+                                                "{testimonials[currentIndex].quote}"
                                             </p>
                                             <div>
                                                 <h4 className="text-xl font-bold text-white">{testimonials[currentIndex].name}</h4>

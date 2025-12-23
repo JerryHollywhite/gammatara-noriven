@@ -3,7 +3,6 @@
 import { useState, useRef } from "react";
 import { Button } from "../ui/Button";
 import { Mail, Phone, MapPin, Send, Loader2 } from "lucide-react";
-import emailjs from '@emailjs/browser';
 
 interface ContactSectionProps {
     address?: string;
@@ -17,31 +16,41 @@ export default function ContactSection({ address, phone, email, siteContent = {}
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
-    const sendEmail = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!form.current) return;
 
         setIsSubmitting(true);
         setSubmitStatus('idle');
 
-        // Legacy Credentials found: Service ID: service_yr1p11v, Template ID: template_5qn7y2u, Public Key: OA8lpQMKzh47P0n8a
-        emailjs
-            .sendForm('service_yr1p11v', 'template_5qn7y2u', form.current, {
-                publicKey: 'OA8lpQMKzh47P0n8a',
-            })
-            .then(
-                () => {
-                    setIsSubmitting(false);
-                    setSubmitStatus('success');
-                    if (form.current) form.current.reset();
-                    setTimeout(() => setSubmitStatus('idle'), 5000);
+        // Extract form data
+        const formData = new FormData(form.current);
+        const data = Object.fromEntries(formData.entries());
+
+        try {
+            const response = await fetch('/api/contact', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
                 },
-                (error) => {
-                    console.error('FAILED...', error.text);
-                    setIsSubmitting(false);
-                    setSubmitStatus('error');
-                },
-            );
+                body: JSON.stringify(data),
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                setIsSubmitting(false);
+                setSubmitStatus('success');
+                if (form.current) form.current.reset();
+                setTimeout(() => setSubmitStatus('idle'), 5000);
+            } else {
+                throw new Error(result.error || 'Failed to send message');
+            }
+        } catch (error) {
+            console.error('Submission failed:', error);
+            setIsSubmitting(false);
+            setSubmitStatus('error');
+        }
     };
 
     return (
@@ -112,7 +121,7 @@ export default function ContactSection({ address, phone, email, siteContent = {}
                     {/* Contact Form */}
                     <div className="bg-white rounded-2xl shadow-xl p-8 border border-slate-100">
                         <h3 className="text-2xl font-bold text-slate-900 mb-6"> {siteContent["Contact_Form_Title"] || "Book a Consultation"}</h3>
-                        <form ref={form} onSubmit={sendEmail} className="space-y-4">
+                        <form ref={form} onSubmit={handleSubmit} className="space-y-4">
                             {/* Hidden fields typically used by EmailJS templates if they expect specific names */}
                             <input type="hidden" name="to_name" value="Gamma Tara Team" />
 
@@ -123,7 +132,7 @@ export default function ContactSection({ address, phone, email, siteContent = {}
                                         type="text"
                                         name="from_name" // Matching 'from_name' in legacy template
                                         required
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-slate-900 bg-white"
                                         placeholder="Enter name"
                                     />
                                 </div>
@@ -132,7 +141,7 @@ export default function ContactSection({ address, phone, email, siteContent = {}
                                     <input
                                         type="text"
                                         name="grade"
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-slate-900 bg-white"
                                         placeholder="e.g. Grade 5"
                                     />
                                 </div>
@@ -143,7 +152,7 @@ export default function ContactSection({ address, phone, email, siteContent = {}
                                 <input
                                     type="text"
                                     name="parent_name"
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-slate-900 bg-white"
                                     placeholder="Enter parent's name"
                                 />
                             </div>
@@ -154,14 +163,14 @@ export default function ContactSection({ address, phone, email, siteContent = {}
                                     type="tel"
                                     name="phone" // Matching 'phone' in legacy template
                                     required
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-slate-900 bg-white"
                                     placeholder="+62..."
                                 />
                             </div>
 
                             <div className="space-y-2">
                                 <label htmlFor="program" className="text-sm font-medium text-slate-700">{siteContent["Contact_Form_Label_Program"] || "Program Interest"}</label>
-                                <select name="program" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white">
+                                <select name="program" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white text-slate-900">
                                     <option value="">Select a program...</option>
                                     <option value="kindergarten">Kindergarten</option>
                                     <option value="primary">Primary School</option>
@@ -175,7 +184,7 @@ export default function ContactSection({ address, phone, email, siteContent = {}
                                 <textarea
                                     name="message" // Matching 'message' in legacy template
                                     rows={3}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-slate-900 bg-white"
                                     placeholder="Any specific questions?"
                                 />
                             </div>

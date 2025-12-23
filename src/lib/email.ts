@@ -43,3 +43,49 @@ export async function sendResetEmail(to: string, token: string) {
         return false;
     }
 }
+
+interface ContactFormData {
+    name: string;
+    grade?: string;
+    parentName?: string;
+    phone: string;
+    program: string;
+    message: string;
+}
+
+export async function sendContactEmail(data: ContactFormData) {
+    if (!process.env.GOOGLE_SMTP_PASS) {
+        console.warn("⚠️ NO SMTP PASSWORD SET. Contact email will not be sent.");
+        console.log("📝 Mock Contact Email Data:", data);
+        return true;
+    }
+
+    const adminEmail = process.env.GOOGLE_SMTP_USER || "gammatara.learning@gmail.com";
+
+    try {
+        await transporter.sendMail({
+            from: '"Gamma Tara Web" <gammatara.learning@gmail.com>',
+            to: adminEmail, // Send TO the admin
+            replyTo: adminEmail, // In a real app we might want the user's email, but the form doesn't seem to ask for user email, only phone?
+            subject: `New Inquiry: ${data.name} (${data.program})`,
+            html: `
+                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px;">
+                    <h2 style="color: #0f172a;">New Inquiry Received</h2>
+                    <p><strong>Student Name:</strong> ${data.name}</p>
+                    <p><strong>Grade:</strong> ${data.grade || '-'}</p>
+                    <p><strong>Parent Name:</strong> ${data.parentName || '-'}</p>
+                    <p><strong>Phone/WhatsApp:</strong> <a href="https://wa.me/${data.phone.replace(/\D/g, '')}">${data.phone}</a></p>
+                    <p><strong>Program Interest:</strong> ${data.program}</p>
+                    <div style="background-color: #f8fafc; padding: 15px; border-radius: 5px; margin-top: 10px;">
+                        <strong>Message:</strong><br/>
+                        ${data.message || 'No message provided.'}
+                    </div>
+                </div>
+            `,
+        });
+        return true;
+    } catch (error) {
+        console.error("Failed to send contact email:", error);
+        return false;
+    }
+}

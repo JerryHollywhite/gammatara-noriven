@@ -8,8 +8,24 @@ import Image from "next/image";
 import { ArrowLeft, CheckCircle } from "lucide-react";
 import { getGalleryImages, getSiteImages, getSiteContent } from "@/lib/googleSheets";
 import PageHeader from "@/components/layout/PageHeader";
+import { Metadata } from "next";
 
 export const revalidate = 60;
+
+export async function generateMetadata(props: { searchParams: Promise<{ lang?: string }> }): Promise<Metadata> {
+    const searchParams = await props.searchParams;
+    const lang = (searchParams?.lang as 'id' | 'en' | 'cn') || 'id';
+    const siteContent = await getSiteContent(lang);
+
+    return {
+        title: siteContent["Kindergarten_Page_Title"] || "Kindergarten Program",
+        description: siteContent["Kindergarten_Page_Subtitle"] || "Fun learning for early childhood.",
+        openGraph: {
+            title: siteContent["Kindergarten_Page_Title"] || "Kindergarten Program",
+            description: siteContent["Kindergarten_Page_Subtitle"] || "Fun learning for early childhood.",
+        }
+    };
+}
 
 export default async function KindergartenPage(props: { searchParams: Promise<{ lang?: string }> }) {
     const searchParams = await props.searchParams;

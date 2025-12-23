@@ -29,6 +29,36 @@ export default async function Home(props: { searchParams: Promise<{ lang?: strin
 
   return (
     <main className="min-h-screen bg-white font-sans text-slate-900">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "EducationalOrganization",
+            "name": "Gamma Tara Learning Centre",
+            "url": process.env.NEXT_PUBLIC_SITE_URL || "https://gammatara.com",
+            "logo": siteImages["Logo"] || "https://gammatara.com/logo.png",
+            "description": siteContent["Home_Hero_Subtitle"] || "Premier tuition centre in Batam.",
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": siteContent["Contact_Address"],
+              "addressLocality": "Batam, Riau Islands",
+              "postalCode": "29444",
+              "addressCountry": "ID"
+            },
+            "contactPoint": {
+              "@type": "ContactPoint",
+              "telephone": siteContent["Contact_Phone"],
+              "contactType": "customer service",
+              "email": siteContent["Contact_Email"]
+            },
+            "sameAs": [
+              "https://instagram.com/gammatara",
+              "https://facebook.com/gammatara"
+            ]
+          })
+        }}
+      />
       <Navbar logoUrl={siteImages["Logo"]} />
       <Hero
         backgroundImage={siteImages["Hero_Home"]}

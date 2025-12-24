@@ -143,7 +143,7 @@ export default function AdminAnalyticsDashboard() {
                 </div>
 
                 {/* User Breakdown */}
-                <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200">
+                <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200 mb-10">
                     <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
                         <Users className="w-6 h-6 text-indigo-600" />
                         User Distribution
@@ -164,6 +164,123 @@ export default function AdminAnalyticsDashboard() {
                         ))}
                     </div>
                 </div>
+
+                {/* Manage Users Table */}
+                <ManageUsersTable />
+            </div>
+        </div>
+    );
+}
+
+function ManageUsersTable() {
+    const [users, setUsers] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
+
+    const fetchUsers = async () => {
+        try {
+            const res = await fetch('/api/admin/users');
+            const json = await res.json();
+            if (json.success) {
+                setUsers(json.users);
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchUsers();
+    }, []);
+
+    const handleDelete = async (id: string, name: string) => {
+        if (!confirm(`Are you sure you want to PERMANENTLY delete user "${name}"? This action cannot be undone.`)) return;
+
+        setDeletingId(id);
+        try {
+            const res = await fetch(`/api/admin/users/${id}`, {
+                method: 'DELETE'
+            });
+            const json = await res.json();
+
+            if (json.success) {
+                // Refresh list
+                fetchUsers();
+                // Ideally show toast
+                alert("User deleted successfully");
+            } else {
+                alert(json.error || "Failed to delete user");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Error deleting user");
+        } finally {
+            setDeletingId(null);
+        }
+    };
+
+    return (
+        <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200">
+            <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                <Users className="w-6 h-6 text-red-600" />
+                Manage Users
+            </h2>
+
+            <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-slate-200">
+                    <thead className="bg-slate-50">
+                        <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Name</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Email</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Role</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Joined</th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-slate-200">
+                        {loading ? (
+                            <tr><td colSpan={5} className="px-6 py-4 text-center">Loading users...</td></tr>
+                        ) : users.length === 0 ? (
+                            <tr><td colSpan={5} className="px-6 py-4 text-center">No users found</td></tr>
+                        ) : (
+                            users.map((user) => (
+                                <tr key={user.id} className="hover:bg-slate-50">
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="text-sm font-medium text-slate-900">{user.name}</div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="text-sm text-slate-500">{user.email}</div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                            ${user.role === 'ADMIN' ? 'bg-amber-100 text-amber-800' :
+                                                user.role === 'TEACHER' ? 'bg-purple-100 text-purple-800' :
+                                                    user.role === 'PARENT' ? 'bg-emerald-100 text-emerald-800' :
+                                                        'bg-blue-100 text-blue-800'}`}>
+                                            {user.role === 'ADMIN' ? 'OWNER' : user.role}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+                                        {new Date(user.createdAt).toLocaleDateString()}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        {user.role !== 'ADMIN' && (
+                                            <button
+                                                onClick={() => handleDelete(user.id, user.name || '')}
+                                                disabled={deletingId === user.id}
+                                                className="text-red-600 hover:text-red-900 disabled:opacity-50"
+                                            >
+                                                {deletingId === user.id ? 'Deleting...' : 'Delete'}
+                                            </button>
+                                        )}
+                                    </td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </table>
             </div>
         </div>
     );

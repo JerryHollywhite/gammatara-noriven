@@ -119,6 +119,58 @@ export async function updateUserStatus(email: string, status: string) {
     }
 }
 
+export async function deleteUser(email: string) {
+    try {
+        // 1. Find row index
+        const response = await sheets.spreadsheets.values.get({
+            spreadsheetId: SPREADSHEET_ID,
+            range: 'Users!A:A',
+        });
+
+        const rows = response.data.values;
+        if (!rows) return false;
+
+        const inputEmail = email?.trim().toLowerCase();
+        const rowIndex = rows.findIndex(row => {
+            const sheetEmail = row[0]?.trim().toLowerCase();
+            return sheetEmail === inputEmail;
+        });
+
+        if (rowIndex === -1) {
+            console.error(`Email not found in sheet for deletion: ${email}`);
+            return false;
+        }
+
+        // 2. Delete the row
+        // startIndex is inclusive, endIndex is exclusive.
+        // If rowIndex is 1 (Row 2), we want to delete index 1.
+        await sheets.spreadsheets.batchUpdate({
+            spreadsheetId: SPREADSHEET_ID,
+            requestBody: {
+                requests: [
+                    {
+                        deleteDimension: {
+                            range: {
+                                sheetId: 0, // Assuming 'Users' is the first sheet (GID 0). If not, we need to fetch sheetId.
+                                dimension: "ROWS",
+                                startIndex: rowIndex,
+                                endIndex: rowIndex + 1
+                            }
+                        }
+                    }
+                ]
+            }
+        });
+
+        console.log(`Successfully deleted user ${email} from Sheet`);
+        return true;
+
+    } catch (error) {
+        console.error('Error deleting user from sheet:', error);
+        return false;
+    }
+}
+
 export async function getModulesForUser(email: string, role: string) {
     try {
         // 1. Get Access Rules

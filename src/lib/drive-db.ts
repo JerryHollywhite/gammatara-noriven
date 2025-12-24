@@ -86,8 +86,17 @@ export async function updateUserStatus(email: string, status: string) {
         const rows = response.data.values;
         if (!rows) return false;
 
-        const rowIndex = rows.findIndex(row => row[0] === email);
-        if (rowIndex === -1) return false;
+        // Find row with case-insensitive email match (trim both sides)
+        const inputEmail = email?.trim().toLowerCase();
+        const rowIndex = rows.findIndex(row => {
+            const sheetEmail = row[0]?.trim().toLowerCase();
+            return sheetEmail === inputEmail;
+        });
+
+        if (rowIndex === -1) {
+            console.error(`Email not found in sheet: ${email}`);
+            return false;
+        }
 
         // Update Status column (F = index 5, so F{rowIndex+1})
         // Row 1 is header, so if rowIndex is 1 (2nd row), it is row 2. +1 maps correctly.
@@ -101,6 +110,8 @@ export async function updateUserStatus(email: string, status: string) {
                 values: [[status]],
             },
         });
+
+        console.log(`Successfully updated status for ${email} to ${status}`);
         return true;
     } catch (error) {
         console.error('Error updating status:', error);

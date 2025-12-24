@@ -39,6 +39,7 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
 
     // New Tool Modals
     const [isClassManagerOpen, setIsClassManagerOpen] = useState(false);
+    const [editingClassId, setEditingClassId] = useState<string | null>(null);
     const [isLessonManagerOpen, setIsLessonManagerOpen] = useState(false);
     const [isExamManagerOpen, setIsExamManagerOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false); // Profile Modal
@@ -122,13 +123,17 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
             {isClassManagerOpen && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-2xl w-full max-w-2xl p-6 relative animate-in fade-in zoom-in duration-200 overflow-y-auto max-h-[90vh]">
-                        <button onClick={() => setIsClassManagerOpen(false)} className="absolute top-4 right-4 p-2 hover:bg-slate-100 rounded-full text-slate-400">
+                        <button onClick={() => { setIsClassManagerOpen(false); setEditingClassId(null); }} className="absolute top-4 right-4 p-2 hover:bg-slate-100 rounded-full text-slate-400">
                             <X className="w-5 h-5" />
                         </button>
-                        <TeacherClassManager onClassCreated={() => {
-                            setIsClassManagerOpen(false);
-                            window.location.reload();
-                        }} />
+                        <TeacherClassManager
+                            classId={editingClassId}
+                            onClassCreated={() => {
+                                setIsClassManagerOpen(false);
+                                setEditingClassId(null);
+                                window.location.reload();
+                            }}
+                        />
                     </div>
                 </div>
             )}
@@ -321,7 +326,10 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
                                             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                                                 <Calendar className="w-3 h-3" /> Next: <span className="text-slate-600">{cls.nextSession}</span>
                                             </span>
-                                            <button className="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors">Manage Class</button>
+                                            <button onClick={() => {
+                                                setEditingClassId(cls.id);
+                                                setIsClassManagerOpen(true);
+                                            }} className="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors">Manage Class</button>
                                         </div>
                                     </div>
                                 )) : (

@@ -11,9 +11,10 @@ interface Student {
 
 interface TeacherClassManagerProps {
     onClassCreated?: () => void;
+    classId?: string | null;
 }
 
-export default function TeacherClassManager({ onClassCreated }: TeacherClassManagerProps) {
+export default function TeacherClassManager({ onClassCreated, classId }: TeacherClassManagerProps) {
     const [students, setStudents] = useState<Student[]>([]);
     const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
     const [className, setClassName] = useState("");
@@ -29,6 +30,22 @@ export default function TeacherClassManager({ onClassCreated }: TeacherClassMana
             });
     }, []);
 
+    // Fetch specific class for editing
+    useEffect(() => {
+        if (classId) {
+            setLoading(true);
+            fetch(`/api/teacher/classes/${classId}`)
+                .then(res => res.json())
+                .then(json => {
+                    if (json.success) {
+                        setClassName(json.class.name);
+                        setSelectedStudents(json.class.studentIds);
+                    }
+                    setLoading(false);
+                });
+        }
+    }, [classId]);
+
     const handleCreateClass = async () => {
         if (!className || selectedStudents.length === 0) {
             alert("Please enter a class name and select at least one student.");
@@ -37,22 +54,27 @@ export default function TeacherClassManager({ onClassCreated }: TeacherClassMana
 
         setLoading(true);
         try {
-            const res = await fetch('/api/teacher/classes', {
-                method: 'POST',
+            const url = classId ? `/api/teacher/classes/${classId}` : '/api/teacher/classes';
+            const method = classId ? 'PUT' : 'POST';
+
+            const res = await fetch(url, {
+                method: method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: className, studentIds: selectedStudents })
             });
             const json = await res.json();
             if (json.success) {
-                alert("Class created successfully!");
-                setClassName("");
-                setSelectedStudents([]);
+                alert(classId ? "Class updated successfully!" : "Class created successfully!");
+                if (!classId) {
+                    setClassName("");
+                    setSelectedStudents([]);
+                }
                 if (onClassCreated) onClassCreated();
             } else {
                 alert(json.error || "Failed");
             }
         } catch (e) {
-            alert("Error creating class");
+            alert("Error saving class");
         } finally {
             setLoading(false);
         }
@@ -75,7 +97,7 @@ export default function TeacherClassManager({ onClassCreated }: TeacherClassMana
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
                 <Users className="w-5 h-5 text-indigo-600" />
-                Manage Classes
+                {classId ? "Edit Class" : "Create New Class"}
             </h3>
 
             <div className="mb-4">
@@ -121,7 +143,7 @@ export default function TeacherClassManager({ onClassCreated }: TeacherClassMana
                 disabled={loading}
                 className="w-full py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 flex items-center justify-center gap-2"
             >
-                {loading ? "Creating..." : <><Plus className="w-4 h-4" /> Create Class</>}
+                {loading ? "Saving..." : <>{classId ? < Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />} {classId ? "Update Class" : "Create Class"}</>}
             </button>
         </div>
     );

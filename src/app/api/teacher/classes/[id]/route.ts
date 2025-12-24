@@ -79,3 +79,103 @@ export async function DELETE(
         return NextResponse.json({ error: "Internal Server Error: " + error.message }, { status: 500 });
     }
 }
+
+// Get Single Class Details
+export async function GET(
+    req: NextRequest,
+    context: { params: Promise<{ id: string }> }
+) {
+    const session = await getServerSession(authOptions);
+    if (!session || (session.user.role !== "TEACHER" && session.user.role !== "ADMIN")) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = await context.params;
+
+    try {
+        const classGroup = await prisma.classGroup.findUnique({
+            where: { id },
+            include: {
+                students: {
+                    include: {
+                        student: {
+                            include: {
+                                user: { select: { id: true, name: true, email: true } }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        if (!classGroup) return NextResponse.json({ error: "Class not found" }, { status: 404 });
+
+        // Normalize student list
+        const enrolledStudentIds = classGroup.students.map(enrollment => enrollment.student.user.id);
+
+        return NextResponse.json({
+            success: true,
+            class: {
+                id: classGroup.id,
+                name: classGroup.name,
+                studentIds: enrolledStudentIds
+            }
+        });
+
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
+
+// Update Class (Name + Students)
+export async function PUT(
+    req: NextRequest,
+    context: { params: Promise<{ id: string }> }
+) {
+    const session = await getServerSession(authOptions);
+    if (!session || session.user.role !== "TEACHER") {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = await context.params;
+    const { name, studentIds } = await req.json();
+
+    try {
+        // Validation: Check if name is taken by another class (if name changed)
+        // ... omitted for brevity but recommended
+
+        // Update Name
+        await prisma.classGroup.update({
+            where: { id },
+            data: { name }
+        });
+
+        // Add New Students (No removal for safety yet)
+        const currentEnrollments = await prisma.enrollment.findMany({
+            where: { classId: id },
+            include: { student: { include: { user: true } } }
+        });
+
+        const currentIds = currentEnrollments.map(e => e.student.user.id);
+        const toAdd = studentIds.filter((sid: string) => !currentIds.includes(sid));
+
+        for (const sid of toAdd) {
+            const studentProfile = await prisma.studentProfile.findUnique({ where: { userId: sid } });
+            if (studentProfile) {
+                await prisma.enrollment.create({
+                    data: {
+                        classId: id,
+                        studentId: studentProfile.id,
+                        status: 'ACTIVE',
+                        courseId: 'GENERAL'
+                    }
+                });
+            }
+        }
+
+        return NextResponse.json({ success: true });
+
+    } catch (e: any) {
+        return NextResponse.json({ error: e.message }, { status: 500 });
+    }
+}

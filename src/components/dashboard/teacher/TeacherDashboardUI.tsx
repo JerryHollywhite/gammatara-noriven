@@ -43,15 +43,20 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
     const [isExamManagerOpen, setIsExamManagerOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false); // Profile Modal
 
+    const fetchDashboardData = () => {
+        setLoading(true);
+        fetch('/api/teacher/dashboard')
+            .then(res => res.json())
+            .then(json => {
+                if (json.success) setData(json.data);
+                setLoading(false);
+            })
+            .catch(err => setLoading(false));
+    };
+
     useEffect(() => {
         if (!initialData) {
-            fetch('/api/teacher/dashboard')
-                .then(res => res.json())
-                .then(json => {
-                    if (json.success) setData(json.data);
-                    setLoading(false);
-                })
-                .catch(err => setLoading(false));
+            fetchDashboardData();
         }
     }, [initialData]);
 
@@ -120,7 +125,10 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
                         <button onClick={() => setIsClassManagerOpen(false)} className="absolute top-4 right-4 p-2 hover:bg-slate-100 rounded-full text-slate-400">
                             <X className="w-5 h-5" />
                         </button>
-                        <TeacherClassManager />
+                        <TeacherClassManager onClassCreated={() => {
+                            setIsClassManagerOpen(false);
+                            fetchDashboardData();
+                        }} />
                     </div>
                 </div>
             )}

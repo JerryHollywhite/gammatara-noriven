@@ -9,7 +9,11 @@ interface Student {
     email: string;
 }
 
-export default function TeacherClassManager() {
+interface TeacherClassManagerProps {
+    onClassCreated?: () => void;
+}
+
+export default function TeacherClassManager({ onClassCreated }: TeacherClassManagerProps) {
     const [students, setStudents] = useState<Student[]>([]);
     const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
     const [className, setClassName] = useState("");
@@ -43,6 +47,7 @@ export default function TeacherClassManager() {
                 alert("Class created successfully!");
                 setClassName("");
                 setSelectedStudents([]);
+                if (onClassCreated) onClassCreated();
             } else {
                 alert(json.error || "Failed");
             }

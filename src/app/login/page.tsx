@@ -13,7 +13,7 @@ export default function LoginPage() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
-    const [role, setRole] = useState<"STUDENT" | "TEACHER" | "PARENT">("STUDENT");
+    const [role, setRole] = useState<"STUDENT" | "TEACHER" | "PARENT" | "ADMIN">("STUDENT");
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -35,6 +35,7 @@ export default function LoginPage() {
                 if (role === "STUDENT") window.location.href = "/student/dashboard";
                 else if (role === "TEACHER") window.location.href = "/teacher/dashboard";
                 else if (role === "PARENT") window.location.href = "/parent/dashboard";
+                else if (role === "ADMIN") window.location.href = "/admin/analytics";
                 else window.location.href = "/modules";
             }
         } catch (err) {
@@ -61,7 +62,7 @@ export default function LoginPage() {
                     </div>
                 </div>
                 <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900 font-heading">
-                    Sign in to your account
+                    {role === "ADMIN" ? "Owner Access" : "Sign in to your account"}
                 </h2>
                 <p className="mt-2 text-center text-sm text-slate-600">
                     Or{' '}
@@ -72,50 +73,63 @@ export default function LoginPage() {
             </div>
 
             <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-                <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 border border-slate-100">
+                <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 border border-slate-100 relative">
+                    {/* Owner Login Link - Top Right */}
+                    <div className="absolute top-4 right-4">
+                        <button
+                            type="button"
+                            onClick={() => setRole(role === "ADMIN" ? "STUDENT" : "ADMIN")}
+                            className="text-xs font-semibold text-slate-400 hover:text-indigo-600 transition-colors"
+                        >
+                            {role === "ADMIN" ? "Login as User" : "Login Owner"}
+                        </button>
+                    </div>
+
                     <form className="space-y-6" onSubmit={handleSubmit}>
 
-                        {/* Role Selection */}
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
-                                Login as
-                            </label>
-                            <div className="grid grid-cols-3 gap-2 p-1 bg-slate-100 rounded-lg">
-                                <button
-                                    type="button"
-                                    onClick={() => setRole("STUDENT")}
-                                    className={`flex flex-col items-center justify-center py-2 px-1 rounded-md text-xs font-bold transition-all ${role === "STUDENT"
-                                        ? "bg-white text-indigo-600 shadow-sm ring-1 ring-black/5"
-                                        : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
-                                        }`}
-                                >
-                                    <GraduationCap className={`w-5 h-5 mb-1 ${role === "STUDENT" ? "text-indigo-600" : "text-slate-400"}`} />
-                                    Student
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setRole("TEACHER")}
-                                    className={`flex flex-col items-center justify-center py-2 px-1 rounded-md text-xs font-bold transition-all ${role === "TEACHER"
-                                        ? "bg-white text-emerald-600 shadow-sm ring-1 ring-black/5"
-                                        : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
-                                        }`}
-                                >
-                                    <School className={`w-5 h-5 mb-1 ${role === "TEACHER" ? "text-emerald-600" : "text-slate-400"}`} />
-                                    Teacher
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setRole("PARENT")}
-                                    className={`flex flex-col items-center justify-center py-2 px-1 rounded-md text-xs font-bold transition-all ${role === "PARENT"
-                                        ? "bg-white text-orange-600 shadow-sm ring-1 ring-black/5"
-                                        : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
-                                        }`}
-                                >
-                                    <Users className={`w-5 h-5 mb-1 ${role === "PARENT" ? "text-orange-600" : "text-slate-400"}`} />
-                                    Parent
-                                </button>
+                        {/* Role Selection - Hide if Admin */}
+                        {role !== "ADMIN" && (
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                    Login as
+                                </label>
+                                <div className="grid grid-cols-3 gap-2 p-1 bg-slate-100 rounded-lg">
+                                    <button
+                                        type="button"
+                                        onClick={() => setRole("STUDENT")}
+                                        className={`flex flex-col items-center justify-center py-2 px-1 rounded-md text-xs font-bold transition-all ${role === "STUDENT"
+                                            ? "bg-white text-indigo-600 shadow-sm ring-1 ring-black/5"
+                                            : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+                                            }`}
+                                    >
+                                        <GraduationCap className={`w-5 h-5 mb-1 ${role === "STUDENT" ? "text-indigo-600" : "text-slate-400"}`} />
+                                        Student
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setRole("TEACHER")}
+                                        className={`flex flex-col items-center justify-center py-2 px-1 rounded-md text-xs font-bold transition-all ${role === "TEACHER"
+                                            ? "bg-white text-emerald-600 shadow-sm ring-1 ring-black/5"
+                                            : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+                                            }`}
+                                    >
+                                        <School className={`w-5 h-5 mb-1 ${role === "TEACHER" ? "text-emerald-600" : "text-slate-400"}`} />
+                                        Teacher
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setRole("PARENT")}
+                                        className={`flex flex-col items-center justify-center py-2 px-1 rounded-md text-xs font-bold transition-all ${role === "PARENT"
+                                            ? "bg-white text-orange-600 shadow-sm ring-1 ring-black/5"
+                                            : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+                                            }`}
+                                    >
+                                        <Users className={`w-5 h-5 mb-1 ${role === "PARENT" ? "text-orange-600" : "text-slate-400"}`} />
+                                        Parent
+                                    </button>
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium text-slate-700">

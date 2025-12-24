@@ -5,7 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, GraduationCap, School, Users } from "lucide-react";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -13,6 +13,7 @@ export default function LoginPage() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const [role, setRole] = useState<"STUDENT" | "TEACHER" | "PARENT">("STUDENT");
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -29,8 +30,11 @@ export default function LoginPage() {
             if (result?.error) {
                 setError("Invalid email or password");
             } else {
-                // Force full reload to ensure session cookies are picked up
-                window.location.href = "/modules";
+                // Redirect based on selected role
+                if (role === "STUDENT") window.location.href = "/student/dashboard";
+                else if (role === "TEACHER") window.location.href = "/teacher/dashboard";
+                else if (role === "PARENT") window.location.href = "/parent/dashboard";
+                else window.location.href = "/modules";
             }
         } catch (err) {
             setError("An unexpected error occurred");
@@ -69,6 +73,49 @@ export default function LoginPage() {
             <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
                 <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 border border-slate-100">
                     <form className="space-y-6" onSubmit={handleSubmit}>
+
+                        {/* Role Selection */}
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                                Login as
+                            </label>
+                            <div className="grid grid-cols-3 gap-2 p-1 bg-slate-100 rounded-lg">
+                                <button
+                                    type="button"
+                                    onClick={() => setRole("STUDENT")}
+                                    className={`flex flex-col items-center justify-center py-2 px-1 rounded-md text-xs font-bold transition-all ${role === "STUDENT"
+                                            ? "bg-white text-indigo-600 shadow-sm ring-1 ring-black/5"
+                                            : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+                                        }`}
+                                >
+                                    <GraduationCap className={`w-5 h-5 mb-1 ${role === "STUDENT" ? "text-indigo-600" : "text-slate-400"}`} />
+                                    Student
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setRole("TEACHER")}
+                                    className={`flex flex-col items-center justify-center py-2 px-1 rounded-md text-xs font-bold transition-all ${role === "TEACHER"
+                                            ? "bg-white text-emerald-600 shadow-sm ring-1 ring-black/5"
+                                            : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+                                        }`}
+                                >
+                                    <School className={`w-5 h-5 mb-1 ${role === "TEACHER" ? "text-emerald-600" : "text-slate-400"}`} />
+                                    Teacher
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setRole("PARENT")}
+                                    className={`flex flex-col items-center justify-center py-2 px-1 rounded-md text-xs font-bold transition-all ${role === "PARENT"
+                                            ? "bg-white text-orange-600 shadow-sm ring-1 ring-black/5"
+                                            : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+                                        }`}
+                                >
+                                    <Users className={`w-5 h-5 mb-1 ${role === "PARENT" ? "text-orange-600" : "text-slate-400"}`} />
+                                    Parent
+                                </button>
+                            </div>
+                        </div>
+
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium text-slate-700">
                                 Email address
@@ -125,22 +172,29 @@ export default function LoginPage() {
                             </div>
                         </div>
 
-                        {error && (
-                            <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">
-                                {error}
-                            </div>
-                        )}
-
                         <div>
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-secondary hover:bg-secondary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed items-center"
                             >
-                                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign in"}
+                                {loading ? (
+                                    <>
+                                        <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
+                                        Signing in...
+                                    </>
+                                ) : (
+                                    "Sign in"
+                                )}
                             </button>
                         </div>
                     </form>
+
+                    {error && (
+                        <div className="mt-4 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm text-center font-medium">
+                            {error}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

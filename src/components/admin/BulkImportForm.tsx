@@ -90,20 +90,34 @@ export default function BulkImportForm() {
 
                 {/* File Upload */}
                 {!parsedData.length && (
-                    <div className="border-2 border-dashed border-slate-300 rounded-xl p-12 text-center hover:border-indigo-400 transition-colors">
-                        <input
-                            type="file"
-                            accept=".csv"
-                            onChange={handleFileChange}
-                            className="hidden"
-                            id="csv-upload"
-                        />
-                        <label htmlFor="csv-upload" className="cursor-pointer">
-                            <FileText className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-                            <p className="text-slate-600 font-bold mb-2">Upload CSV File</p>
-                            <p className="text-sm text-slate-400">Format: subjectId,title,description,videoDriveId,order</p>
-                        </label>
-                    </div>
+                    <>
+                        <div className="border-2 border-dashed border-slate-300 rounded-xl p-12 text-center hover:border-indigo-400 transition-colors">
+                            <input
+                                type="file"
+                                accept=".csv"
+                                onChange={handleFileChange}
+                                className="hidden"
+                                id="csv-upload"
+                            />
+                            <label htmlFor="csv-upload" className="cursor-pointer">
+                                <FileText className="w-16 h-16 mx-auto mb-4 text-slate-300" />
+                                <p className="text-slate-600 font-bold mb-2">Upload CSV File</p>
+                                <p className="text-sm text-slate-400">Format: subjectId,title,description,videoDriveId,order</p>
+                            </label>
+                        </div>
+
+                        {/* Download Sample Button */}
+                        <div className="mt-4 text-center">
+                            <a
+                                href="/sample-lessons.csv"
+                                download="sample-lessons.csv"
+                                className="inline-flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-700 font-bold"
+                            >
+                                <FileText className="w-4 h-4" />
+                                Download Sample CSV Template
+                            </a>
+                        </div>
+                    </>
                 )}
 
                 {/* Preview Table */}
@@ -162,8 +176,8 @@ export default function BulkImportForm() {
                             className="space-y-4"
                         >
                             <div className={`p-6 rounded-xl border-2 ${result.summary?.failed === 0
-                                    ? 'bg-green-50 border-green-200'
-                                    : 'bg-amber-50 border-amber-200'
+                                ? 'bg-green-50 border-green-200'
+                                : 'bg-amber-50 border-amber-200'
                                 }`}>
                                 <div className="flex items-center gap-3 mb-4">
                                     {result.summary?.failed === 0 ? (

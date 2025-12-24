@@ -1,0 +1,11 @@
+subjectId,title,description,videoDriveId,order
+CALISTUNG_READING,Mengenal Huruf A,Belajar mengenal dan menulis huruf A,1abc123def456,1
+CALISTUNG_READING,Mengenal Huruf B,Belajar mengenal dan menulis huruf B,2def456ghi789,2
+CALISTUNG_READING,Mengenal Huruf C,Belajar mengenal dan menulis huruf C,3ghi789jkl012,3
+CALISTUNG_WRITING,Menulis Huruf A-E,Latihan menulis huruf A sampai E,4jkl012mno345,1
+CALISTUNG_WRITING,Menulis Huruf F-J,Latihan menulis huruf F sampai J,5mno345pqr678,2
+ADAB_KARAKTER,Adab Kepada Orang Tua,Belajar sopan santun kepada orang tua,6pqr678stu901,1
+ADAB_KARAKTER,Adab Kepada Guru,Belajar sopan santun kepada guru,7stu901vwx234,2
+ADAB_KARAKTER,Adab di Masjid,Belajar adab saat berada di masjid,8vwx234yz567,3
+MATH_BASIC,Mengenal Angka 1-10,Pengenalan angka dasar 1 sampai 10,9yz567abc890,1
+MATH_BASIC,Penjumlahan Sederhana,Belajar penjumlahan angka 1-10,10abc890def123,2

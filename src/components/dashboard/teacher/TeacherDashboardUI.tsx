@@ -6,7 +6,7 @@ import Link from "next/link";
 import {
     Users, BookOpen, CheckSquare, MessageSquare,
     Plus, Search, MoreVertical, Calendar,
-    BarChart3, AlertTriangle, FileText, Database, X, User
+    BarChart3, AlertTriangle, FileText, Database, X, User, Trash2
 } from "lucide-react";
 import CreateAssignmentModal from "./CreateAssignmentModal";
 import GradingModal from "./GradingModal";
@@ -67,6 +67,28 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
             title: item.assignment
         });
         setIsGradingModalOpen(true);
+    };
+
+    const handleDeleteClass = async (classId: string, className: string) => {
+        if (!confirm(`Are you sure you want to delete class "${className}"? This action cannot be undone.`)) return;
+
+        try {
+            const res = await fetch(`/api/teacher/classes/${classId}`, { method: 'DELETE' });
+            const json = await res.json();
+            if (json.success) {
+                alert("Class deleted successfully");
+                // Optimistic update or reload
+                setData(prev => prev ? {
+                    ...prev,
+                    classes: prev.classes.filter(c => c.id !== classId)
+                } : null);
+            } else {
+                alert(json.error || "Failed to delete class");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("An error occurred");
+        }
     };
 
     return (
@@ -270,7 +292,16 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
                                                 <h3 className="font-bold text-slate-800 text-lg group-hover:text-indigo-600 transition-colors">{cls.name}</h3>
                                                 <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mt-1">{cls.subject}</p>
                                             </div>
-                                            <button className="p-1 hover:bg-slate-100 rounded-full text-slate-400"><MoreVertical className="w-5 h-5" /></button>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDeleteClass(cls.id, cls.name);
+                                                }}
+                                                className="p-2 hover:bg-red-50 rounded-full text-slate-300 hover:text-red-500 transition-colors z-10"
+                                                title="Delete Class"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
                                         </div>
 
                                         <div className="flex items-center gap-6 text-sm text-slate-500 mb-6 relative">

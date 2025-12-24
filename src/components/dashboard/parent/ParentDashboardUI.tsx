@@ -30,6 +30,24 @@ export default function ParentDashboardUI() {
     if (loading) return <div className="min-h-screen pt-24 flex items-center justify-center text-slate-400">Loading Family Data...</div>;
     if (!data) return <div className="min-h-screen pt-24 flex items-center justify-center text-red-400">Failed to load dashboard.</div>;
 
+    if (data.children.length === 0) {
+        return (
+            <div className="min-h-screen pt-24 flex flex-col items-center justify-center text-slate-500 gap-4">
+                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center">
+                    <User className="w-8 h-8 text-slate-400" />
+                </div>
+                <h2 className="text-xl font-bold text-slate-700">No Students Linked</h2>
+                <p className="max-w-md text-center text-sm">
+                    It seems there are no students linked to your parent account yet.
+                    Please contact the school administration to link your children's profiles.
+                </p>
+                <div className="flex gap-3 mt-4">
+                    <button className="px-5 py-2.5 bg-indigo-600 text-white font-bold rounded-xl text-sm">Contact Support</button>
+                </div>
+            </div>
+        );
+    }
+
     const currentChild = data.children[selectedChildIndex];
 
     return (

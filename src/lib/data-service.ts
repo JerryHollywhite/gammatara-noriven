@@ -64,58 +64,134 @@ export async function getStudentDashboardData(userId: string) {
     }
 }
 
-const MOCK_TEACHER_PROFILE = {
-    name: "Mr. Anderson",
-    role: "Teacher",
-    subject: "Mathematics & Physics",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Anderson",
-    classes: [
-        { id: 1, name: "Algebra II - Class A", students: 24, avgGrade: 88, nextSession: "Tomorrow, 09:00" },
-        { id: 2, name: "Physics 101 - Class B", students: 18, avgGrade: 82, nextSession: "Today, 14:00" },
-    ],
-    gradingQueue: [
-        { id: 1, student: "Alice Johnson", assignment: "Quadratic Equations Quiz", submitted: "2 hours ago", status: "pending" },
-        { id: 2, student: "Bob Smith", assignment: "Physics Lab Report", submitted: "Yesterday", status: "pending" },
-    ],
-    stats: {
-        totalStudents: 64,
-        activeClasses: 3,
-        pendingGrading: 12,
-        classAverage: 85
-    }
-};
-
-const MOCK_PARENT_PROFILE = {
-    name: "Mrs. Sarah Otomasikan",
-    children: [
-        {
-            id: 1,
-            name: "Jerry Jr.",
-            grade: "12 (SMA)",
-            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Jerry",
-            stats: { attendance: 98, gpa: 3.8, ranking: "Top 5%", nextExam: "Physics - Monday" },
-            recentGrades: [
-                { subject: "Mathematics", grade: "A (95)", date: "Yesterday", type: "Quiz" },
-                { subject: "English", grade: "B+ (88)", date: "Last Week", type: "Essay" }
-            ]
-        },
-        {
-            id: 2,
-            name: "Jessica",
-            grade: "4 (SD)",
-            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Jessica",
-            stats: { attendance: 95, gpa: 3.9, ranking: "Top 3%", nextExam: "Math - Tuesday" },
-            recentGrades: []
-        }
-    ]
-};
 
 export async function getTeacherDashboardData(userId: string) {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return MOCK_TEACHER_PROFILE;
+    if (!userId) return null;
+
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            include: {
+                teacherProfile: {
+                    include: {
+                        classes: {
+                            include: {
+                                students: true
+                            }
+                        },
+                        assignments: {
+                            include: {
+                                submissions: true
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        if (!user) return null;
+
+        // Default shell if no teacher profile exists
+        const profile = user.teacherProfile || {
+            specialty: "General Education",
+            classes: [],
+            assignments: []
+        };
+
+        // Calculate stats from real data
+        const totalStudents = profile.classes.reduce((acc, cls) => acc + cls.students.length, 0);
+        const activeClasses = profile.classes.length;
+        const pendingGrading = profile.assignments.reduce((acc, asg) =>
+            acc + asg.submissions.filter(s => s.grade === null).length, 0);
+
+        // Map classes to UI structure
+        const mappedClasses = profile.classes.map(cls => ({
+            id: cls.id,
+            name: cls.name,
+            subject: profile.specialty || "General",
+            students: cls.students.length,
+            avgGrade: 0, // Placeholder
+            nextSession: "TBD" // Placeholder
+        }));
+
+        // Map submissions to grading queue
+        const gradingQueue = profile.assignments.flatMap(asg =>
+            asg.submissions.filter(s => s.grade === null).map(sub => ({
+                id: sub.id,
+                student: "Student", // Would need another fetch or include to get name
+                assignment: asg.title,
+                submitted: sub.submittedAt.toLocaleDateString(),
+                status: "pending"
+            }))
+        ).slice(0, 5);
+
+        return {
+            name: user.name || "Teacher",
+            role: "Teacher",
+            subject: profile.specialty || "Education",
+            avatar: user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name || 'Teacher'}`,
+            classes: mappedClasses,
+            gradingQueue: gradingQueue,
+            stats: {
+                totalStudents,
+                activeClasses,
+                pendingGrading,
+                classAverage: 0
+            }
+        };
+
+    } catch (error) {
+        console.error("Error fetching teacher dashboard:", error);
+        return null;
+    }
 }
 
 export async function getParentDashboardData(userId: string) {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return MOCK_PARENT_PROFILE;
+    if (!userId) return null;
+
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            include: {
+                parentProfile: {
+                    include: {
+                        children: {
+                            include: {
+                                user: true,
+                                enrollments: true,
+                                badges: true
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        if (!user) return null;
+
+        const profile = user.parentProfile || { children: [] };
+
+        const mappedChildren = profile.children.map(child => ({
+            id: child.id,
+            name: child.user.name || "Child",
+            grade: child.gradeLevel,
+            avatar: child.user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${child.user.name || 'Child'}`,
+            stats: {
+                attendance: 100,
+                gpa: 0.0,
+                ranking: "Top 10%",
+                nextExam: "TBD"
+            },
+            recentGrades: []
+        }));
+
+        return {
+            name: user.name || "Parent",
+            children: mappedChildren
+        };
+
+    } catch (error) {
+        console.error("Error fetching parent dashboard:", error);
+        return null;
+    }
 }

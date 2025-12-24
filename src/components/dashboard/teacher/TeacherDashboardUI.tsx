@@ -115,7 +115,7 @@ export default function TeacherDashboardUI() {
                                 <BookOpen className="w-5 h-5 text-indigo-600" /> My Classes
                             </h2>
                             <div className="grid md:grid-cols-2 gap-5">
-                                {classes.map((cls: any) => (
+                                {classes.length > 0 ? classes.map((cls: any) => (
                                     <div key={cls.id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:translate-y-[-4px] hover:border-indigo-200 transition-all cursor-pointer group relative overflow-hidden">
                                         <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-bl-full opacity-50 group-hover:scale-125 transition-transform" />
 
@@ -139,7 +139,18 @@ export default function TeacherDashboardUI() {
                                             <button className="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors">Manage Class</button>
                                         </div>
                                     </div>
-                                ))}
+                                )) : (
+                                    <div className="col-span-2 bg-white p-12 rounded-2xl border border-dashed border-slate-300 flex flex-col items-center justify-center text-center">
+                                        <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mb-4">
+                                            <BookOpen className="w-8 h-8 text-indigo-300" />
+                                        </div>
+                                        <h3 className="text-lg font-bold text-slate-700 mb-2">No Active Classes</h3>
+                                        <p className="text-slate-500 text-sm max-w-sm mb-6">You haven't been assigned any classes yet. Create a new class to get started.</p>
+                                        <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-full font-bold text-sm shadow-lg shadow-indigo-200 transition-all">
+                                            Create First Class
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </section>
                     </div>
@@ -152,7 +163,7 @@ export default function TeacherDashboardUI() {
                                 <span className="bg-indigo-50 text-indigo-600 text-xs px-2.5 py-1 rounded-md font-bold">{gradingQueue.length} Pending</span>
                             </h3>
                             <div className="space-y-1">
-                                {gradingQueue.map((item: any, i: number) => (
+                                {gradingQueue.length > 0 ? gradingQueue.map((item: any, i: number) => (
                                     <div key={item.id} className="p-3 hover:bg-slate-50 rounded-xl transition-all cursor-pointer border border-transparent hover:border-slate-100 group">
                                         <div className="flex justify-between items-start mb-1">
                                             <span className="font-bold text-slate-700 text-sm group-hover:text-indigo-600 transition-colors">{item.student}</span>
@@ -164,7 +175,15 @@ export default function TeacherDashboardUI() {
                                             <button className="px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-lg hover:bg-slate-200">Preview</button>
                                         </div>
                                     </div>
-                                ))}
+                                )) : (
+                                    <div className="py-8 text-center">
+                                        <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                                            <CheckSquare className="w-6 h-6" />
+                                        </div>
+                                        <p className="text-slate-600 font-bold text-sm">All caught up!</p>
+                                        <p className="text-xs text-slate-400 mt-1">No pending submissions.</p>
+                                    </div>
+                                )}
                             </div>
                             <button className="w-full mt-6 text-center text-sm font-bold text-slate-500 hover:text-indigo-600 py-2 border-t border-slate-50 hover:bg-slate-50 transition-colors">View All Submissions</button>
                         </div>

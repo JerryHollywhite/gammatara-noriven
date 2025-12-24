@@ -14,10 +14,17 @@ export async function GET() {
     const data = await getTeacherDashboardData(userId);
 
     // Fetch latest profile info for Editor
-    const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { phone: true, email: true } as any
-    });
+    // Fetch latest profile info for Editor
+    let user = null;
+    try {
+        user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { phone: true, email: true } as any
+        });
+    } catch (e) {
+        console.error("Failed to fetch profile info:", e);
+        // Fallback or ignore
+    }
 
     return NextResponse.json({
         success: true,

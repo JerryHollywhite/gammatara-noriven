@@ -36,7 +36,7 @@ export default function LoginPage() {
                 else if (role === "TEACHER") window.location.href = "/teacher/dashboard";
                 else if (role === "PARENT") window.location.href = "/parent/dashboard";
                 else if (role === "ADMIN") window.location.href = "/admin/analytics";
-                else window.location.href = "/modules";
+                else window.location.href = "/student/dashboard";
             }
         } catch (err) {
             setError("An unexpected error occurred");

@@ -14,10 +14,16 @@ export async function GET() {
     const data = await getParentDashboardData(userId);
 
     // Fetch latest profile info
-    const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { phone: true, email: true } as any
-    });
+    // Fetch latest profile info
+    let user = null;
+    try {
+        user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { phone: true, email: true } as any
+        });
+    } catch (e) {
+        console.error("Failed to fetch profile info:", e);
+    }
 
     return NextResponse.json({
         success: true,

@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import {
     BookOpen, Clock, Award, TrendingUp,
-    ChevronRight, Bell, PlayCircle
+    ChevronRight, Bell, PlayCircle, X
 } from "lucide-react";
 
 
@@ -12,6 +12,8 @@ import AssignmentSubmissionModal from "./AssignmentSubmissionModal";
 import LeaderboardWidget from "../../gamification/LeaderboardWidget";
 import BadgeNotification from "../../gamification/BadgeNotification";
 import ExamRunner from "../../student/ExamRunner";
+import UnifiedProfileEditor from "../../profile/UnifiedProfileEditor";
+import { AnimatePresence } from "framer-motion";
 
 // Types
 interface DashboardData {
@@ -47,7 +49,9 @@ export default function StudentDashboardUI() {
     const [loading, setLoading] = useState(true);
     const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
     const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
+
     const [earnedBadge, setEarnedBadge] = useState<any>(null); // New State
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
 
     // Exams
     const [exams, setExams] = useState<any[]>([]);
@@ -161,7 +165,10 @@ export default function StudentDashboardUI() {
                                 <Bell className="w-5 h-5" />
                                 <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-slate-900" />
                             </button>
-                            <div className="relative group cursor-pointer">
+                            <div
+                                className="relative group cursor-pointer"
+                                onClick={() => setIsProfileOpen(true)}
+                            >
                                 <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-600 to-purple-600 rounded-full opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
                                 <img
                                     src={profile.avatar}
@@ -407,6 +414,38 @@ export default function StudentDashboardUI() {
                     </div>
                 </div>
             </div>
-        </div>
+
+            {/* Profile Manager Modal */}
+            <AnimatePresence>
+                {isProfileOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl"
+                        >
+                            <button onClick={() => setIsProfileOpen(false)} className="absolute top-6 right-6 z-10 p-2 bg-white/50 hover:bg-white rounded-full text-slate-500 shadow-sm backdrop-blur-sm">
+                                <X className="w-5 h-5" />
+                            </button>
+                            <UnifiedProfileEditor
+                                initialData={{
+                                    name: profile.name,
+                                    email: "", // User email not typically passed to dashboard but needed for editor
+                                    phone: null, // Fetched inside if needed or need to pass from API
+                                    image: profile.avatar,
+                                    role: "STUDENT"
+                                }}
+                            />
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div >
     );
 }

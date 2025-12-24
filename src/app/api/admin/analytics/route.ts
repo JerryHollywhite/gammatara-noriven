@@ -21,10 +21,15 @@ export async function GET() {
 
     // Fetch latest profile info
     const userId = (session.user as any).id;
-    const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { phone: true, email: true, name: true, image: true } as any
-    });
+    let user = null;
+    try {
+        user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { phone: true, email: true, name: true, image: true } as any
+        });
+    } catch (e) {
+        console.log("Failed to fetch user profile:", e);
+    }
 
     if (!data) {
         return NextResponse.json({ error: "Failed to fetch analytics" }, { status: 500 });

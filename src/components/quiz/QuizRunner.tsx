@@ -147,7 +147,7 @@ export default function QuizRunner({ lessonId, lessonTitle, questions }: QuizRun
                     >
                         <RefreshCw className="w-4 h-4" /> Retry
                     </button>
-                    <Link href="/modules" className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl flex items-center gap-2 shadow-lg hover:shadow-indigo-500/20">
+                    <Link href="/login" className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl flex items-center gap-2 shadow-lg hover:shadow-indigo-500/20">
                         Back to Modules
                     </Link>
                 </div>

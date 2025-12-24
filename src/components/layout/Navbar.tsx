@@ -45,7 +45,7 @@ export default function Navbar({ logoUrl }: NavbarProps) {
             if (role === "STUDENT") router.push("/student/dashboard");
             else if (role === "TEACHER") router.push("/teacher/dashboard");
             else if (role === "PARENT") router.push("/parent/dashboard");
-            else router.push("/modules");
+            else router.push("/login");
         }
     };
 

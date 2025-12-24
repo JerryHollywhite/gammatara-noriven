@@ -10,35 +10,45 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { name, studentIds } = await req.json(); // studentIds array
+    const body = await req.json();
+    const { name, studentIds } = body;
+
+    console.log("Creating class:", { name, studentCount: studentIds?.length, teacherId: session.user.id });
+
+    if (!name || !Array.isArray(studentIds)) {
+        return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+    }
 
     try {
         // Create Class Group
-        const teacherProfile = await prisma.teacherProfile.findUnique({
+        let teacherProfile = await prisma.teacherProfile.findUnique({
             where: { userId: session.user.id }
         });
 
         if (!teacherProfile) {
+            console.log("Teacher profile missing, attempting creation...");
             const user = await prisma.user.findUnique({ where: { id: session.user.id } });
-            // Auto create profile if missing (resilience)
             if (user) {
-                await prisma.teacherProfile.create({
+                teacherProfile = await prisma.teacherProfile.create({
                     data: { userId: user.id }
                 });
             } else {
-                return NextResponse.json({ error: "Teacher Profile not found" }, { status: 404 });
+                return NextResponse.json({ error: "User record not found" }, { status: 404 });
             }
         }
 
-        // Re-fetch or use known ID
-        const finalProfile = await prisma.teacherProfile.findUnique({ where: { userId: session.user.id } });
+        if (!teacherProfile) {
+            return NextResponse.json({ error: "Failed to resolve Teacher Profile" }, { status: 500 });
+        }
 
         const newClass = await prisma.classGroup.create({
             data: {
                 name,
-                teacherId: finalProfile!.id,
+                teacherId: teacherProfile.id,
             }
         });
+
+        console.log("Class created:", newClass.id);
 
         for (const studentId of studentIds) {
             const studentProfile = await prisma.studentProfile.findUnique({
@@ -53,14 +63,16 @@ export async function POST(req: NextRequest) {
                         status: 'ACTIVE'
                     }
                 });
+            } else {
+                console.warn(`Student profile not found for user ${studentId}`);
             }
         }
 
         return NextResponse.json({ success: true, class: newClass });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Create Class Error:", error);
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+        return NextResponse.json({ error: "Internal Server Error: " + error.message, details: error }, { status: 500 });
     }
 }
 

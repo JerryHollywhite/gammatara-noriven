@@ -451,3 +451,79 @@ export async function getParentDashboardData(userId: string) {
         return null;
     }
 }
+
+export async function getAdminAnalytics() {
+    try {
+        // User Statistics by Role
+        const [totalStudents, totalTeachers, totalParents, totalAdmins] = await Promise.all([
+            prisma.user.count({ where: { role: 'STUDENT' } }),
+            prisma.user.count({ where: { role: 'TEACHER' } }),
+            prisma.user.count({ where: { role: 'PARENT' } }),
+            prisma.user.count({ where: { role: 'ADMIN' } })
+        ]);
+
+        // Activity Metrics - Quizzes completed this week
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+        const quizzesThisWeek = await prisma.lessonProgress.count({
+            where: {
+                completedAt: { gte: oneWeekAgo },
+                status: 'COMPLETED'
+            }
+        });
+
+        // Content Stats
+        const totalAssignments = await prisma.assignment.count();
+
+        // Performance Overview
+        const allCompletedProgress = await prisma.lessonProgress.findMany({
+            where: { status: 'COMPLETED' },
+            select: { score: true }
+        });
+
+        const avgScore = allCompletedProgress.length > 0
+            ? allCompletedProgress.reduce((sum, p) => sum + (p.score || 0), 0) / allCompletedProgress.length
+            : 0;
+
+        // Engagement - Active users (logged in last 7 days)
+        // Since we don't track lastLogin, we'll approximate with recent submissions
+        const activeUsers = await prisma.user.count({
+            where: {
+                studentProfile: {
+                    submissions: {
+                        some: {
+                            submittedAt: { gte: oneWeekAgo }
+                        }
+                    }
+                }
+            }
+        });
+
+        return {
+            users: {
+                students: totalStudents,
+                teachers: totalTeachers,
+                parents: totalParents,
+                admins: totalAdmins,
+                total: totalStudents + totalTeachers + totalParents + totalAdmins
+            },
+            activity: {
+                quizzesThisWeek,
+                activeUsers
+            },
+            content: {
+                assignments: totalAssignments
+            },
+            performance: {
+                avgQuizScore: Number(avgScore.toFixed(1)),
+                totalCompletions: allCompletedProgress.length
+            }
+        };
+
+    } catch (error) {
+        console.error("Error fetching admin analytics:", error);
+        return null;
+    }
+}
+

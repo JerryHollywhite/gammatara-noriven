@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
     Users, BookOpen, CheckSquare, MessageSquare,
@@ -22,10 +22,28 @@ interface TeacherData {
     stats: any;
 }
 
-export default function TeacherDashboardUI({ data }: { data: TeacherData }) {
+export default function TeacherDashboardUI({ data: initialData }: { data?: TeacherData }) {
+    const [data, setData] = useState<TeacherData | null>(initialData || null);
+    const [loading, setLoading] = useState(!initialData);
+
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isGradingModalOpen, setIsGradingModalOpen] = useState(false);
     const [selectedSubmission, setSelectedSubmission] = useState<{ id: string, name: string, title: string } | null>(null);
+
+    useEffect(() => {
+        if (!initialData) {
+            fetch('/api/teacher/dashboard')
+                .then(res => res.json())
+                .then(json => {
+                    if (json.success) setData(json.data);
+                    setLoading(false);
+                })
+                .catch(err => setLoading(false));
+        }
+    }, [initialData]);
+
+    if (loading) return <div className="min-h-screen pt-24 flex items-center justify-center text-slate-400">Loading Dashboard...</div>;
+    if (!data) return <div className="min-h-screen pt-24 flex items-center justify-center text-red-400">Failed to load dashboard.</div>;
 
     const { name, role, subject, avatar, classes, gradingQueue, stats, assignments } = data;
 

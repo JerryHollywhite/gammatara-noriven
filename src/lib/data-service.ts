@@ -527,3 +527,110 @@ export async function getAdminAnalytics() {
     }
 }
 
+
+
+export async function getStudentProfile(userId: string) {
+    if (!userId) return null;
+
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            include: {
+                studentProfile: {
+                    include: {
+                        enrollments: {
+                            include: {
+                                class: true
+                            }
+                        },
+                        badges: {
+                            orderBy: { earnedAt: 'desc' }
+                        },
+                        progress: {
+                            where: { status: 'COMPLETED' },
+                            orderBy: { completedAt: 'desc' },
+                            take: 10
+                        },
+                        submissions: {
+                            where: { grade: { not: null } },
+                            include: {
+                                assignment: true
+                            },
+                            orderBy: { submittedAt: 'desc' }
+                        }
+                    }
+                }
+            }
+        });
+
+        if (!user || !user.studentProfile) return null;
+
+        const profile = user.studentProfile;
+        const levelStats = getLevel(profile.xp);
+
+        // Calculate GPA
+        const gradedSubmissions = profile.submissions.filter(s => s.grade !== null);
+        let gpa = 0.0;
+        if (gradedSubmissions.length > 0) {
+            const sum = gradedSubmissions.reduce((acc, curr) => acc + (curr.grade || 0), 0);
+            const avg = sum / gradedSubmissions.length;
+            gpa = Number((avg / 25).toFixed(2)); // 100 -> 4.0
+        }
+
+        // Total lessons available (would need to query Lesson table if we had it)
+        // For now, we'll use completed count
+        const totalLessonsCompleted = profile.progress.length;
+
+        // Completion rate (simplified)
+        const completionRate = profile.enrollments.length > 0
+            ? Math.round((totalLessonsCompleted / (profile.enrollments.length * 10)) * 100) // Assume 10 lessons per enrollment
+            : 0;
+
+        // Map badges with details
+        const badgeShowcase = profile.badges.map((earned: any) => {
+            const badgeDef = BADGES.find(b => b.code === earned.badgeCode);
+            return {
+                code: earned.badgeCode,
+                name: badgeDef?.name || earned.badgeCode,
+                description: badgeDef?.description || '',
+                icon: badgeDef?.icon || '🏆',
+                earnedAt: earned.earnedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            };
+        });
+
+        // Recent activity (quiz results)
+        const recentActivity = profile.progress.map((progress: any) => ({
+            lessonId: progress.lessonId,
+            score: progress.score,
+            status: progress.status,
+            completedAt: progress.completedAt?.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) || 'N/A'
+        }));
+
+        return {
+            personalInfo: {
+                id: user.id,
+                name: user.name || 'Student',
+                email: user.email || '',
+                avatar: user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name || 'User'}`,
+                gradeLevel: profile.gradeLevel,
+                joinedAt: user.createdAt.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+            },
+            stats: {
+                totalXP: profile.xp,
+                currentLevel: levelStats.level,
+                levelProgress: levelStats.progress,
+                gpa: gpa,
+                badgeCount: profile.badges.length,
+                completionRate: completionRate,
+                coursesEnrolled: profile.enrollments.length,
+                lessonsCompleted: totalLessonsCompleted
+            },
+            badges: badgeShowcase,
+            recentActivity: recentActivity
+        };
+
+    } catch (error) {
+        console.error("Error fetching student profile:", error);
+        return null;
+    }
+}

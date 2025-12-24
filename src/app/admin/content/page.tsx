@@ -3,13 +3,15 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Folder, Video, FileText, Check, Search, Plus, Save } from "lucide-react";
+import { Folder, Video, FileText, Check, Search, Plus, Save, Upload } from "lucide-react";
 import { Program, Subject } from "@/types/tara";
+import BulkImportForm from "@/components/admin/BulkImportForm";
 
 export default function ContentManagerPage() {
     const { data: session, status } = useSession();
     const router = useRouter();
 
+    const [activeTab, setActiveTab] = useState<'single' | 'bulk'>('single');
     const [programs, setPrograms] = useState<Program[]>([]);
     const [subjects, setSubjects] = useState<Subject[]>([]);
     const [selectedProgramId, setSelectedProgramId] = useState("");
@@ -121,81 +123,115 @@ export default function ContentManagerPage() {
                     TaraLMS Content Manager
                 </h1>
 
-                {/* 1. Select Context */}
-                <div className="grid grid-cols-2 gap-4 mb-8">
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-2">Program Level</label>
-                        <select
-                            className="w-full p-3 rounded-xl border border-slate-200 bg-white text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-                            value={selectedProgramId}
-                            onChange={(e) => setSelectedProgramId(e.target.value)}
-                        >
-                            <option value="">Select Level</option>
-                            {programs.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                        </select>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-2">Subject</label>
-                        <select
-                            className="w-full p-3 rounded-xl border border-slate-200 bg-white text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-                            value={selectedSubjectId}
-                            onChange={(e) => setSelectedSubjectId(e.target.value)}
-                        >
-                            <option value="">Select Subject</option>
-                            {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                        </select>
-                    </div>
+                {/* Tab Navigation */}
+                <div className="flex gap-2 mb-8 border-b border-slate-200">
+                    <button
+                        onClick={() => setActiveTab('single')}
+                        className={`px-6 py-3 font-bold transition-all ${activeTab === 'single'
+                            ? 'text-indigo-600 border-b-2 border-indigo-600'
+                            : 'text-slate-400 hover:text-slate-600'
+                            }`}
+                    >
+                        <Plus className="w-4 h-4 inline mr-2" />
+                        Single Lesson
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('bulk')}
+                        className={`px-6 py-3 font-bold transition-all ${activeTab === 'bulk'
+                            ? 'text-indigo-600 border-b-2 border-indigo-600'
+                            : 'text-slate-400 hover:text-slate-600'
+                            }`}
+                    >
+                        <Upload className="w-4 h-4 inline mr-2" />
+                        Bulk Import
+                    </button>
                 </div>
 
-                {/* 2. Add Lesson Form */}
-                <div className="border-t border-slate-100 pt-8">
-                    <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                        <Plus className="w-5 h-5 text-green-500" /> Add New Lesson
-                    </h2>
-
-                    <div className="space-y-4">
-                        <input
-                            type="text"
-                            placeholder="Lesson Title"
-                            className="w-full p-3 rounded-xl border border-slate-200 bg-white text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-                            value={lessonTitle}
-                            onChange={(e) => setLessonTitle(e.target.value)}
-                        />
-                        <textarea
-                            placeholder="Description"
-                            className="w-full p-3 rounded-xl border border-slate-200 bg-white text-slate-900 h-24 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-                            value={lessonDesc}
-                            onChange={(e) => setLessonDesc(e.target.value)}
-                        />
-
-                        {/* Video Picker Field */}
-                        <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Media</label>
-                            <div className="flex gap-2">
-                                <input
-                                    type="text"
-                                    placeholder="Google Drive ID (or pick from list)"
-                                    className="flex-1 p-3 rounded-xl border border-slate-200 font-mono text-sm bg-white text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-                                    value={videoDriveId}
-                                    onChange={(e) => setVideoDriveId(e.target.value)}
-                                />
-                                <button
-                                    onClick={() => { setShowPicker(true); searchDrive(); }}
-                                    className="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-100 transition-colors"
+                {/* Single Lesson Form */}
+                {activeTab === 'single' && (
+                    <div>
+                        {/* 1. Select Context */}
+                        <div className="grid grid-cols-2 gap-4 mb-8">
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">Program Level</label>
+                                <select
+                                    className="w-full p-3 rounded-xl border border-slate-200 bg-white text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                                    value={selectedProgramId}
+                                    onChange={(e) => setSelectedProgramId(e.target.value)}
                                 >
-                                    <Folder className="w-4 h-4" /> Pick File
-                                </button>
+                                    <option value="">Select Level</option>
+                                    {programs.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">Subject</label>
+                                <select
+                                    className="w-full p-3 rounded-xl border border-slate-200 bg-white text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                                    value={selectedSubjectId}
+                                    onChange={(e) => setSelectedSubjectId(e.target.value)}
+                                >
+                                    <option value="">Select Subject</option>
+                                    {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                </select>
                             </div>
                         </div>
 
-                        <button
-                            onClick={handleSubmit}
-                            className="w-full py-4 bg-primary text-white rounded-xl font-bold hover:shadow-lg hover:shadow-primary/30 transition-all mt-4 flex items-center justify-center gap-2"
-                        >
-                            <Save className="w-5 h-5" /> Save Lesson to Sheet
-                        </button>
+                        {/* 2. Add Lesson Form */}
+                        <div className="border-t border-slate-100 pt-8">
+                            <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                                <Plus className="w-5 h-5 text-green-500" /> Add New Lesson
+                            </h2>
+
+                            <div className="space-y-4">
+                                <input
+                                    type="text"
+                                    placeholder="Lesson Title"
+                                    className="w-full p-3 rounded-xl border border-slate-200 bg-white text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                                    value={lessonTitle}
+                                    onChange={(e) => setLessonTitle(e.target.value)}
+                                />
+                                <textarea
+                                    placeholder="Description"
+                                    className="w-full p-3 rounded-xl border border-slate-200 bg-white text-slate-900 h-24 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                                    value={lessonDesc}
+                                    onChange={(e) => setLessonDesc(e.target.value)}
+                                />
+
+                                {/* Video Picker Field */}
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Media</label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            placeholder="Google Drive ID (or pick from list)"
+                                            className="flex-1 p-3 rounded-xl border border-slate-200 font-mono text-sm bg-white text-slate-900 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                                            value={videoDriveId}
+                                            onChange={(e) => setVideoDriveId(e.target.value)}
+                                        />
+                                        <button
+                                            onClick={() => { setShowPicker(true); searchDrive(); }}
+                                            className="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-100 transition-colors"
+                                        >
+                                            <Folder className="w-4 h-4" /> Pick File
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={handleSubmit}
+                                    className="w-full py-4 bg-primary text-white rounded-xl font-bold hover:shadow-lg hover:shadow-primary/30 transition-all mt-4 flex items-center justify-center gap-2"
+                                >
+                                    <Save className="w-5 h-5" /> Save Lesson to Sheet
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                )}
+
+                {/* Bulk Import Section */}
+                {activeTab === 'bulk' && (
+                    <BulkImportForm />
+                )}
             </div>
 
             {/* Drive Picker Modal */}

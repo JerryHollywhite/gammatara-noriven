@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { createUser, getUserByEmail } from "@/lib/drive-db";
+import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { UserRole } from "@prisma/client";
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const CHAT_ID = process.env.TELEGRAM_ADMIN_CHAT_ID;
@@ -54,25 +55,57 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Missing fields" }, { status: 400 });
         }
 
-        const existingUser = await getUserByEmail(email);
+        const existingUser = await prisma.user.findUnique({
+            where: { email }
+        });
+
         if (existingUser) {
             return NextResponse.json({ error: "Email already registered" }, { status: 400 });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        await createUser({
-            name,
-            email,
-            passwordHash: hashedPassword,
-            role,
-            phone: phone || "-"
+        // Validate role
+        const validRoles = Object.values(UserRole);
+        const userRole = validRoles.includes(role) ? role : UserRole.STUDENT;
+
+        const newUser = await prisma.user.create({
+            data: {
+                name,
+                email,
+                password: hashedPassword,
+                role: userRole,
+            }
         });
 
-        // Trigger Telegram Bot
-        await sendTelegramNotification({ name, email, role, phone });
+        // Create Profile based on role (Initial empty profile)
+        if (userRole === UserRole.STUDENT) {
+            await prisma.studentProfile.create({
+                data: {
+                    userId: newUser.id,
+                    gradeLevel: "Not Set"
+                }
+            });
+        } else if (userRole === UserRole.TEACHER) {
+            await prisma.teacherProfile.create({
+                data: {
+                    userId: newUser.id
+                }
+            });
+        } else if (userRole === UserRole.PARENT) {
+            await prisma.parentProfile.create({
+                data: {
+                    userId: newUser.id
+                }
+            });
+        }
 
-        return NextResponse.json({ success: true });
+        // Trigger Telegram Bot
+        await sendTelegramNotification({ name, email, role: userRole, phone });
+
+        return NextResponse.json({ success: true, user: newUser });
+
+
 
     } catch (error) {
         console.error("Registration error:", error);

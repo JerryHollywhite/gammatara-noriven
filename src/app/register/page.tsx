@@ -12,7 +12,7 @@ export default function RegisterPage() {
         name: "",
         email: "",
         phone: "",
-        role: "Student",
+        role: "STUDENT",
         password: "",
         confirmPassword: ""
     });
@@ -149,9 +149,9 @@ export default function RegisterPage() {
                                 <select id="role" name="role" value={formData.role} onChange={handleChange}
                                     className="block w-full px-3 py-2 border border-slate-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm text-black"
                                 >
-                                    <option value="Student">Student</option>
-                                    <option value="Teacher">Teacher</option>
-                                    <option value="Parent">Parent</option>
+                                    <option value="STUDENT">Student</option>
+                                    <option value="TEACHER">Teacher</option>
+                                    <option value="PARENT">Parent</option>
                                 </select>
                             </div>
                         </div>

@@ -1,0 +1,157 @@
+// This is the blueprint for the postgres database.
+// location: prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+}
+
+// --- USER MANAGEMENT ---
+
+enum UserRole {
+  STUDENT
+  TEACHER
+  PARENT
+  ADMIN
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          UserRole  @default(STUDENT)
+  
+  // Relations
+  studentProfile     StudentProfile?
+  teacherProfile     TeacherProfile?
+  parentProfile      ParentProfile?
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model StudentProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  gradeLevel  String   // "10 (SMA)", "Adult", etc.
+  parentId    String?
+  parent      ParentProfile? @relation(fields: [parentId], references: [id])
+  
+  // Gamification
+  xp          Int      @default(0)
+  level       Int      @default(1)
+  streakDays  Int      @default(0)
+  
+  // Data
+  enrollments Enrollment[]
+  progress    LessonProgress[]
+  submissions AssignmentSubmission[]
+  badges      EarnedBadge[]
+}
+
+model TeacherProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  specialty   String?
+  
+  assignments Assignment[]
+  classes     ClassGroup[]
+}
+
+model ParentProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  children    StudentProfile[]
+}
+
+// --- LMS CORE ---
+
+model ClassGroup {
+  id          String   @id @default(cuid())
+  name        String   // "Algebra II - Morning"
+  teacherId   String
+  teacher     TeacherProfile @relation(fields: [teacherId], references: [id])
+  
+  students    Enrollment[]
+}
+
+model Enrollment {
+  id          String   @id @default(cuid())
+  studentId   String
+  student     StudentProfile @relation(fields: [studentId], references: [id])
+  
+  classId     String?
+  class       ClassGroup? @relation(fields: [classId], references: [id])
+  
+  courseId    String   // Matches configured Google Sheet "SubjectID"
+  status      String   @default("ACTIVE") // ACTIVE, COMPLETED
+  
+  joinedAt    DateTime @default(now())
+}
+
+model LessonProgress {
+  id          String   @id @default(cuid())
+  studentId   String
+  student     StudentProfile @relation(fields: [studentId], references: [id])
+  
+  lessonId    String   // Matches "ID" from Content_Lessons Sheet
+  status      String   @default("NOT_STARTED") // STARTED, COMPLETED
+  score       Int?     // For quizzes
+  
+  completedAt DateTime?
+}
+
+// --- ASSESSMENT ---
+
+model Assignment {
+  id          String   @id @default(cuid())
+  teacherId   String
+  teacher     TeacherProfile @relation(fields: [teacherId], references: [id])
+  
+  title       String
+  description String?
+  dueDate     DateTime?
+  courseId    String
+  
+  submissions AssignmentSubmission[]
+}
+
+model AssignmentSubmission {
+  id           String   @id @default(cuid())
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id])
+  
+  studentId    String
+  student      StudentProfile @relation(fields: [studentId], references: [id])
+  
+  contentUrl   String?  // Drive Link
+  submittedAt  DateTime @default(now())
+  
+  grade        Int?
+  feedback     String?
+}
+
+// --- GAMIFICATION ---
+
+model EarnedBadge {
+  id          String   @id @default(cuid())
+  studentId   String
+  student     StudentProfile @relation(fields: [studentId], references: [id])
+  
+  badgeCode   String   // "MATH_WHIZ", "WEEKLY_STREAK"
+  earnedAt    DateTime @default(now())
+}

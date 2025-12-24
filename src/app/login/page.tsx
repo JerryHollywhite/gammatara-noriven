@@ -29,8 +29,8 @@ export default function LoginPage() {
             if (result?.error) {
                 setError("Invalid email or password");
             } else {
-                router.push("/modules"); // Redirect to modules after login
-                router.refresh();
+                // Force full reload to ensure session cookies are picked up
+                window.location.href = "/modules";
             }
         } catch (err) {
             setError("An unexpected error occurred");

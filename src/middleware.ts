@@ -10,9 +10,12 @@ export default withAuth({
 });
 
 export const config = {
-    // Protect /modules and /admin routes via middleware
+    // Protect all dashboard and admin routes
     matcher: [
         "/modules/:path*",
-        "/admin/:path*"
+        "/admin/:path*",
+        "/student/:path*",
+        "/teacher/:path*",
+        "/parent/:path*"
     ]
 };

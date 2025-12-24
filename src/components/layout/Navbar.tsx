@@ -37,7 +37,7 @@ export default function Navbar({ logoUrl }: NavbarProps) {
     // Combine public items with protected items
     const navItems = [...publicNavItems];
     if (session) {
-        navItems.push({ name: "Modules", href: "/modules" });
+        navItems.push({ name: "TaraLMS", href: "/modules" });
     }
 
     return (
@@ -79,12 +79,30 @@ export default function Navbar({ logoUrl }: NavbarProps) {
                                 className={clsx(
                                     "font-medium transition-colors hover:text-primary",
                                     scrolled ? "text-slate-700" : "text-slate-800",
-                                    item.name === "Modules" && "text-primary font-bold"
+                                    item.name === "TaraLMS" && "text-primary font-bold"
                                 )}
                             >
                                 {item.name}
                             </Link>
                         ))}
+
+                        {/* DEV: Roles Dropdown */}
+                        <div className="relative group">
+                            <button className={clsx(
+                                "flex items-center gap-1 font-medium transition-colors hover:text-primary",
+                                scrolled ? "text-slate-700" : "text-slate-800"
+                            )}>
+                                <span className="text-xs font-bold bg-slate-100 px-2 py-0.5 rounded text-slate-500 group-hover:bg-primary group-hover:text-white transition-all">DEV</span>
+                            </button>
+                            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all transform origin-top z-[100]">
+                                <Link href="/student/dashboard" className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-primary rounded-lg font-medium">Student Dashboard</Link>
+                                <Link href="/teacher/dashboard" className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-primary rounded-lg font-medium">Teacher Dashboard</Link>
+                                <Link href="/parent/dashboard" className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-primary rounded-lg font-medium">Parent Portal</Link>
+                                <div className="h-px bg-slate-100 my-1"></div>
+                                <Link href="/student/quiz/mock" className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-primary rounded-lg font-medium">Demo Quiz</Link>
+                                <Link href="/admin/content" className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-primary rounded-lg font-medium">Admin Content</Link>
+                            </div>
+                        </div>
 
                         <div className="h-6 w-px bg-slate-300 mx-2" />
 
@@ -142,7 +160,7 @@ export default function Navbar({ logoUrl }: NavbarProps) {
                                 href={item.href}
                                 className={clsx(
                                     "block px-3 py-3 rounded-md text-base font-medium hover:bg-gray-50 hover:text-primary",
-                                    item.name === "Modules" ? "text-primary bg-primary/5" : "text-gray-900"
+                                    item.name === "TaraLMS" ? "text-primary bg-primary/5" : "text-gray-900"
                                 )}
                                 onClick={() => setIsOpen(false)}
                             >

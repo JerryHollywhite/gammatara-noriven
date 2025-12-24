@@ -27,17 +27,21 @@ export async function getUserByEmail(email: string) {
         const rows = response.data.values;
         if (!rows || rows.length === 0) return null;
 
-        // Email is col 0
-        const userRow = rows.find((row) => row[0] === email);
+        // Email is col 0. Compare safely (trim + lowercase)
+        const userRow = rows.find((row) => {
+            const sheetEmail = row[0]?.trim().toLowerCase();
+            const inputEmail = email?.trim().toLowerCase();
+            return sheetEmail === inputEmail;
+        });
         if (!userRow) return null;
 
         return {
-            email: userRow[0],
-            passwordHash: userRow[1],
-            name: userRow[2],
-            role: userRow[3],
-            phone: userRow[4],
-            status: userRow[5],
+            email: userRow[0]?.trim(),
+            passwordHash: userRow[1]?.trim(),
+            name: userRow[2]?.trim(),
+            role: userRow[3]?.trim(),
+            phone: userRow[4]?.trim(),
+            status: userRow[5]?.trim(),
         };
     } catch (error) {
         console.error('Error fetching user:', error);
@@ -118,17 +122,21 @@ export async function getModulesForUser(email: string, role: string) {
         // Filter folders for this user (Match Email OR Role OR 'All')
         // We assume Column A (row[0]) can contain either an Email or a Role.
         const allowedFolders = rows.filter(row => {
-            const accessKey = row[0]?.toLowerCase();
-            return accessKey === email.toLowerCase() || accessKey === role.toLowerCase() || accessKey === 'all';
+            const accessKey = (row[0] || "").toString().trim().toLowerCase();
+            const userEmail = email.toLowerCase().trim();
+            const userRole = role.toLowerCase().trim();
+            return accessKey === userEmail || accessKey === userRole || accessKey === 'all';
         });
 
         // 2. Fetch Files from Drive for each folder
         const modules = [];
 
         for (const folder of allowedFolders) {
-            let folderId = folder[1];
+            let folderId = (folder[1] || "").toString().trim();
             const folderName = folder[2];
             const description = folder[3];
+
+            if (!folderId) continue;
 
             // Auto-extract ID if user pasted a full URL
             if (folderId.includes("drive.google.com")) {

@@ -15,11 +15,13 @@ export const authOptions: NextAuthOptions = {
             name: "Credentials",
             credentials: {
                 email: { label: "Email", type: "email" },
-                password: { label: "Password", type: "password" }
+                password: { label: "Password", type: "password" },
+                role: { label: "Role", type: "text" }
             },
             async authorize(credentials) {
                 const email = credentials?.email;
                 const password = credentials?.password;
+                const targetRole = credentials?.role;
 
                 if (!email || !password) return null;
 
@@ -34,8 +36,10 @@ export const authOptions: NextAuthOptions = {
 
                 if (!isValid) return null;
 
-                // TODO: Add status check if we add a status field to User model later
-                // if (user.status !== "Approved") ...
+                // Enforce Role Check
+                if (targetRole && user.role !== targetRole) {
+                    return null;
+                }
 
                 return {
                     id: user.id,

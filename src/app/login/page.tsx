@@ -25,6 +25,7 @@ export default function LoginPage() {
                 redirect: false,
                 email,
                 password,
+                role,
             });
 
             if (result?.error) {
@@ -84,8 +85,8 @@ export default function LoginPage() {
                                     type="button"
                                     onClick={() => setRole("STUDENT")}
                                     className={`flex flex-col items-center justify-center py-2 px-1 rounded-md text-xs font-bold transition-all ${role === "STUDENT"
-                                            ? "bg-white text-indigo-600 shadow-sm ring-1 ring-black/5"
-                                            : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+                                        ? "bg-white text-indigo-600 shadow-sm ring-1 ring-black/5"
+                                        : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
                                         }`}
                                 >
                                     <GraduationCap className={`w-5 h-5 mb-1 ${role === "STUDENT" ? "text-indigo-600" : "text-slate-400"}`} />
@@ -95,8 +96,8 @@ export default function LoginPage() {
                                     type="button"
                                     onClick={() => setRole("TEACHER")}
                                     className={`flex flex-col items-center justify-center py-2 px-1 rounded-md text-xs font-bold transition-all ${role === "TEACHER"
-                                            ? "bg-white text-emerald-600 shadow-sm ring-1 ring-black/5"
-                                            : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+                                        ? "bg-white text-emerald-600 shadow-sm ring-1 ring-black/5"
+                                        : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
                                         }`}
                                 >
                                     <School className={`w-5 h-5 mb-1 ${role === "TEACHER" ? "text-emerald-600" : "text-slate-400"}`} />
@@ -106,8 +107,8 @@ export default function LoginPage() {
                                     type="button"
                                     onClick={() => setRole("PARENT")}
                                     className={`flex flex-col items-center justify-center py-2 px-1 rounded-md text-xs font-bold transition-all ${role === "PARENT"
-                                            ? "bg-white text-orange-600 shadow-sm ring-1 ring-black/5"
-                                            : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+                                        ? "bg-white text-orange-600 shadow-sm ring-1 ring-black/5"
+                                        : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
                                         }`}
                                 >
                                     <Users className={`w-5 h-5 mb-1 ${role === "PARENT" ? "text-orange-600" : "text-slate-400"}`} />

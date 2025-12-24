@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Menu, X, LogIn, LogOut, BookOpen } from "lucide-react";
 import { clsx } from "clsx";
 import LanguageSwitcher from "@/components/ui/LanguageSwitcher";
@@ -23,6 +24,7 @@ interface NavbarProps {
 
 export default function Navbar({ logoUrl }: NavbarProps) {
     const { data: session } = useSession();
+    const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
 
@@ -34,11 +36,18 @@ export default function Navbar({ logoUrl }: NavbarProps) {
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    // Combine public items with protected items
-    const navItems = [...publicNavItems];
-    if (session) {
-        navItems.push({ name: "TaraLMS", href: "/modules" });
-    }
+    const handleTaraLMSClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        if (!session) {
+            router.push("/login");
+        } else {
+            const role = session.user?.role;
+            if (role === "STUDENT") router.push("/student/dashboard");
+            else if (role === "TEACHER") router.push("/teacher/dashboard");
+            else if (role === "PARENT") router.push("/parent/dashboard");
+            else router.push("/modules");
+        }
+    };
 
     return (
         <nav
@@ -72,37 +81,30 @@ export default function Navbar({ logoUrl }: NavbarProps) {
 
                     {/* Desktop Navigation */}
                     <div className="hidden md:flex items-center space-x-6">
-                        {navItems.map((item) => (
+                        {publicNavItems.map((item) => (
                             <Link
                                 key={item.name}
                                 href={item.href}
                                 className={clsx(
                                     "font-medium transition-colors hover:text-primary",
-                                    scrolled ? "text-slate-700" : "text-slate-800",
-                                    item.name === "TaraLMS" && "text-primary font-bold"
+                                    scrolled ? "text-slate-700" : "text-slate-800"
                                 )}
                             >
                                 {item.name}
                             </Link>
                         ))}
 
-                        {/* DEV: Roles Dropdown */}
-                        <div className="relative group">
-                            <button className={clsx(
-                                "flex items-center gap-1 font-medium transition-colors hover:text-primary",
-                                scrolled ? "text-slate-700" : "text-slate-800"
-                            )}>
-                                <span className="text-xs font-bold bg-slate-100 px-2 py-0.5 rounded text-slate-500 group-hover:bg-primary group-hover:text-white transition-all">DEV</span>
-                            </button>
-                            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all transform origin-top z-[100]">
-                                <Link href="/student/dashboard" className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-primary rounded-lg font-medium">Student Dashboard</Link>
-                                <Link href="/teacher/dashboard" className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-primary rounded-lg font-medium">Teacher Dashboard</Link>
-                                <Link href="/parent/dashboard" className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-primary rounded-lg font-medium">Parent Portal</Link>
-                                <div className="h-px bg-slate-100 my-1"></div>
-                                <Link href="/student/quiz/mock" className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-primary rounded-lg font-medium">Demo Quiz</Link>
-                                <Link href="/admin/content" className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-primary rounded-lg font-medium">Admin Content</Link>
-                            </div>
-                        </div>
+                        {/* TaraLMS Link (Replaces DEV & Modules) */}
+                        <a
+                            href="/login"
+                            onClick={handleTaraLMSClick}
+                            className={clsx(
+                                "font-bold transition-colors cursor-pointer flex items-center gap-1",
+                                scrolled ? "text-primary" : "text-primary"
+                            )}
+                        >
+                            TaraLMS
+                        </a>
 
                         <div className="h-6 w-px bg-slate-300 mx-2" />
 
@@ -154,19 +156,27 @@ export default function Navbar({ logoUrl }: NavbarProps) {
             {isOpen && (
                 <div className="md:hidden bg-white border-t border-gray-100 shadow-lg absolute w-full left-0 top-full max-h-[90vh] overflow-y-auto">
                     <div className="px-4 pt-2 pb-6 space-y-2">
-                        {navItems.map((item) => (
+                        {publicNavItems.map((item) => (
                             <Link
                                 key={item.name}
                                 href={item.href}
-                                className={clsx(
-                                    "block px-3 py-3 rounded-md text-base font-medium hover:bg-gray-50 hover:text-primary",
-                                    item.name === "TaraLMS" ? "text-primary bg-primary/5" : "text-gray-900"
-                                )}
+                                className="block px-3 py-3 rounded-md text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-primary"
                                 onClick={() => setIsOpen(false)}
                             >
                                 {item.name}
                             </Link>
                         ))}
+
+                        <a
+                            href="/login"
+                            onClick={(e) => {
+                                setIsOpen(false);
+                                handleTaraLMSClick(e);
+                            }}
+                            className="block px-3 py-3 rounded-md text-base font-bold text-primary bg-primary/5 hover:bg-primary/10"
+                        >
+                            TaraLMS
+                        </a>
 
                         <div className="border-t border-gray-100 my-2 pt-2">
                             <div className="px-3 py-2 flex justify-between items-center">

@@ -1,6 +1,7 @@
 
 import { NextResponse } from "next/server";
 import { getPrograms, getSubjects, getLessons } from "@/lib/tara-content";
+import { getAllQuizLessonIds } from "@/lib/tara-quiz";
 
 export const dynamic = 'force-dynamic'; // Ensure no caching for latest Sheet data
 
@@ -26,6 +27,11 @@ export async function GET(request: Request) {
                 return NextResponse.json({ success: false, error: "Missing subjectId (id param) for lessons" }, { status: 400 });
             }
             const data = await getLessons(id);
+            return NextResponse.json({ success: true, data });
+        }
+
+        if (type === "quiz-map") {
+            const data = await getAllQuizLessonIds();
             return NextResponse.json({ success: true, data });
         }
 

@@ -27,6 +27,7 @@ export default function ModulesPage() {
     const [selectedProgramId, setSelectedProgramId] = useState<string | null>(null);
     const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
     const [lmsLessons, setLmsLessons] = useState<Lesson[]>([]);
+    const [quizMap, setQuizMap] = useState<Set<string>>(new Set());
 
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
@@ -76,6 +77,13 @@ export default function ModulesPage() {
             const resS = await fetch("/api/tara/content?type=subjects");
             const dataS = await resS.json();
             if (dataS.success) setLmsSubjects(dataS.data);
+
+            // Fetch Quiz Map
+            const resQ = await fetch("/api/tara/content?type=quiz-map");
+            const dataQ = await resQ.json();
+            if (dataQ.success) {
+                setQuizMap(new Set(dataQ.data));
+            }
 
         } catch (error) {
             console.error("Failed to fetch TaraLMS data", error);
@@ -181,6 +189,11 @@ export default function ModulesPage() {
                                         {lesson.pdfDriveId && (
                                             <a href={`https://drive.google.com/file/d/${lesson.pdfDriveId}/preview`} target="_blank" className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-blue-100">
                                                 <FileText className="w-4 h-4" /> Read Material
+                                            </a>
+                                        )}
+                                        {quizMap.has(lesson.id) && (
+                                            <a href={`/student/quiz/${lesson.id}`} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-indigo-700 shadow-md hover:shadow-indigo-500/30 transition-all">
+                                                <Star className="w-4 h-4" /> Take Quiz
                                             </a>
                                         )}
                                     </div>

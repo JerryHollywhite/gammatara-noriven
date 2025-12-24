@@ -170,7 +170,20 @@ export default function TeacherLessonManager() {
                     <div className="relative">
                         <input
                             type="file"
-                            onChange={(e) => setFile(e.target.files?.[0] || null)}
+                            onChange={(e) => {
+                                const f = e.target.files?.[0];
+                                if (f) {
+                                    if (f.size > 20 * 1024 * 1024) {
+                                        alert("Size tidak lebih dari 20mb"); // User validation request
+                                        e.target.value = ""; // Clear input
+                                        setFile(null);
+                                        return;
+                                    }
+                                    setFile(f);
+                                } else {
+                                    setFile(null);
+                                }
+                            }}
                             className="block w-full text-sm text-slate-500
                                 file:mr-4 file:py-2 file:px-4
                                 file:rounded-full file:border-0

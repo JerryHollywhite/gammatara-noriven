@@ -16,7 +16,7 @@ export default function TeacherLessonManager() {
     const [title, setTitle] = useState("");
     const [desc, setDesc] = useState("");
     const [youtube, setYoutube] = useState("");
-    const [file, setFile] = useState<File | null>(null);
+    const [files, setFiles] = useState<File[]>([]);
     const [uploading, setUploading] = useState(false);
     const [creating, setCreating] = useState(false);
 
@@ -40,37 +40,43 @@ export default function TeacherLessonManager() {
         let fileUrl = "";
 
         try {
-            // 1. Upload File if exists
-            if (file) {
+            // 1. Upload Files
+            const uploadedAttachments = [];
+
+            if (files.length > 0) {
                 setUploading(true);
-                const formData = new FormData();
-                formData.append("file", file);
 
-                const uploadRes = await fetch("/api/teacher/upload", {
-                    method: "POST",
-                    body: formData
-                });
-                const uploadJson = await uploadRes.json();
+                for (const f of files) {
+                    const formData = new FormData();
+                    formData.append("file", f);
 
-                if (uploadJson.success) {
-                    fileUrl = uploadJson.file.id; // Store Drive ID or WebLink. Let's store ID if we want to build link later, or WebLink. 
-                    // Prompt said "link dimasukan guru ke LMS", usually WebLink.
-                    // But drive-db uses ID. Tara-content uses "videoDriveId". 
-                    // Let's store ID for consistency with existing codebase if possible, OR weblink.
-                    // For now, let's assume we store ID relative to what `drive-upload` returns.
-                    // The API returns { id, webViewLink }.
-                    // Let's store webViewLink to fileUrl field (which is String).
-                    // Or store ID. Existing `getLessons` maps `fileUrl` to `pdfDriveId`. 
-                    // Let's store ID.
-                    fileUrl = uploadJson.file.id;
-                } else {
-                    alert("File upload failed: " + uploadJson.error);
-                    setCreating(false);
-                    setUploading(false);
-                    return;
+                    const uploadRes = await fetch("/api/teacher/upload", {
+                        method: "POST",
+                        body: formData
+                    });
+                    const uploadJson = await uploadRes.json();
+
+                    if (uploadJson.success) {
+                        uploadedAttachments.push({
+                            name: f.name,
+                            url: uploadJson.file.id, // Drive ID
+                            type: f.type,
+                            size: f.size
+                        });
+                    } else {
+                        // If one fails, ask user to retry or continue?
+                        // For now, alert and stop.
+                        alert(`Failed to upload ${f.name}: ${uploadJson.error}`);
+                        setCreating(false);
+                        setUploading(false);
+                        return;
+                    }
                 }
                 setUploading(false);
             }
+
+            // Legacy support: set first file as fileUrl for old UI
+            fileUrl = uploadedAttachments.length > 0 ? uploadedAttachments[0].url : "";
 
             // 2. Create Lesson
             const res = await fetch("/api/teacher/lessons", {
@@ -81,8 +87,9 @@ export default function TeacherLessonManager() {
                     title,
                     description: desc,
                     videoUrl: youtube,
-                    fileUrl: fileUrl,
-                    order: 0 // Default order
+                    fileUrl: fileUrl, // Primary file
+                    attachments: uploadedAttachments, // All files
+                    order: 0
                 })
             });
 
@@ -92,7 +99,7 @@ export default function TeacherLessonManager() {
                 setTitle("");
                 setDesc("");
                 setYoutube("");
-                setFile(null);
+                setFiles([]);
             } else {
                 alert(json.error || "Failed to create lesson");
             }
@@ -170,18 +177,22 @@ export default function TeacherLessonManager() {
                     <div className="relative">
                         <input
                             type="file"
+                            multiple // Enable multiple
                             onChange={(e) => {
-                                const f = e.target.files?.[0];
-                                if (f) {
-                                    if (f.size > 20 * 1024 * 1024) {
-                                        alert("Size tidak lebih dari 20mb"); // User validation request
-                                        e.target.value = ""; // Clear input
-                                        setFile(null);
-                                        return;
+                                const selected = e.target.files;
+                                if (selected) {
+                                    const validFiles: File[] = [];
+                                    for (let i = 0; i < selected.length; i++) {
+                                        const f = selected[i];
+                                        if (f.size > 20 * 1024 * 1024) {
+                                            alert(`File ${f.name} too large (Size tidak lebih dari 20mb)`);
+                                        } else {
+                                            validFiles.push(f);
+                                        }
                                     }
-                                    setFile(f);
-                                } else {
-                                    setFile(null);
+                                    setFiles(prev => [...prev, ...validFiles]);
+                                    // Reset input so same file can be selected again if needed (or unique check)
+                                    e.target.value = "";
                                 }
                             }}
                             className="block w-full text-sm text-slate-500
@@ -193,7 +204,15 @@ export default function TeacherLessonManager() {
                             "
                         />
                     </div>
-                    {file && <p className="text-xs text-slate-500 mt-1">{file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)</p>}
+                    {/* File List */}
+                    <div className="mt-2 space-y-2">
+                        {files.map((f, i) => (
+                            <div key={i} className="flex items-center justify-between bg-slate-50 p-2 rounded-lg text-xs">
+                                <span className="truncate max-w-[200px]">{f.name} ({(f.size / 1024 / 1024).toFixed(2)} MB)</span>
+                                <button onClick={() => setFiles(files.filter((_, idx) => idx !== i))} className="text-red-500 font-bold hover:bg-red-50 p-1 rounded">X</button>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
 

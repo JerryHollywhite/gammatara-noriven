@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         // body: { title, description, subjectId (code), videoUrl, fileUrl, order }
 
-        const { title, description, subjectId, videoUrl, fileUrl, order } = body;
+        const { title, description, subjectId, videoUrl, fileUrl, order, attachments } = body;
 
         // Resolve subject code to ID
         const subject = await prisma.subject.findUnique({
@@ -24,16 +24,34 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Invalid Subject Code" }, { status: 400 });
         }
 
+        // Prepare attachments data
+        // attachments: [{ name, url, type, size }]
+        const attachmentData = Array.isArray(attachments) ? attachments.map((att: any) => ({
+            name: att.name,
+            url: att.url,
+            type: att.type || 'application/unknown',
+            size: att.size
+        })) : [];
+
+        // If fileUrl is provided but no attachments (legacy or single file upload without new format), 
+        // treat it as one attachment if possible, or just let it separate.
+        // For backward compatibility, we set fileUrl on Lesson if requested.
+        // User requested MULTIPLE files.
+
         const newLesson = await prisma.lesson.create({
             data: {
                 title,
                 description,
                 subjectId: subject.id,
                 videoUrl, // Expecting YouTube URL
-                fileUrl,  // Expecting Drive Link
+                fileUrl: fileUrl,  // Keep for legacy/single display
                 order: order || 0,
-                active: true
-            }
+                active: true,
+                attachments: {
+                    create: attachmentData
+                }
+            },
+            include: { attachments: true }
         });
 
         return NextResponse.json({ success: true, lesson: newLesson });

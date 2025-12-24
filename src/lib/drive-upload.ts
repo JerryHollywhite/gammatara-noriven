@@ -54,10 +54,23 @@ export async function uploadTeacherFile(
         const drive = await getDrive();
 
         // 2. Find or Create "Teacher Uploads" Root Folder
-        // We ideally want a constant ID, but for dynamic setup we search.
-        let rootFolderId = await findFolder("Teacher Uploads");
+        // use Configured ID if available to solve Quota issues
+        let rootFolderId = process.env.GOOGLE_DRIVE_FOLDER_ID; // User configured Shared Folder
+
         if (!rootFolderId) {
-            rootFolderId = await createFolder("Teacher Uploads");
+            // Fallback to legacy behavior (Search/Create in Root)
+            // This fails for Service Accounts without storage
+            rootFolderId = await findFolder("Teacher Uploads");
+            if (!rootFolderId) {
+                try {
+                    rootFolderId = await createFolder("Teacher Uploads");
+                } catch (e: any) {
+                    if (e.message?.includes("storage quota")) {
+                        throw new Error("Service Account Storage Limit. Please configure GOOGLE_DRIVE_FOLDER_ID in .env with a Shared Folder ID.");
+                    }
+                    throw e;
+                }
+            }
         }
 
         // 3. Find or Create specific Teacher Folder

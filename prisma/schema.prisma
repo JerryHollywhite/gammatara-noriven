@@ -243,6 +243,21 @@ model Lesson {
   
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+  attachments LessonAttachment[]
+}
+
+model LessonAttachment {
+  id        String   @id @default(cuid())
+  lessonId  String
+  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  
+  name      String
+  url       String   // Drive Link or ID
+  type      String   // e.g. "application/pdf"
+  size      Int?     // Size in bytes
+  
+  createdAt DateTime @default(now())
 }
 
 model Quiz {

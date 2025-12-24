@@ -5,17 +5,31 @@ import { Readable } from "stream";
 const SCOPES = ["https://www.googleapis.com/auth/drive"];
 
 const getAuth = async () => {
+    // 1. Try OAuth2 (Personal Gmail Support)
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
+
+    if (clientId && clientSecret && refreshToken) {
+        const oAuth2Client = new google.auth.OAuth2(clientId, clientSecret);
+        oAuth2Client.setCredentials({ refresh_token: refreshToken });
+        return oAuth2Client;
+    }
+
+    // 2. Fallback to Service Account (Workspace / Shared Drive Support)
     const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
     const key = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
 
-    if (!email || !key) throw new Error("Missing Google Service Account credentials");
+    if (email && key) {
+        const auth = new google.auth.JWT({
+            email,
+            key,
+            scopes: SCOPES,
+        });
+        return auth;
+    }
 
-    const auth = new google.auth.JWT({
-        email,
-        key,
-        scopes: SCOPES,
-    });
-    return auth;
+    throw new Error("Missing Google Drive Credentials (OAuth2 or Service Account)");
 };
 
 const getDrive = async () => {

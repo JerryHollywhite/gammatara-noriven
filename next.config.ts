@@ -24,13 +24,12 @@ const nextConfig: NextConfig = {
         hostname: 'doc-0k-0o-docs.googleusercontent.com', // Drive often redirects here
       }
     ],
-    ],
   },
-eslint: {
-  ignoreDuringBuilds: true,
+  eslint: {
+    ignoreDuringBuilds: true,
   },
-typescript: {
-  ignoreBuildErrors: true,
+  typescript: {
+    ignoreBuildErrors: true,
   },
 };
 

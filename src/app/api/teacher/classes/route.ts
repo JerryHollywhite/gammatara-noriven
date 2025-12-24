@@ -41,6 +41,18 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Failed to resolve Teacher Profile" }, { status: 500 });
         }
 
+        // Check availability of class name
+        const existingClass = await prisma.classGroup.findFirst({
+            where: {
+                name: { equals: name, mode: 'insensitive' },
+                teacherId: teacherProfile.id
+            }
+        });
+
+        if (existingClass) {
+            return NextResponse.json({ error: "Class name already exists. Please choose a different name." }, { status: 400 });
+        }
+
         const newClass = await prisma.classGroup.create({
             data: {
                 name,

@@ -1,13 +1,3 @@
-
-// src/lib/data-service.ts
-import { getLevel } from "./gamification";
-
-/*
-    This service abstracts the data source.
-    Currently it returns MOCK data.
-    Later, we will uncomment the Prisma calls.
-*/
-
 import { prisma } from "@/lib/prisma";
 import { getLevel } from "./gamification";
 

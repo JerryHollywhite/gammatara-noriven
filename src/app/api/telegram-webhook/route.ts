@@ -47,7 +47,8 @@ export async function POST(req: Request) {
                 await editMessage(chatId, messageId, `✅ <b>Approved</b>\nUser ${email} is now active.\n(Action by ${from.first_name})`);
                 await answerCallback(id, "User Approved!");
             } else {
-                await answerCallback(id, "Failed to update database.");
+                console.error(`Failed to approve user ${email}`);
+                await answerCallback(id, `Failed: Could not update status for ${email}. Check server logs.`);
             }
         } else if (action === 'reject') {
             const success = await updateUserStatus(email, 'Rejected');
@@ -55,7 +56,8 @@ export async function POST(req: Request) {
                 await editMessage(chatId, messageId, `❌ <b>Rejected</b>\nUser ${email} was denied access.\n(Action by ${from.first_name})`);
                 await answerCallback(id, "User Rejected.");
             } else {
-                await answerCallback(id, "Failed to update database.");
+                console.error(`Failed to reject user ${email}`);
+                await answerCallback(id, `Failed: Could not update status for ${email}. Check server logs.`);
             }
         }
 

@@ -159,23 +159,35 @@ export default function ParentDashboardUI() {
                                 <FileText className="w-5 h-5" /> Recent Grades
                             </h2>
                             <div className="bg-white rounded-3xl border border-slate-200 divide-y divide-slate-100 overflow-hidden shadow-sm">
-                                {currentChild.recentGrades.length > 0 ? currentChild.recentGrades.map((g: any, i: number) => (
-                                    <div key={i} className="p-5 flex items-center justify-between hover:bg-slate-50 transition-colors group cursor-default">
-                                        <div className="flex items-center gap-5">
-                                            <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-500 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
-                                                <FileText className="w-6 h-6" />
+                                {currentChild.recentGrades.length > 0 ? (
+                                    currentChild.recentGrades.map((g: any, i: number) => (
+                                        <div key={i} className="p-5 flex items-center justify-between hover:bg-slate-50 transition-colors group cursor-default">
+                                            <div className="flex items-center gap-5">
+                                                <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-500 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
+                                                    <FileText className="w-6 h-6" />
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-bold text-slate-800 text-lg">{g.subject}</h4>
+                                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">{g.type} • {g.date}</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <h4 className="font-bold text-slate-800 text-lg">{g.subject}</h4>
-                                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">{g.type} • {g.date}</p>
+                                            <div className="text-right">
+                                                <span className="font-black text-2xl text-slate-800 block">{g.grade}</span>
+                                                <span className={`text-xs font-bold px-2 py-1 rounded-full ${g.grade >= 90 ? 'text-emerald-600 bg-emerald-50' :
+                                                    g.grade >= 70 ? 'text-blue-600 bg-blue-50' :
+                                                        'text-red-600 bg-red-50'
+                                                    }`}>
+                                                    {g.grade >= 90 ? 'Excellent' : g.grade >= 70 ? 'Good' : 'Needs Work'}
+                                                </span>
                                             </div>
                                         </div>
-                                        <div className="text-right">
-                                            <span className="font-black text-2xl text-slate-800 block">{g.grade}</span>
-                                            <span className="text-xs text-emerald-600 font-bold bg-emerald-50 px-2 py-1 rounded-full">Excellent</span>
-                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="p-12 text-center text-slate-400">
+                                        <FileText className="w-12 h-12 mx-auto mb-3 text-slate-200" />
+                                        <p>No graded assignments yet.</p>
                                     </div>
-                                )) : <div className="p-8 text-center text-slate-400">No recent grades for {currentChild.name}</div>}
+                                )}
                             </div>
                         </section>
                     </div>

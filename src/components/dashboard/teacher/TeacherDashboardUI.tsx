@@ -127,7 +127,7 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
                         </button>
                         <TeacherClassManager onClassCreated={() => {
                             setIsClassManagerOpen(false);
-                            fetchDashboardData();
+                            window.location.reload();
                         }} />
                     </div>
                 </div>

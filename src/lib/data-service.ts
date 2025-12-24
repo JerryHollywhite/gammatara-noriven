@@ -27,6 +27,7 @@ export async function getStudentDashboardData(userId: string) {
 
         // Default shell if no specific student profile exists yet
         const profile = user.studentProfile || {
+            id: "", // Add dummy ID to satisfy type if needed, though we should guard
             gradeLevel: "Not Set",
             xp: 0,
             level: 1,
@@ -34,6 +35,49 @@ export async function getStudentDashboardData(userId: string) {
             enrollments: [],
             badges: []
         };
+
+        // Fetch assignments for enrolled courses
+        let mappedAssignments: any[] = [];
+
+        if (user.studentProfile) {
+            const enrolledCourseIds = user.studentProfile.enrollments.map(e => e.courseId);
+
+            const assignmentsData = await prisma.assignment.findMany({
+                where: {
+                    courseId: { in: enrolledCourseIds }
+                },
+                include: {
+                    submissions: {
+                        where: { studentId: user.studentProfile.id }
+                    }
+                },
+                orderBy: { dueDate: 'asc' }
+            });
+
+            mappedAssignments = assignmentsData.map(asg => {
+                const submission = asg.submissions[0];
+                let status = "pending";
+                if (submission) {
+                    status = submission.grade ? "completed" : "submitted";
+                } else {
+                    // Check if urgent (due within 3 days)
+                    if (asg.dueDate) {
+                        const daysUntil = Math.ceil((new Date(asg.dueDate).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
+                        if (daysUntil <= 3 && daysUntil >= 0) status = "urgent";
+                        if (daysUntil < 0) status = "overdue";
+                    }
+                }
+
+                return {
+                    id: asg.id,
+                    title: asg.title,
+                    course: asg.courseId,
+                    due: asg.dueDate ? asg.dueDate.toLocaleDateString() : "No Due Date",
+                    status,
+                    grade: submission?.grade
+                };
+            });
+        }
 
         const levelStats = getLevel(profile.xp);
 
@@ -50,9 +94,10 @@ export async function getStudentDashboardData(userId: string) {
                 nextLevelXp: levelStats.nextLevelXp,
                 currentLevelXp: levelStats.currentLevelXp,
             },
+            assignments: mappedAssignments,
             stats: {
                 courses: profile.enrollments.length,
-                assignmentsDue: 0,
+                assignmentsDue: mappedAssignments.filter(a => a.status === 'urgent' || a.status === 'pending').length,
                 avgGrade: 0,
                 badges: profile.badges.length
             }
@@ -164,7 +209,13 @@ export async function getTeacherDashboardData(userId: string) {
                         },
                         assignments: {
                             include: {
-                                submissions: true
+                                submissions: {
+                                    include: {
+                                        student: {
+                                            include: { user: true }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -197,11 +248,15 @@ export async function getTeacherDashboardData(userId: string) {
             nextSession: "TBD" // Placeholder
         }));
 
+        // Fetch real assignments linked to teacher
+        // Note: In real app we might fetch separately or include. 
+        // Currently schema has `assignments` on TeacherProfile, so we already have them from `profile.assignments`.
+
         // Map submissions to grading queue
         const gradingQueue = profile.assignments.flatMap(asg =>
             asg.submissions.filter(s => s.grade === null).map(sub => ({
                 id: sub.id,
-                student: "Student", // Would need another fetch or include to get name
+                student: sub.student?.user?.name || "Student",
                 assignment: asg.title,
                 submitted: sub.submittedAt.toLocaleDateString(),
                 status: "pending"
@@ -215,6 +270,7 @@ export async function getTeacherDashboardData(userId: string) {
             avatar: user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name || 'Teacher'}`,
             classes: mappedClasses,
             gradingQueue: gradingQueue,
+            assignments: profile.assignments || [], // Pass raw assignments for management list
             stats: {
                 totalStudents,
                 activeClasses,

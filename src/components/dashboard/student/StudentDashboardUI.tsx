@@ -7,6 +7,8 @@ import {
     ChevronRight, Bell, PlayCircle
 } from "lucide-react";
 
+import AssignmentSubmissionModal from "./AssignmentSubmissionModal";
+
 // Types
 interface DashboardData {
     profile: {
@@ -26,6 +28,7 @@ interface DashboardData {
             thumbnail: string;
         }[];
     };
+    assignments: any[]; // ADDED
     stats: {
         courses: number;
         assignmentsDue: number;
@@ -37,6 +40,8 @@ interface DashboardData {
 export default function StudentDashboardUI() {
     const [data, setData] = useState<DashboardData | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
+    const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
 
     useEffect(() => {
         fetch('/api/student/dashboard')
@@ -51,13 +56,25 @@ export default function StudentDashboardUI() {
     if (loading) return <div className="min-h-screen pt-24 flex items-center justify-center text-slate-400">Loading your HQ...</div>;
     if (!data) return <div className="min-h-screen pt-24 flex items-center justify-center text-red-400">Failed to load dashboard.</div>;
 
-    const { profile, stats } = data;
+    const { profile, stats, assignments } = data; // Destructure assignments
     const courses = profile.courses || [];
-    const assignments: any[] = [];
     const badges: any[] = [];
+
+    const handleOpenSubmission = (assignmentId: string) => {
+        setSelectedAssignmentId(assignmentId);
+        setIsSubmissionModalOpen(true);
+    };
 
     return (
         <div className="min-h-screen relative font-sans text-slate-800 bg-slate-100">
+            {selectedAssignmentId && (
+                <AssignmentSubmissionModal
+                    isOpen={isSubmissionModalOpen}
+                    onClose={() => setIsSubmissionModalOpen(false)}
+                    assignmentId={selectedAssignmentId}
+                    onSubmitted={() => window.location.reload()}
+                />
+            )}
             {/* Header Section with Gradient Accent - Placed absolutely with z-0 */}
             <div className="absolute top-0 left-0 w-full h-80 bg-gradient-to-b from-slate-900 to-slate-100 z-0" />
 
@@ -222,7 +239,11 @@ export default function StudentDashboardUI() {
                             {assignments.length > 0 ? (
                                 <div className="space-y-3">
                                     {assignments.map((task) => (
-                                        <div key={task.id} className="flex items-start gap-4 p-4 rounded-xl bg-slate-50 hover:bg-white hover:shadow-md border border-transparent hover:border-slate-100 transition-all cursor-pointer group">
+                                        <div
+                                            key={task.id}
+                                            onClick={() => handleOpenSubmission(task.id)}
+                                            className="flex items-start gap-4 p-4 rounded-xl bg-slate-50 hover:bg-white hover:shadow-md border border-transparent hover:border-slate-100 transition-all cursor-pointer group"
+                                        >
                                             <div className={`mt-1.5 w-2 h-2 rounded-full shrink-0 shadow-sm ${task.status === 'urgent' ? 'bg-red-500 animate-pulse' : task.status === 'completed' ? 'bg-emerald-500' : 'bg-slate-300'}`} />
                                             <div>
                                                 <h4 className="text-sm font-bold text-slate-800 leading-snug group-hover:text-indigo-600 transition-colors">{task.title}</h4>

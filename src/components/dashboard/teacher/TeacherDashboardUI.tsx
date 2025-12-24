@@ -1,13 +1,15 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import {
     Users, BookOpen, CheckSquare, MessageSquare,
     Plus, Search, MoreVertical, Calendar,
     BarChart3, AlertTriangle, FileText, Database
 } from "lucide-react";
+import CreateAssignmentModal from "./CreateAssignmentModal";
+import GradingModal from "./GradingModal";
 
 interface TeacherData {
     name: string;
@@ -16,40 +18,53 @@ interface TeacherData {
     avatar: string;
     classes: any[];
     gradingQueue: any[];
+    assignments: any[];
     stats: any;
 }
 
-export default function TeacherDashboardUI() {
-    const [data, setData] = useState<TeacherData | null>(null);
-    const [loading, setLoading] = useState(true);
+export default function TeacherDashboardUI({ data }: { data: TeacherData }) {
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isGradingModalOpen, setIsGradingModalOpen] = useState(false);
+    const [selectedSubmission, setSelectedSubmission] = useState<{ id: string, name: string, title: string } | null>(null);
 
-    useEffect(() => {
-        fetch('/api/teacher/dashboard')
-            .then(res => res.json())
-            .then(json => {
-                if (json.success) setData(json.data);
-                setLoading(false);
-            })
-            .catch(err => setLoading(false));
-    }, []);
+    const { name, role, subject, avatar, classes, gradingQueue, stats, assignments } = data;
 
-    if (loading) return <div className="min-h-screen pt-24 flex items-center justify-center text-slate-400">Loading Class Data...</div>;
-    if (!data) return <div className="min-h-screen pt-24 flex items-center justify-center text-red-400">Failed to load dashboard.</div>;
-
-    const { name, avatar, classes, gradingQueue, stats } = data;
+    const handleGradeOpen = (item: any) => {
+        setSelectedSubmission({
+            id: item.id,
+            name: item.studentName || item.student,
+            title: item.assignment
+        });
+        setIsGradingModalOpen(true);
+    };
 
     return (
-        <div className="min-h-screen relative font-sans text-slate-800 bg-slate-100">
-            {/* Header Gradient - Placed absolutely with z-0 to sit on top of bg-slate-100 but behind content */}
+        <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-20">
+            <CreateAssignmentModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                courseId="DEMO_COURSE" // This should be dynamic based on selected class
+                onCreated={() => window.location.reload()}
+            />
+            {selectedSubmission && (
+                <GradingModal
+                    isOpen={isGradingModalOpen}
+                    onClose={() => setIsGradingModalOpen(false)}
+                    submissionId={selectedSubmission.id}
+                    studentName={selectedSubmission.name}
+                    assignmentTitle={selectedSubmission.title}
+                    onGraded={() => window.location.reload()}
+                />
+            )}
+
+            {/* Header Gradient */}
             <div className="absolute top-0 left-0 w-full h-80 bg-gradient-to-br from-indigo-900 via-slate-900 to-indigo-900 z-0" />
 
-            {/* Content Wrapper - Relative and z-10 to sit on top of gradient */}
+            {/* Content Wrapper */}
             <div className="relative z-10 pt-28 pb-12 px-6 md:px-12">
                 <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 text-white">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">
-                            Teacher Dashboard
-                        </h1>
+                        <h1 className="text-3xl font-bold tracking-tight">Teacher Dashboard</h1>
                         <p className="text-indigo-200 mt-1 flex items-center gap-2">
                             <span className="bg-white/10 px-2 py-0.5 rounded text-xs border border-white/10">Senior Instructor</span>
                             Welcome, {name}. Ready to inspire?
@@ -62,8 +77,11 @@ export default function TeacherDashboardUI() {
                         >
                             <Database className="w-4 h-4" /> Manage Content
                         </Link>
-                        <button className="bg-indigo-500 hover:bg-indigo-400 text-white px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 shadow-lg shadow-indigo-500/30 transition-all hover:-translate-y-0.5">
-                            <Plus className="w-4 h-4" /> Create Class
+                        <button
+                            onClick={() => setIsCreateModalOpen(true)}
+                            className="bg-indigo-500 hover:bg-indigo-400 text-white px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 shadow-lg shadow-indigo-500/30 transition-all hover:-translate-y-0.5"
+                        >
+                            <Plus className="w-4 h-4" /> Create Assignment
                         </button>
                         <div className="relative group cursor-pointer">
                             <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-400 to-indigo-500 rounded-full opacity-75 group-hover:opacity-100 transition duration-200 blur-sm"></div>
@@ -107,13 +125,19 @@ export default function TeacherDashboardUI() {
                     ))}
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* LEFT: Classes & Schedule (2/3) */}
+                {/* Main Content Grid */}
+                <div className="grid lg:grid-cols-3 gap-8">
+                    {/* LEFT COLUMN - Classes & Assignments */}
                     <div className="lg:col-span-2 space-y-8">
+
+                        {/* Classes Section */}
                         <section>
-                            <h2 className="text-xl font-bold text-slate-800 mb-5 flex items-center gap-2">
-                                <BookOpen className="w-5 h-5 text-indigo-600" /> My Classes
-                            </h2>
+                            <div className="flex justify-between items-end mb-6">
+                                <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                    <BookOpen className="w-5 h-5 text-indigo-600" /> My Classes
+                                </h2>
+                                <Link href="#" className="text-sm font-bold text-indigo-600 hover:underline">View All</Link>
+                            </div>
                             <div className="grid md:grid-cols-2 gap-5">
                                 {classes.length > 0 ? classes.map((cls: any) => (
                                     <div key={cls.id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:translate-y-[-4px] hover:border-indigo-200 transition-all cursor-pointer group relative overflow-hidden">
@@ -145,10 +169,7 @@ export default function TeacherDashboardUI() {
                                             <BookOpen className="w-8 h-8 text-indigo-300" />
                                         </div>
                                         <h3 className="text-lg font-bold text-slate-700 mb-2">No Active Classes</h3>
-                                        <p className="text-slate-500 text-sm max-w-sm mb-6">You haven't been assigned any classes yet. Create a new class to get started.</p>
-                                        <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-full font-bold text-sm shadow-lg shadow-indigo-200 transition-all">
-                                            Create First Class
-                                        </button>
+                                        <p className="text-slate-500 text-sm max-w-sm mb-6">You haven't been assigned any classes yet.</p>
                                     </div>
                                 )}
                             </div>
@@ -166,13 +187,22 @@ export default function TeacherDashboardUI() {
                                 {gradingQueue.length > 0 ? gradingQueue.map((item: any, i: number) => (
                                     <div key={item.id} className="p-3 hover:bg-slate-50 rounded-xl transition-all cursor-pointer border border-transparent hover:border-slate-100 group">
                                         <div className="flex justify-between items-start mb-1">
-                                            <span className="font-bold text-slate-700 text-sm group-hover:text-indigo-600 transition-colors">{item.student}</span>
+                                            <span className="font-bold text-slate-700 text-sm group-hover:text-indigo-600 transition-colors">
+                                                {item.studentName || item.student}
+                                            </span>
                                             <span className="text-[10px] text-slate-400 font-mono">{item.submitted}</span>
                                         </div>
                                         <p className="text-xs text-slate-500 mb-3">{item.assignment}</p>
                                         <div className="flex items-center gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
-                                            <button className="px-3 py-1 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 shadow-sm shadow-indigo-200">Grade Now</button>
-                                            <button className="px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-lg hover:bg-slate-200">Preview</button>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleGradeOpen(item);
+                                                }}
+                                                className="px-3 py-1 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 shadow-sm shadow-indigo-200"
+                                            >
+                                                Grade Now
+                                            </button>
                                         </div>
                                     </div>
                                 )) : (
@@ -186,18 +216,6 @@ export default function TeacherDashboardUI() {
                                 )}
                             </div>
                             <button className="w-full mt-6 text-center text-sm font-bold text-slate-500 hover:text-indigo-600 py-2 border-t border-slate-50 hover:bg-slate-50 transition-colors">View All Submissions</button>
-                        </div>
-
-                        <div className="bg-amber-50 rounded-2xl p-6 border border-amber-100/50 shadow-sm">
-                            <h3 className="text-lg font-bold text-amber-900 mb-3 flex items-center gap-2">
-                                <AlertTriangle className="w-5 h-5 text-amber-600" /> Needs Attention
-                            </h3>
-                            <p className="text-sm text-amber-800/80 mb-4 leading-relaxed">
-                                3 students in <b className="text-amber-900">Algebra II</b> have fallen below 70% participation this week.
-                            </p>
-                            <button className="w-full bg-white text-amber-700 font-bold py-2.5 rounded-xl text-sm hover:bg-amber-100 border border-amber-200 shadow-sm transition-colors">
-                                View Performance Report
-                            </button>
                         </div>
                     </div>
                 </div>

@@ -8,48 +8,70 @@ import { getLevel } from "./gamification";
     Later, we will uncomment the Prisma calls.
 */
 
-const MOCK_STUDENT_PROFILE = {
-    id: "student_1",
-    name: "Jerry Otomasikan", // From User table
-    gradeLevel: "12 (SMA)",
-    xp: 4500,
-    streakDays: 5,
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Jerry",
-    enrollments: [
-        { courseId: "SMA_MATH", status: "ACTIVE", progress: 65 },
-        { courseId: "SMA_PHYSICS", status: "ACTIVE", progress: 40 }
-    ],
-    recentActivity: [
-        { type: "LESSON", title: "Intro to Vectors", date: new Date().toISOString() },
-        { type: "QUIZ", title: "Algebra Quiz 1", score: 90, date: new Date(Date.now() - 86400000).toISOString() }
-    ]
-};
+import { prisma } from "@/lib/prisma";
+import { getLevel } from "./gamification";
+
+/*
+    This service abstracts the data source.
+    Teacher and Parent data returned is still MOCK data for now.
+*/
 
 export async function getStudentDashboardData(userId: string) {
-    // SIMULATED DB DELAY
-    await new Promise(resolve => setTimeout(resolve, 500));
+    if (!userId) return null;
 
-    // REAL IMPL (Future):
-    // const profile = await prisma.studentProfile.findUnique({ ... })
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            include: {
+                studentProfile: {
+                    include: {
+                        enrollments: true,
+                        badges: true,
+                        // submissions: true // Not using yet
+                    }
+                }
+            }
+        });
 
-    // MOCK IMPL:
-    const levelStats = getLevel(MOCK_STUDENT_PROFILE.xp);
+        if (!user) return null;
 
-    return {
-        profile: {
-            ...MOCK_STUDENT_PROFILE,
-            level: levelStats.level,
-            levelProgress: levelStats.progress,
-            nextLevelXp: levelStats.nextLevelXp,
-            currentLevelXp: levelStats.currentLevelXp
-        },
-        stats: {
-            courses: MOCK_STUDENT_PROFILE.enrollments.length,
-            assignmentsDue: 2, // Mock
-            avgGrade: 92, // Mock
-            badges: 15 // Mock
-        }
-    };
+        // Default shell if no specific student profile exists yet
+        const profile = user.studentProfile || {
+            gradeLevel: "Not Set",
+            xp: 0,
+            level: 1,
+            streakDays: 0,
+            enrollments: [],
+            badges: []
+        };
+
+        const levelStats = getLevel(profile.xp);
+
+        return {
+            profile: {
+                id: user.id,
+                name: user.name || "Student",
+                gradeLevel: profile.gradeLevel,
+                xp: profile.xp,
+                streakDays: profile.streakDays,
+                avatar: user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name || 'User'}`,
+                level: levelStats.level,
+                levelProgress: levelStats.progress,
+                nextLevelXp: levelStats.nextLevelXp,
+                currentLevelXp: levelStats.currentLevelXp,
+            },
+            stats: {
+                courses: profile.enrollments.length,
+                assignmentsDue: 0,
+                avgGrade: 0,
+                badges: profile.badges.length
+            }
+        };
+
+    } catch (error) {
+        console.error("Error fetching student dashboard:", error);
+        return null;
+    }
 }
 
 const MOCK_TEACHER_PROFILE = {

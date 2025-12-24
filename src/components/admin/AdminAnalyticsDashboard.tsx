@@ -115,7 +115,7 @@ export default function AdminAnalyticsDashboard() {
                 <header className="mb-10 text-white">
                     <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
                         <BarChart3 className="w-8 h-8" />
-                        System Analytics
+                        Owner Dashboard
                     </h1>
                     <p className="text-indigo-200 mt-1 font-medium">Real-time insights into platform health and usage</p>
                 </header>
@@ -153,7 +153,7 @@ export default function AdminAnalyticsDashboard() {
                             { label: "Students", value: data.users.students, color: "bg-blue-500" },
                             { label: "Teachers", value: data.users.teachers, color: "bg-purple-500" },
                             { label: "Parents", value: data.users.parents, color: "bg-emerald-500" },
-                            { label: "Admins", value: data.users.admins, color: "bg-amber-500" }
+                            { label: "Owners", value: data.users.admins, color: "bg-amber-500" }
                         ].map((role, i) => (
                             <div key={i} className="text-center">
                                 <div className={`w-20 h-20 mx-auto rounded-full ${role.color} flex items-center justify-center text-white text-2xl font-bold mb-3 shadow-lg`}>

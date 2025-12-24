@@ -634,3 +634,115 @@ export async function getStudentProfile(userId: string) {
         return null;
     }
 }
+
+// LIVE CLASS FUNCTIONS
+
+export async function createLiveClass(teacherId: string, data: {
+    title: string;
+    description?: string;
+    classId?: string;
+    zoomLink: string;
+    meetingId?: string;
+    passcode?: string;
+    scheduledAt: Date;
+    duration: number;
+}) {
+    try {
+        const liveClass = await prisma.liveClass.create({
+            data: {
+                teacherId,
+                ...data
+            }
+        });
+        return { success: true, liveClass };
+    } catch (error) {
+        console.error("Error creating live class:", error);
+        return { success: false, error: "Failed to create live class" };
+    }
+}
+
+export async function getTeacherLiveClasses(teacherId: string) {
+    try {
+        const liveClasses = await prisma.liveClass.findMany({
+            where: { teacherId },
+            orderBy: { scheduledAt: 'asc' },
+            include: {
+                class: true
+            }
+        });
+
+        return liveClasses.map(lc => ({
+            id: lc.id,
+            title: lc.title,
+            description: lc.description,
+            className: lc.class?.name || 'General',
+            zoomLink: lc.zoomLink,
+            meetingId: lc.meetingId,
+            passcode: lc.passcode,
+            scheduledAt: lc.scheduledAt.toISOString(),
+            duration: lc.duration,
+            status: lc.status
+        }));
+    } catch (error) {
+        console.error("Error fetching teacher live classes:", error);
+        return [];
+    }
+}
+
+export async function getStudentLiveClasses(userId: string) {
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            include: {
+                studentProfile: {
+                    include: {
+                        enrollments: {
+                            include: {
+                                class: {
+                                    include: {
+                                        liveClasses: {
+                                            where: {
+                                                scheduledAt: { gte: new Date() },
+                                                status: 'SCHEDULED'
+                                            },
+                                            orderBy: { scheduledAt: 'asc' },
+                                            include: {
+                                                teacher: {
+                                                    include: {
+                                                        user: true
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        if (!user || !user.studentProfile) return [];
+
+        // Flatten live classes from all enrolled classes
+        const liveClasses = user.studentProfile.enrollments.flatMap(
+            enrollment => enrollment.class?.liveClasses || []
+        );
+
+        return liveClasses.map(lc => ({
+            id: lc.id,
+            title: lc.title,
+            description: lc.description,
+            teacherName: lc.teacher.user.name || 'Teacher',
+            zoomLink: lc.zoomLink,
+            scheduledAt: lc.scheduledAt.toISOString(),
+            duration: lc.duration,
+            status: lc.status
+        }));
+    } catch (error) {
+        console.error("Error fetching student live classes:", error);
+        return [];
+    }
+}
+

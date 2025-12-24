@@ -68,6 +68,7 @@ model TeacherProfile {
   
   assignments Assignment[]
   classes     ClassGroup[]
+  liveClasses LiveClass[]
 }
 
 model ParentProfile {
@@ -87,6 +88,7 @@ model ClassGroup {
   teacher     TeacherProfile @relation(fields: [teacherId], references: [id])
   
   students    Enrollment[]
+  liveClasses LiveClass[]
 }
 
 model Enrollment {
@@ -155,3 +157,27 @@ model EarnedBadge {
   badgeCode   String   // "MATH_WHIZ", "WEEKLY_STREAK"
   earnedAt    DateTime @default(now())
 }
+
+// --- LIVE CLASSES ---
+
+model LiveClass {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  teacherId   String
+  teacher     TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  classId     String?
+  class       ClassGroup? @relation(fields: [classId], references: [id])
+  
+  zoomLink    String
+  meetingId   String?
+  passcode    String?
+  
+  scheduledAt DateTime
+  duration    Int      // in minutes
+  status      String   @default("SCHEDULED") // SCHEDULED, ONGOING, COMPLETED, CANCELLED
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+

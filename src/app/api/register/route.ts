@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { createUser as createSheetUser } from "@/lib/drive-db";
 import bcrypt from "bcryptjs";
 import { UserRole } from "@prisma/client";
 
@@ -69,6 +70,7 @@ export async function POST(req: Request) {
         const validRoles = Object.values(UserRole);
         const userRole = validRoles.includes(role) ? role : UserRole.STUDENT;
 
+        // 1. Create in Postgres (Prisma)
         const newUser = await prisma.user.create({
             data: {
                 name,
@@ -78,7 +80,7 @@ export async function POST(req: Request) {
             }
         });
 
-        // Create Profile based on role (Initial empty profile)
+        // 2. Create Profile based on role (Initial empty profile)
         if (userRole === UserRole.STUDENT) {
             await prisma.studentProfile.create({
                 data: {
@@ -100,8 +102,24 @@ export async function POST(req: Request) {
             });
         }
 
-        // Trigger Telegram Bot
+        // 3. Sync to Google Sheet (for Telegram Bot approval flow)
+        try {
+            await createSheetUser({
+                email,
+                passwordHash: hashedPassword,
+                name,
+                role: userRole,
+                phone: phone || ''
+            });
+        } catch (sheetError) {
+            console.error("Failed to sync user to Google Sheet:", sheetError);
+            // Don't fail the request, just log it. Prisma is the source of truth.
+        }
+
+        // 4. Trigger Telegram Bot
         await sendTelegramNotification({ name, email, role: userRole, phone });
+
+        return NextResponse.json({ success: true, user: newUser });
 
         return NextResponse.json({ success: true, user: newUser });
 

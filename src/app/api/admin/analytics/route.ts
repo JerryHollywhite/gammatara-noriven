@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getAdminAnalytics } from "@/lib/data-service";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
     const session = await getServerSession(authOptions);
@@ -18,9 +19,27 @@ export async function GET() {
 
     const data = await getAdminAnalytics();
 
+    // Fetch latest profile info
+    const userId = (session.user as any).id;
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { phone: true, email: true, name: true, image: true } as any
+    });
+
     if (!data) {
         return NextResponse.json({ error: "Failed to fetch analytics" }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, data });
+    return NextResponse.json({
+        success: true,
+        data: {
+            ...data,
+            profile: {
+                name: user?.name,
+                email: user?.email,
+                phone: user?.phone,
+                image: user?.image
+            }
+        }
+    });
 }

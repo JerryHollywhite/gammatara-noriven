@@ -27,6 +27,7 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?
+  phone         String?
   role          UserRole  @default(STUDENT)
   
   // Relations
@@ -57,6 +58,10 @@ model StudentProfile {
   progress    LessonProgress[]
   submissions AssignmentSubmission[]
   badges      EarnedBadge[]
+  
+  // Phase 7: Exams & Finance
+  examAttempts ExamAttempt[]
+  invoices     Invoice[]
 }
 
 model TeacherProfile {
@@ -99,7 +104,10 @@ model Enrollment {
   classId     String?
   class       ClassGroup? @relation(fields: [classId], references: [id])
   
-  courseId    String   // Matches configured Google Sheet "SubjectID"
+  subjectId   String?  // Link to new Subject model
+  subject     Subject? @relation(fields: [subjectId], references: [id])
+  
+  courseId    String?  // Legacy string ID from Sheets (keep for migration safely)
   status      String   @default("ACTIVE") // ACTIVE, COMPLETED
   
   joinedAt    DateTime @default(now())
@@ -110,7 +118,10 @@ model LessonProgress {
   studentId   String
   student     StudentProfile @relation(fields: [studentId], references: [id])
   
-  lessonId    String   // Matches "ID" from Content_Lessons Sheet
+  lessonId    String
+  lesson      Lesson   @relation(fields: [lessonId], references: [id])
+  // Previously lessonId was a string ID from sheets, now it's FK to Lesson table.
+  
   status      String   @default("NOT_STARTED") // STARTED, COMPLETED
   score       Int?     // For quizzes
   
@@ -181,3 +192,173 @@ model LiveClass {
   updatedAt   DateTime @updatedAt
 }
 
+// --- NEW LMS CONTENT MODELS (Replaces Google Sheets Master DB) ---
+
+model Program {
+  id          String    @id @default(cuid())
+  code        String    @unique // e.g. "TK", "SD" (was ID in Sheet)
+  name        String
+  description String?
+  active      Boolean   @default(true)
+  
+  subjects    Subject[]
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Subject {
+  id          String       @id @default(cuid())
+  code        String       @unique // e.g. "MATH_101" (was ID in Sheet)
+  name        String
+  description String?
+  programId   String
+  program     Program      @relation(fields: [programId], references: [id])
+  
+  lessons     Lesson[]
+  enrollments Enrollment[]
+  
+  exams       Exam[]
+  
+  active      Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Lesson {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  subjectId   String
+  subject     Subject   @relation(fields: [subjectId], references: [id])
+  
+  videoUrl    String?   // YouTube Link
+  fileUrl     String?   // Google Drive Link
+  
+  order       Int       @default(0)
+  active      Boolean   @default(true)
+  
+  quizzes     Quiz[]
+  progress    LessonProgress[]
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Quiz {
+  id          String     @id @default(cuid())
+  title       String
+  lessonId    String
+  lesson      Lesson     @relation(fields: [lessonId], references: [id])
+  
+  questions   Question[]
+  
+  active      Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Question {
+  id            String   @id @default(cuid())
+  quizId        String
+  quiz          Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  
+  questionText  String
+  options       Json     // Array of strings ["A", "B", "C", "D"]
+  correctAnswer String   // The correct string value
+  points        Int      @default(10)
+}
+
+
+// --- EXAM ENGINE (CBT) ---
+
+model Exam {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  subjectId   String
+  subject     Subject   @relation(fields: [subjectId], references: [id])
+  
+  durationMinutes Int   @default(60)
+  passingGrade    Int   @default(75)
+  
+  maxAttempts     Int   @default(1)
+  active          Boolean @default(true)
+  
+
+  
+  // questions   Question[] // REMOVED: Using separate ExamQuestion model 
+                         // Note: Current Question model is linked to Quiz. 
+                         // We might need to make Question polymorphic or just use Quiz for "Exams" too.
+                         // For simplicity, let's treat "Quiz" as "Practice" and "Exam" as "Test".
+                         // We'll create a new ExamQuestion model or reuse if we refactor.
+                         // Let's create ExamQuestion for separation.
+  
+  examQuestions ExamQuestion[]
+  attempts      ExamAttempt[]
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model ExamQuestion {
+  id            String   @id @default(cuid())
+  examId        String
+  exam          Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  
+  questionText  String
+  type          String   @default("MCQ") // MCQ, ESSAY
+  options       Json     // ["A", "B", "C", "D"]
+  correctAnswer String
+  points        Int      @default(1)
+}
+
+model ExamAttempt {
+  id          String   @id @default(cuid())
+  examId      String
+  exam        Exam     @relation(fields: [examId], references: [id])
+  
+  studentId   String
+  student     StudentProfile @relation(fields: [studentId], references: [id])
+  
+  score       Float?
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+  
+  answers     Json?     // Store student answers { "qId": "answer" }
+  status      String    @default("IN_PROGRESS") // IN_PROGRESS, COMPLETED
+}
+
+// --- FINANCIAL SYSTEM ---
+
+model Invoice {
+  id          String   @id @default(cuid())
+  studentId   String
+  student     StudentProfile @relation(fields: [studentId], references: [id])
+  
+  title       String   // "SPP January 2025"
+  amount      Float
+  dueDate     DateTime
+  
+  status      String   @default("UNPAID") // UNPAID, PENDING, PAID, OVERDUE
+  
+  payment     Payment?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Payment {
+  id          String   @id @default(cuid())
+  invoiceId   String   @unique
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id])
+  
+  amountPaid  Float
+  method      String   // "MANUAL_TRANSFER"
+  proofUrl    String?  // Image of transfer receipt
+  
+  verifiedBy  String?  // Admin User ID
+  verifiedAt  DateTime?
+  
+  createdAt   DateTime @default(now())
+}

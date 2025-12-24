@@ -1,34 +1,46 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import {
     User, Calendar, FileText, CheckCircle,
-    XCircle, MessageCircle, CreditCard, ChevronDown
+    XCircle, MessageCircle, CreditCard, DollarSign,
+    X, ChevronDown
 } from "lucide-react";
+import ParentBilling from "../../parent/ParentBilling";
+import UnifiedProfileEditor from "../../profile/UnifiedProfileEditor";
 
 interface ParentData {
     name: string;
     children: any[];
+    email?: string;
+    phone?: string;
+    avatar?: string;
 }
 
-export default function ParentDashboardUI() {
-    const [data, setData] = useState<ParentData | null>(null);
-    const [loading, setLoading] = useState(true);
+export default function ParentDashboardUI({ initialData }: { initialData?: ParentData }) {
+    const [data, setData] = useState<ParentData | null>(initialData || null);
+    const [loading, setLoading] = useState(!initialData);
     const [selectedChildIndex, setSelectedChildIndex] = useState(0);
+    const [isBillingOpen, setIsBillingOpen] = useState(false);
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
 
     useEffect(() => {
-        fetch('/api/parent/dashboard')
-            .then(res => res.json())
-            .then(json => {
-                if (json.success) setData(json.data);
-                setLoading(false);
-            })
-            .catch(err => setLoading(false));
-    }, []);
+        if (!initialData) {
+            fetch('/api/parent/dashboard')
+                .then(res => res.json())
+                .then(json => {
+                    if (json.success) setData(json.data);
+                    setLoading(false);
+                })
+                .catch(err => setLoading(false));
+        }
+    }, [initialData]);
 
     if (loading) return <div className="min-h-screen pt-24 flex items-center justify-center text-slate-400">Loading Family Data...</div>;
     if (!data) return <div className="min-h-screen pt-24 flex items-center justify-center text-red-400">Failed to load dashboard.</div>;
+
+    const { name, email, phone, avatar: parentAvatar } = data;
 
     if (data.children.length === 0) {
         return (
@@ -49,21 +61,35 @@ export default function ParentDashboardUI() {
     }
 
     const currentChild = data.children[selectedChildIndex];
+    const displayAvatar = parentAvatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=" + name;
 
     return (
         <div className="min-h-screen relative font-sans text-slate-800 bg-slate-100">
-            {/* Header Gradient - Placed absolutely with z-0 */}
+            {/* Header Gradient */}
             <div className="absolute top-0 left-0 w-full h-80 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 z-0" />
 
-            {/* Content Wrapper - Relative and z-10 to sit on top of gradient */}
+            {/* Content Wrapper */}
             <div className="relative z-10 pt-28 pb-12 px-6 md:px-12">
 
                 <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 text-white">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight">
-                            Parent Portal
-                        </h1>
-                        <p className="text-indigo-200 mt-1 font-medium">Monitor {currentChild.name}'s progress and stay connected.</p>
+                    <div className="flex items-center gap-4">
+                        <div
+                            className="relative group cursor-pointer"
+                            onClick={() => setIsProfileOpen(true)}
+                        >
+                            <img
+                                src={displayAvatar}
+                                alt={name}
+                                className="w-16 h-16 rounded-full border-2 border-indigo-400 object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/30 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <User className="w-6 h-6 text-white" />
+                            </div>
+                        </div>
+                        <div>
+                            <h1 className="text-3xl font-bold tracking-tight">Parent Portal</h1>
+                            <p className="text-indigo-200 mt-1 font-medium">Welcome, {name}. Monitor {currentChild.name}'s progress.</p>
+                        </div>
                     </div>
 
                     {/* Child Switcher */}
@@ -98,6 +124,18 @@ export default function ParentDashboardUI() {
                 </header>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+                    {/* Billing Modal */}
+                    {isBillingOpen && (
+                        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                            <div className="bg-white rounded-2xl w-full max-w-2xl p-6 relative animate-in fade-in zoom-in duration-200 overflow-y-auto max-h-[90vh]">
+                                <button onClick={() => setIsBillingOpen(false)} className="absolute top-4 right-4 p-2 hover:bg-slate-100 rounded-full text-slate-400">
+                                    <X className="w-5 h-5" />
+                                </button>
+                                <ParentBilling />
+                            </div>
+                        </div>
+                    )}
 
                     {/* LEFT: Main Child Stats (2/3) */}
                     <div className="lg:col-span-2 space-y-8">
@@ -142,9 +180,7 @@ export default function ParentDashboardUI() {
                                         <div
                                             className="w-full bg-indigo-50 rounded-t-xl relative overflow-hidden transition-all duration-500 group-hover:bg-indigo-100"
                                             style={{ height: `${h}%` }}
-                                        >
-                                            <div className="absolute bottom-0 w-full h-1/2 bg-gradient-to-t from-indigo-500 to-indigo-400 opacity-80" />
-                                        </div>
+                                        ></div>
                                     </div>
                                 ))}
                             </div>
@@ -173,9 +209,7 @@ export default function ParentDashboardUI() {
                                             </div>
                                             <div className="text-right">
                                                 <span className="font-black text-2xl text-slate-800 block">{g.grade}</span>
-                                                <span className={`text-xs font-bold px-2 py-1 rounded-full ${g.grade >= 90 ? 'text-emerald-600 bg-emerald-50' :
-                                                    g.grade >= 70 ? 'text-blue-600 bg-blue-50' :
-                                                        'text-red-600 bg-red-50'
+                                                <span className={`text-xs font-bold px-2 py-1 rounded-full ${g.grade >= 90 ? 'text-emerald-600 bg-emerald-50' : g.grade >= 70 ? 'text-blue-600 bg-blue-50' : 'text-red-600 bg-red-50'
                                                     }`}>
                                                     {g.grade >= 90 ? 'Excellent' : g.grade >= 70 ? 'Good' : 'Needs Work'}
                                                 </span>
@@ -227,13 +261,48 @@ export default function ParentDashboardUI() {
                                     <span className="font-bold text-slate-800">Jan 01, 2026</span>
                                 </div>
                             </div>
-                            <button className="w-full py-4 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 hover:scale-[1.02] transition-all shadow-xl shadow-slate-900/20">
-                                Pay Tuition Now
+                            <button
+                                onClick={() => setIsBillingOpen(true)}
+                                className="w-full py-4 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 hover:scale-[1.02] transition-all shadow-xl shadow-slate-900/20"
+                            >
+                                Manage Billing & Payments
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
+
+            {/* Profile Manager Modal */}
+            <AnimatePresence>
+                {isProfileOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl"
+                        >
+                            <button onClick={() => setIsProfileOpen(false)} className="absolute top-6 right-6 z-10 p-2 bg-white/50 hover:bg-white rounded-full text-slate-500 shadow-sm backdrop-blur-sm">
+                                <X className="w-5 h-5" />
+                            </button>
+                            <UnifiedProfileEditor
+                                initialData={{
+                                    name: name,
+                                    email: email || "",
+                                    phone: phone || null,
+                                    image: displayAvatar,
+                                    role: "PARENT"
+                                }}
+                            />
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

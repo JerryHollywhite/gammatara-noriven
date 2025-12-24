@@ -1,11 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
     Users, BookOpen, CheckCircle, TrendingUp,
-    Activity, Award, BarChart3, Clock, Search, ArrowUpDown
+    Activity, Award, BarChart3, Clock, Search, ArrowUpDown, DollarSign,
+    User as UserIcon, X
 } from "lucide-react";
+import FinanceDashboard from "./FinanceDashboard";
+import UnifiedProfileEditor from "../profile/UnifiedProfileEditor";
 
 interface AnalyticsData {
     users: {
@@ -26,11 +29,19 @@ interface AnalyticsData {
         avgQuizScore: number;
         totalCompletions: number;
     };
+    profile?: {
+        name: string;
+        email: string;
+        phone: string;
+        image: string;
+    };
 }
 
 export default function AdminAnalyticsDashboard() {
     const [data, setData] = useState<AnalyticsData | null>(null);
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState<'ANALYTICS' | 'USERS' | 'FINANCE'>('ANALYTICS');
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
 
     useEffect(() => {
         fetch('/api/admin/analytics')
@@ -112,62 +123,149 @@ export default function AdminAnalyticsDashboard() {
 
             {/* Content */}
             <div className="relative z-10 pt-28 pb-12 px-6 md:px-12">
-                <header className="mb-10 text-white">
-                    <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-                        <BarChart3 className="w-8 h-8" />
-                        Owner Dashboard
-                    </h1>
-                    <p className="text-indigo-200 mt-1 font-medium">Real-time insights into platform health and usage</p>
+                <header className="mb-10 text-white flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
+                            <BarChart3 className="w-8 h-8" />
+                            Owner Dashboard
+                        </h1>
+                        <p className="text-indigo-200 mt-1 font-medium">Real-time insights into platform health and usage</p>
+
+                        <div className="flex items-center gap-4 mt-8 bg-white/10 p-1 rounded-xl backdrop-blur-sm w-fit border border-white/20">
+                            <button
+                                onClick={() => setActiveTab('ANALYTICS')}
+                                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'ANALYTICS' ? 'bg-white text-indigo-900 shadow-md' : 'text-indigo-100 hover:bg-white/10'}`}
+                            >
+                                Analytics
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('USERS')}
+                                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'USERS' ? 'bg-white text-indigo-900 shadow-md' : 'text-indigo-100 hover:bg-white/10'}`}
+                            >
+                                Manage Users
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('FINANCE')}
+                                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'FINANCE' ? 'bg-white text-indigo-900 shadow-md' : 'text-indigo-100 hover:bg-white/10'}`}
+                            >
+                                Finance
+                            </button>
+                        </div>
+                    </div>
+
+                    <div
+                        className="relative group cursor-pointer self-start md:self-center"
+                        onClick={() => setIsProfileOpen(true)}
+                    >
+                        <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full opacity-75 group-hover:opacity-100 transition duration-200 blur-sm"></div>
+                        <img
+                            src={data.profile?.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=Owner`}
+                            alt="Profile"
+                            className="relative w-14 h-14 rounded-full border-2 border-amber-500 object-cover bg-slate-800"
+                        />
+                        <div className="absolute top-0 right-0 w-5 h-5 bg-amber-500 rounded-full border-2 border-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <UserIcon className="w-3 h-3 text-white" />
+                        </div>
+                    </div>
                 </header>
 
-                {/* Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-                    {statsCards.map((stat, idx) => (
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: idx * 0.1 }}
-                            key={idx}
-                            className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-lg hover:border-indigo-100 transition-all group"
-                        >
-                            <div className="flex justify-between items-start mb-4">
-                                <div className={`p-3 rounded-xl ${stat.bg} ${stat.color} group-hover:scale-110 transition-transform`}>
-                                    <stat.icon className="w-6 h-6" />
-                                </div>
-                            </div>
-                            <p className="text-4xl font-bold text-slate-800 tracking-tight mb-1">{stat.value}</p>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">{stat.label}</p>
-                            <p className="text-xs text-slate-500 mt-2">{stat.subtext}</p>
-                        </motion.div>
-                    ))}
-                </div>
+                {activeTab === 'FINANCE' ? (
+                    <FinanceDashboard />
+                ) : activeTab === 'USERS' ? (
+                    <ManageUsersTable />
+                ) : (
+                    <>
+                        {/* Stats Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+                            {statsCards.map((stat, idx) => (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: idx * 0.1 }}
+                                    key={idx}
+                                    className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-lg hover:border-indigo-100 transition-all group"
+                                >
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div className={`p-3 rounded-xl ${stat.bg} ${stat.color} group-hover:scale-110 transition-transform`}>
+                                            <stat.icon className="w-6 h-6" />
+                                        </div>
+                                    </div>
+                                    <p className="text-4xl font-bold text-slate-800 tracking-tight mb-1">{stat.value}</p>
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wide">{stat.label}</p>
+                                    <p className="text-xs text-slate-500 mt-2">{stat.subtext}</p>
+                                </motion.div>
+                            ))}
+                        </div>
 
-                {/* User Breakdown */}
-                <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200 mb-10">
-                    <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                        <Users className="w-6 h-6 text-indigo-600" />
-                        User Distribution
-                    </h2>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                        {[
-                            { label: "Students", value: data.users.students, color: "bg-blue-500" },
-                            { label: "Teachers", value: data.users.teachers, color: "bg-purple-500" },
-                            { label: "Parents", value: data.users.parents, color: "bg-emerald-500" },
-                            { label: "Owners", value: data.users.admins, color: "bg-amber-500" }
-                        ].map((role, i) => (
-                            <div key={i} className="text-center">
-                                <div className={`w-20 h-20 mx-auto rounded-full ${role.color} flex items-center justify-center text-white text-2xl font-bold mb-3 shadow-lg`}>
-                                    {role.value}
-                                </div>
-                                <p className="text-sm font-bold text-slate-600">{role.label}</p>
+                        {/* User Breakdown */}
+                        <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200 mb-10">
+                            <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                                <Users className="w-6 h-6 text-indigo-600" />
+                                User Distribution
+                            </h2>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                                {[
+                                    { label: "Students", value: data.users.students, color: "bg-blue-500" },
+                                    { label: "Teachers", value: data.users.teachers, color: "bg-purple-500" },
+                                    { label: "Parents", value: data.users.parents, color: "bg-emerald-500" },
+                                    { label: "Owners", value: data.users.admins, color: "bg-amber-500" }
+                                ].map((role, i) => (
+                                    <div key={i} className="text-center">
+                                        <div className={`w-20 h-20 mx-auto rounded-full ${role.color} flex items-center justify-center text-white text-2xl font-bold mb-3 shadow-lg`}>
+                                            {role.value}
+                                        </div>
+                                        <p className="text-sm font-bold text-slate-600">{role.label}</p>
+                                    </div>
+                                ))}
                             </div>
-                        ))}
-                    </div>
-                </div>
+                        </div>
 
-                {/* Manage Users Table */}
-                <ManageUsersTable />
+                        {/* Manage Users Table */}
+                        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-3xl p-8 text-white relative overflow-hidden">
+                            <h2 className="text-2xl font-bold mb-2">Manage Users</h2>
+                            <p className="mb-6 opacity-90 max-w-lg">View, filter, and manage all registered users, teachers, and parents.</p>
+                            <button
+                                onClick={() => setActiveTab('USERS')}
+                                className="bg-white text-indigo-600 px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-indigo-50 transition"
+                            >
+                                Go to User Management
+                            </button>
+                        </div>
+                    </>
+                )}
             </div>
+
+            {/* Profile Manager Modal */}
+            <AnimatePresence>
+                {isProfileOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl"
+                        >
+                            <button onClick={() => setIsProfileOpen(false)} className="absolute top-6 right-6 z-10 p-2 bg-white/50 hover:bg-white rounded-full text-slate-500 shadow-sm backdrop-blur-sm">
+                                <X className="w-5 h-5" />
+                            </button>
+                            <UnifiedProfileEditor
+                                initialData={{
+                                    name: data.profile?.name || "Owner",
+                                    email: data.profile?.email || "",
+                                    phone: data.profile?.phone || null,
+                                    image: data.profile?.image || "",
+                                    role: "ADMIN"
+                                }}
+                            />
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
@@ -232,6 +330,43 @@ function ManageUsersTable() {
         setSortConfig({ key, direction });
     };
 
+    const [linkModalOpen, setLinkModalOpen] = useState(false);
+    const [linkParentId, setLinkParentId] = useState<string | null>(null);
+    const [studentEmailLink, setStudentEmailLink] = useState("");
+    const [linking, setLinking] = useState(false);
+
+    const openLinkModal = (parentId: string) => {
+        setLinkParentId(parentId);
+        setStudentEmailLink("");
+        setLinkModalOpen(true);
+    };
+
+    const handleLinkStudent = async () => {
+        if (!linkParentId || !studentEmailLink) return;
+
+        setLinking(true);
+        try {
+            const res = await fetch('/api/admin/parents/link', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ parentId: linkParentId, studentEmail: studentEmailLink })
+            });
+            const json = await res.json();
+            if (json.success) {
+                alert(json.message);
+                setLinkModalOpen(false);
+                setLinkParentId(null);
+                setStudentEmailLink("");
+            } else {
+                alert(json.error || "Failed to link student");
+            }
+        } catch (e) {
+            alert("Error linking student");
+        } finally {
+            setLinking(false);
+        }
+    };
+
     const filteredUsers = users.filter(user => {
         const matchesSearch = (user.name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
             (user.email?.toLowerCase() || "").includes(searchTerm.toLowerCase());
@@ -246,7 +381,36 @@ function ManageUsersTable() {
     });
 
     return (
-        <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200">
+        <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200 relative">
+            {/* Link Modal */}
+            {linkModalOpen && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl w-full max-w-sm p-6 relative animate-in fade-in zoom-in">
+                        <h3 className="text-lg font-bold text-slate-800 mb-4">Link Child to Parent</h3>
+                        <div className="mb-4">
+                            <label className="block text-sm font-bold text-slate-700 mb-1">Student Email</label>
+                            <input
+                                type="email"
+                                value={studentEmailLink}
+                                onChange={(e) => setStudentEmailLink(e.target.value)}
+                                className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                placeholder="student@example.com"
+                            />
+                        </div>
+                        <div className="flex gap-2 justify-end">
+                            <button onClick={() => setLinkModalOpen(false)} className="px-4 py-2 text-slate-500 hover:bg-slate-50 rounded-lg">Cancel</button>
+                            <button
+                                onClick={handleLinkStudent}
+                                disabled={linking}
+                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+                            >
+                                {linking ? "Linking..." : "Link Student"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
                 <Users className="w-6 h-6 text-red-600" />
                 Manage Users
@@ -348,7 +512,15 @@ function ManageUsersTable() {
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
                                         {new Date(user.createdAt).toLocaleDateString()}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex justify-end gap-2">
+                                        {user.role === 'PARENT' && (
+                                            <button
+                                                onClick={() => openLinkModal(user.id)}
+                                                className="text-indigo-600 hover:text-indigo-900"
+                                            >
+                                                Link Child
+                                            </button>
+                                        )}
                                         {user.role !== 'ADMIN' && (
                                             <button
                                                 onClick={() => handleDelete(user.id, user.name || '')}

@@ -11,6 +11,7 @@ import {
 import AssignmentSubmissionModal from "./AssignmentSubmissionModal";
 import LeaderboardWidget from "../../gamification/LeaderboardWidget";
 import BadgeNotification from "../../gamification/BadgeNotification";
+import ExamRunner from "../../student/ExamRunner";
 
 // Types
 interface DashboardData {
@@ -48,7 +49,12 @@ export default function StudentDashboardUI() {
     const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
     const [earnedBadge, setEarnedBadge] = useState<any>(null); // New State
 
+    // Exams
+    const [exams, setExams] = useState<any[]>([]);
+    const [activeExamId, setActiveExamId] = useState<string | null>(null);
+
     useEffect(() => {
+        // Fetch Dashboard Data
         fetch('/api/student/dashboard')
             .then(res => res.json())
             .then(json => {
@@ -59,6 +65,13 @@ export default function StudentDashboardUI() {
                 setLoading(false);
             })
             .catch(err => setLoading(false));
+
+        // Fetch Exams
+        fetch('/api/student/exams')
+            .then(res => res.json())
+            .then(json => {
+                if (json.success) setExams(json.exams);
+            });
     }, []);
 
     if (loading) return <div className="min-h-screen pt-24 flex items-center justify-center text-slate-400">Loading your HQ...</div>;
@@ -89,6 +102,28 @@ export default function StudentDashboardUI() {
                 badge={earnedBadge}
                 onClose={() => setEarnedBadge(null)}
             />
+
+            {/* Exam Runner Overlay */}
+            {activeExamId && (
+                <div className="fixed inset-0 z-[100] bg-white">
+                    <ExamRunner
+                        examId={activeExamId}
+                        onComplete={(score) => {
+                            alert(`Exam Completed! Your Score: ${score}`);
+                            setActiveExamId(null);
+                            window.location.reload();
+                        }}
+                    />
+                    <button
+                        className="fixed top-4 right-4 z-[101] text-white/50 hover:text-white"
+                        onClick={() => {
+                            if (confirm("Quit exam? Progress will be lost.")) setActiveExamId(null);
+                        }}
+                    >
+                        Exit
+                    </button>
+                </div>
+            )}
 
             {/* Header Section with Gradient Accent - Placed absolutely with z-0 */}
             <div className="absolute top-0 left-0 w-full h-80 bg-gradient-to-b from-slate-900 to-slate-100 z-0" />
@@ -214,6 +249,41 @@ export default function StudentDashboardUI() {
                                     </div>
                                     <h3 className="text-lg font-bold text-slate-700 mb-1">No Active Courses</h3>
                                     <p className="text-slate-500 mb-4 text-sm max-w-xs">You haven't enrolled in any courses yet. Browse the catalog to get started!</p>
+                                </div>
+                            )}
+
+                        </section>
+
+                        {/* Available Exams */}
+                        <section>
+                            <div className="flex items-center justify-between mb-5">
+                                <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                    <Clock className="w-5 h-5 text-indigo-600" /> Upcoming Exams
+                                </h2>
+                            </div>
+                            {exams.length > 0 ? (
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    {exams.map(exam => (
+                                        <div key={exam.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex justify-between items-center group hover:border-indigo-200 transition-all">
+                                            <div>
+                                                <h3 className="font-bold text-slate-800">{exam.title}</h3>
+                                                <div className="flex gap-4 text-xs text-slate-500 mt-1">
+                                                    <span className="flex items-center gap-1"><BookOpen className="w-3 h-3" /> {exam.subject.name}</span>
+                                                    <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {exam.durationMinutes}m</span>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => setActiveExamId(exam.id)}
+                                                className="px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-200 hover:-translate-y-0.5 transition-all"
+                                            >
+                                                Start
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="bg-slate-50 p-6 rounded-2xl text-center text-slate-400 text-sm">
+                                    No active exams available at the moment.
                                 </div>
                             )}
                         </section>

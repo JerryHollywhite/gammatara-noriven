@@ -6,6 +6,7 @@ import {
     User, Trophy, Target, TrendingUp, Award,
     Calendar, CheckCircle, Star, Zap
 } from "lucide-react";
+import UnifiedProfileEditor from "./UnifiedProfileEditor";
 
 interface ProfileData {
     personalInfo: {
@@ -15,6 +16,7 @@ interface ProfileData {
         avatar: string;
         gradeLevel: string;
         joinedAt: string;
+        phone: string | null;
     };
     stats: {
         totalXP: number;
@@ -136,6 +138,27 @@ export default function StudentProfilePage() {
                             </div>
                         </div>
                     </div>
+
+                    {/* Unified Profile Editor - Collapsible */}
+                    <div className="mt-8 pt-8 border-t border-slate-100">
+                        <div className="flex items-center justify-between mb-4 cursor-pointer" onClick={() => document.getElementById('editor-section')?.classList.toggle('hidden')}>
+                            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                <User className="w-5 h-5 text-indigo-600" /> Edit Profile
+                            </h2>
+                            <span className="text-xs text-indigo-600 font-bold bg-indigo-50 px-3 py-1 rounded-full">Manage settings</span>
+                        </div>
+                        <div id="editor-section" className="hidden transition-all">
+                            <UnifiedProfileEditor
+                                initialData={{
+                                    name: data.personalInfo.name,
+                                    email: data.personalInfo.email,
+                                    phone: data.personalInfo.phone,
+                                    image: data.personalInfo.avatar,
+                                    role: "STUDENT"
+                                }}
+                            />
+                        </div>
+                    </div>
                 </motion.div>
 
                 {/* Stats Grid */}
@@ -210,8 +233,8 @@ export default function StudentProfilePage() {
                                         className="flex items-center gap-4 p-3 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100"
                                     >
                                         <div className={`w-10 h-10 rounded-full flex items-center justify-center ${activity.score >= 90 ? 'bg-emerald-100 text-emerald-600' :
-                                                activity.score >= 70 ? 'bg-blue-100 text-blue-600' :
-                                                    'bg-amber-100 text-amber-600'
+                                            activity.score >= 70 ? 'bg-blue-100 text-blue-600' :
+                                                'bg-amber-100 text-amber-600'
                                             }`}>
                                             <CheckCircle className="w-5 h-5" />
                                         </div>
@@ -233,7 +256,7 @@ export default function StudentProfilePage() {
                         )}
                     </motion.div>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }

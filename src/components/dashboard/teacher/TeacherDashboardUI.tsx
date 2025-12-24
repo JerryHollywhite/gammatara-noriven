@@ -1,21 +1,28 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
     Users, BookOpen, CheckSquare, MessageSquare,
     Plus, Search, MoreVertical, Calendar,
-    BarChart3, AlertTriangle, FileText, Database
+    BarChart3, AlertTriangle, FileText, Database, X, User
 } from "lucide-react";
 import CreateAssignmentModal from "./CreateAssignmentModal";
 import GradingModal from "./GradingModal";
+import TeacherClassManager from "../../teacher/TeacherClassManager";
+
+import TeacherLessonManager from "../../teacher/TeacherLessonManager";
+import TeacherExamManager from "../../teacher/TeacherExamManager";
+import UnifiedProfileEditor from "../../profile/UnifiedProfileEditor";
 
 interface TeacherData {
     name: string;
     role: string;
     subject: string;
     avatar: string;
+    email?: string;
+    phone?: string;
     classes: any[];
     gradingQueue: any[];
     assignments: any[];
@@ -29,6 +36,12 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isGradingModalOpen, setIsGradingModalOpen] = useState(false);
     const [selectedSubmission, setSelectedSubmission] = useState<{ id: string, name: string, title: string } | null>(null);
+
+    // New Tool Modals
+    const [isClassManagerOpen, setIsClassManagerOpen] = useState(false);
+    const [isLessonManagerOpen, setIsLessonManagerOpen] = useState(false);
+    const [isExamManagerOpen, setIsExamManagerOpen] = useState(false);
+    const [isProfileOpen, setIsProfileOpen] = useState(false); // Profile Modal
 
     useEffect(() => {
         if (!initialData) {
@@ -45,7 +58,7 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
     if (loading) return <div className="min-h-screen pt-24 flex items-center justify-center text-slate-400">Loading Dashboard...</div>;
     if (!data) return <div className="min-h-screen pt-24 flex items-center justify-center text-red-400">Failed to load dashboard.</div>;
 
-    const { name, role, subject, avatar, classes, gradingQueue, stats, assignments } = data;
+    const { name, role, subject, avatar, classes, gradingQueue, stats, assignments, email, phone } = data;
 
     const handleGradeOpen = (item: any) => {
         setSelectedSubmission({
@@ -58,12 +71,15 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
 
     return (
         <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-20">
+            {/* Create Assignment Modal */}
             <CreateAssignmentModal
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
                 courseId="DEMO_COURSE" // This should be dynamic based on selected class
                 onCreated={() => window.location.reload()}
             />
+
+            {/* Grading Modal */}
             {selectedSubmission && (
                 <GradingModal
                     isOpen={isGradingModalOpen}
@@ -74,6 +90,75 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
                     onGraded={() => window.location.reload()}
                 />
             )}
+
+            {/* Class Manager Modal */}
+            {isClassManagerOpen && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl w-full max-w-2xl p-6 relative animate-in fade-in zoom-in duration-200 overflow-y-auto max-h-[90vh]">
+                        <button onClick={() => setIsClassManagerOpen(false)} className="absolute top-4 right-4 p-2 hover:bg-slate-100 rounded-full text-slate-400">
+                            <X className="w-5 h-5" />
+                        </button>
+                        <TeacherClassManager />
+                    </div>
+                </div>
+            )}
+
+            {/* Lesson Manager Modal */}
+            {isLessonManagerOpen && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl w-full max-w-2xl p-6 relative animate-in fade-in zoom-in duration-200 overflow-y-auto max-h-[90vh]">
+                        <button onClick={() => setIsLessonManagerOpen(false)} className="absolute top-4 right-4 p-2 hover:bg-slate-100 rounded-full text-slate-400">
+                            <X className="w-5 h-5" />
+                        </button>
+                        <TeacherLessonManager />
+                    </div>
+                </div>
+            )}
+
+            {/* Exam Manager Modal */}
+            {isExamManagerOpen && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl w-full max-w-2xl p-6 relative animate-in fade-in zoom-in duration-200 overflow-y-auto max-h-[90vh]">
+                        <button onClick={() => setIsExamManagerOpen(false)} className="absolute top-4 right-4 p-2 hover:bg-slate-100 rounded-full text-slate-400">
+                            <X className="w-5 h-5" />
+                        </button>
+                        <TeacherExamManager subjectId="MATH_101" />
+                        {/* NOTE: Hardcoded subjectId 'MATH_101' for demo. Real app should select subject. */}
+                    </div>
+                </div>
+            )}
+
+            {/* Profile Manager Modal */}
+            <AnimatePresence>
+                {isProfileOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl"
+                        >
+                            <button onClick={() => setIsProfileOpen(false)} className="absolute top-6 right-6 z-10 p-2 bg-white/50 hover:bg-white rounded-full text-slate-500 shadow-sm backdrop-blur-sm">
+                                <X className="w-5 h-5" />
+                            </button>
+                            <UnifiedProfileEditor
+                                initialData={{
+                                    name: name,
+                                    email: email || "",
+                                    phone: phone || null,
+                                    image: avatar,
+                                    role: "TEACHER"
+                                }}
+                            />
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Header Gradient */}
             <div className="absolute top-0 left-0 w-full h-80 bg-gradient-to-br from-indigo-900 via-slate-900 to-indigo-900 z-0" />
@@ -89,25 +174,44 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
                         </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-4">
-                        <Link
-                            href="/admin/content"
+                        <button
+                            onClick={() => setIsClassManagerOpen(true)}
                             className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 transition-all backdrop-blur-sm"
                         >
-                            <Database className="w-4 h-4" /> Manage Content
-                        </Link>
+                            <Users className="w-4 h-4" /> Manage Classes
+                        </button>
+                        <button
+                            onClick={() => setIsLessonManagerOpen(true)}
+                            className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 transition-all backdrop-blur-sm"
+                        >
+                            <BookOpen className="w-4 h-4" /> Add Lesson
+                        </button>
+                        <button
+                            onClick={() => setIsExamManagerOpen(true)}
+                            className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 transition-all backdrop-blur-sm"
+                        >
+                            <AlertTriangle className="w-4 h-4" /> Exams
+                        </button>
+
                         <button
                             onClick={() => setIsCreateModalOpen(true)}
                             className="bg-indigo-500 hover:bg-indigo-400 text-white px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 shadow-lg shadow-indigo-500/30 transition-all hover:-translate-y-0.5"
                         >
                             <Plus className="w-4 h-4" /> Create Assignment
                         </button>
-                        <div className="relative group cursor-pointer">
+                        <div
+                            className="relative group cursor-pointer"
+                            onClick={() => setIsProfileOpen(true)}
+                        >
                             <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-400 to-indigo-500 rounded-full opacity-75 group-hover:opacity-100 transition duration-200 blur-sm"></div>
                             <img
                                 src={avatar}
                                 alt="Profile"
                                 className="relative w-12 h-12 rounded-full border-2 border-indigo-900 object-cover"
                             />
+                            <div className="absolute top-0 right-0 w-4 h-4 bg-indigo-500 rounded-full border-2 border-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <User className="w-2 h-2 text-white" />
+                            </div>
                         </div>
                     </div>
                 </header>

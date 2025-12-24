@@ -6,6 +6,7 @@ import { QuizQuestion } from "@/types/tara";
 import { CheckCircle, XCircle, ChevronRight, Trophy, ArrowRight, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import confetti from 'canvas-confetti';
+import BadgeNotification from "../gamification/BadgeNotification";
 
 interface QuizRunnerProps {
     lessonId: string;
@@ -20,6 +21,7 @@ export default function QuizRunner({ lessonId, lessonTitle, questions }: QuizRun
     const [score, setScore] = useState(0);
     const [submitting, setSubmitting] = useState(false);
     const [xpAwarded, setXpAwarded] = useState(0);
+    const [earnedBadge, setEarnedBadge] = useState<any>(null);
 
     const currentQ = questions[currentQIndex];
 
@@ -49,7 +51,7 @@ export default function QuizRunner({ lessonId, lessonTitle, questions }: QuizRun
             if (answers[q.id] === q.correctAnswer) correctCount++;
         });
 
-        const finalScore = correctCount; // Use raw count or percentage? Logic in usage clearly implies raw count vs total.
+        const finalScore = correctCount;
         setScore(finalScore);
 
         try {
@@ -66,6 +68,9 @@ export default function QuizRunner({ lessonId, lessonTitle, questions }: QuizRun
             if (json.success) {
                 setXpAwarded(json.xpAwarded || 0);
                 if (json.passed) triggerConfetti();
+                if (json.newBadge) {
+                    setEarnedBadge(json.newBadge);
+                }
             }
         } catch (err) {
             console.error(err);
@@ -111,7 +116,12 @@ export default function QuizRunner({ lessonId, lessonTitle, questions }: QuizRun
         const passed = percentage >= 70;
 
         return (
-            <div className="max-w-md mx-auto items-center justify-center flex flex-col min-h-[60vh] text-center p-6">
+            <div className="max-w-md mx-auto items-center justify-center flex flex-col min-h-[60vh] text-center p-6 relative">
+                <BadgeNotification
+                    badge={earnedBadge}
+                    onClose={() => setEarnedBadge(null)}
+                />
+
                 <motion.div
                     initial={{ scale: 0 }} animate={{ scale: 1 }}
                     className={`w-32 h-32 rounded-full flex items-center justify-center mb-6 border-8 ${passed ? 'bg-emerald-50 border-emerald-500 text-emerald-600' : 'bg-red-50 border-red-500 text-red-600'}`}

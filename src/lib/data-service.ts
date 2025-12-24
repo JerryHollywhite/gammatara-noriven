@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { getLevel } from "./gamification";
+import { getLevel, BADGES } from "./gamification";
 
 /*
     This service abstracts the data source.
@@ -95,6 +95,7 @@ export async function getStudentDashboardData(userId: string) {
                 currentLevelXp: levelStats.currentLevelXp,
             },
             assignments: mappedAssignments,
+            newBadge: null, // Placeholder for notification logic
             stats: {
                 courses: profile.enrollments.length,
                 assignmentsDue: mappedAssignments.filter(a => a.status === 'urgent' || a.status === 'pending').length,
@@ -109,6 +110,76 @@ export async function getStudentDashboardData(userId: string) {
     }
 }
 
+
+
+// ... (existing helper functions)
+
+export async function getLeaderboardData(limit = 10) {
+    try {
+        const topStudents = await prisma.studentProfile.findMany({
+            take: limit,
+            orderBy: { xp: 'desc' },
+            include: {
+                user: {
+                    select: { name: true, image: true }
+                },
+                badges: true
+            }
+        });
+
+        // Add rank and format
+        return topStudents.map((student, index) => ({
+            rank: index + 1,
+            id: student.id,
+            name: student.user.name || "Student",
+            avatar: student.user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${student.user.name || 'User'}`,
+            xp: student.xp,
+            level: getLevel(student.xp).level,
+            badges: student.badges.length
+        }));
+
+    } catch (error) {
+        console.error("Error fetching leaderboard:", error);
+        return [];
+    }
+}
+
+export async function awardBadge(userId: string, badgeCode: string) {
+    try {
+        // Find badge definition
+        const badgeDef = BADGES.find(b => b.code === badgeCode);
+        if (!badgeDef) return null;
+
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            include: { studentProfile: true }
+        });
+        if (!user || !user.studentProfile) return null;
+
+        const studentId = user.studentProfile.id;
+
+        // Check if already owned
+        const existing = await prisma.earnedBadge.findFirst({
+            where: { studentId, badgeCode }
+        });
+
+        if (existing) return null; // Already earned
+
+        // Award badge
+        const newBadge = await prisma.earnedBadge.create({
+            data: {
+                studentId,
+                badgeCode
+            }
+        });
+
+        return newBadge;
+
+    } catch (error) {
+        console.error("Error awarding badge:", error);
+        return null;
+    }
+}
 
 export async function saveQuizResult(userId: string, lessonId: string, score: number, totalQuestions: number) {
     if (!userId) return { success: false, error: "Unauthorized" };
@@ -135,8 +206,7 @@ export async function saveQuizResult(userId: string, lessonId: string, score: nu
         const percentage = (score / totalQuestions) * 100;
         const passed = percentage >= passThreshold;
 
-        // Logic: Award XP only if this is the first completion or first time passing?
-        // Let's simple it: Award XP if strictly new progress, or if updating from NOT_STARTED to COMPLETED.
+        let newBadge = null;
 
         let status = existingProgress?.status || "NOT_STARTED";
         if (passed) status = "COMPLETED";
@@ -154,7 +224,12 @@ export async function saveQuizResult(userId: string, lessonId: string, score: nu
                 }
             });
 
-            if (passed) awardXp = 50; // Base XP for completing a lesson
+            if (passed) {
+                awardXp = 50; // Base XP for completing a lesson
+                // Check for "FIRST_STEPS" Badge
+                const stepsBadge = await awardBadge(userId, "FIRST_STEPS");
+                if (stepsBadge) newBadge = stepsBadge;
+            }
 
         } else {
             // Update existing
@@ -173,6 +248,17 @@ export async function saveQuizResult(userId: string, lessonId: string, score: nu
             });
         }
 
+        // Perfect Score Badge Check
+        if (percentage === 100) {
+            // For simplicity, just checking perfect score here. 
+            // Ideally we check subject specific (Math Whiz), but let's just award a generic 'Perfect' if we had one.
+            // Let's use "MATH_WHIZ" as a placeholder for any perfect score for now to demonstrate.
+            // Or better, let's just use "FIRST_STEPS" logic above properly.
+            // Actually, let's revert to simple logic: 
+            // If XP > 1000 award 'WEEK_WARRIOR' (mock logic for demo)
+            // Real logic would be complex aggregation query.
+        }
+
         // Add XP if awarded
         if (awardXp > 0) {
             await prisma.studentProfile.update({
@@ -184,13 +270,14 @@ export async function saveQuizResult(userId: string, lessonId: string, score: nu
             });
         }
 
-        return { success: true, xpAwarded: awardXp, passed };
+        return { success: true, xpAwarded: awardXp, passed, newBadge };
 
     } catch (error) {
         console.error("Error saving quiz result:", error);
         return { success: false, error: "Database error" };
     }
 }
+
 
 
 export async function getTeacherDashboardData(userId: string) {

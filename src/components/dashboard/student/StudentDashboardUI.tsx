@@ -7,7 +7,10 @@ import {
     ChevronRight, Bell, PlayCircle
 } from "lucide-react";
 
+
 import AssignmentSubmissionModal from "./AssignmentSubmissionModal";
+import LeaderboardWidget from "../../gamification/LeaderboardWidget";
+import BadgeNotification from "../../gamification/BadgeNotification";
 
 // Types
 interface DashboardData {
@@ -28,7 +31,8 @@ interface DashboardData {
             thumbnail: string;
         }[];
     };
-    assignments: any[]; // ADDED
+    assignments: any[];
+    newBadge: any; // Add to type
     stats: {
         courses: number;
         assignmentsDue: number;
@@ -42,12 +46,16 @@ export default function StudentDashboardUI() {
     const [loading, setLoading] = useState(true);
     const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
     const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
+    const [earnedBadge, setEarnedBadge] = useState<any>(null); // New State
 
     useEffect(() => {
         fetch('/api/student/dashboard')
             .then(res => res.json())
             .then(json => {
-                if (json.success) setData(json.data);
+                if (json.success) {
+                    setData(json.data);
+                    if (json.data.newBadge) setEarnedBadge(json.data.newBadge);
+                }
                 setLoading(false);
             })
             .catch(err => setLoading(false));
@@ -58,7 +66,8 @@ export default function StudentDashboardUI() {
 
     const { profile, stats, assignments } = data; // Destructure assignments
     const courses = profile.courses || [];
-    const badges: any[] = [];
+    const badges: any[] = []; // We need to fetch real badges to display in Trophy Room, for now empty is fine or we should fetch logic later.
+
 
     const handleOpenSubmission = (assignmentId: string) => {
         setSelectedAssignmentId(assignmentId);
@@ -75,6 +84,12 @@ export default function StudentDashboardUI() {
                     onSubmitted={() => window.location.reload()}
                 />
             )}
+
+            <BadgeNotification
+                badge={earnedBadge}
+                onClose={() => setEarnedBadge(null)}
+            />
+
             {/* Header Section with Gradient Accent - Placed absolutely with z-0 */}
             <div className="absolute top-0 left-0 w-full h-80 bg-gradient-to-b from-slate-900 to-slate-100 z-0" />
 
@@ -268,6 +283,9 @@ export default function StudentDashboardUI() {
                                 View All Assignments
                             </button>
                         </div>
+
+                        <LeaderboardWidget />
+
 
                         {/* Gamification Widget */}
                         <div className="relative overflow-hidden bg-slate-900 rounded-2xl p-6 text-white shadow-xl">

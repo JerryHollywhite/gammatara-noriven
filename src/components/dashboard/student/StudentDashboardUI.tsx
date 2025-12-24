@@ -18,6 +18,13 @@ interface DashboardData {
         currentLevelXp: number;
         nextLevelXp: number;
         avatar: string;
+        courses?: {
+            id: string;
+            title: string;
+            progress: number;
+            nextLesson: string;
+            thumbnail: string;
+        }[];
     };
     stats: {
         courses: number;
@@ -45,25 +52,9 @@ export default function StudentDashboardUI() {
     if (!data) return <div className="min-h-screen pt-24 flex items-center justify-center text-red-400">Failed to load dashboard.</div>;
 
     const { profile, stats } = data;
-
-    // Hardcoded for lists for now (Hybrid Approach) until lists are fully dynamically mocked
-    const MOCK_COURSES = [
-        { id: 1, title: "Mathematics: Algebra II", progress: 75, nextLesson: "Quadratic Equations", thumbnail: "bg-blue-100" },
-        { id: 2, title: "English Literature", progress: 40, nextLesson: "Shakespeare's Sonnets", thumbnail: "bg-amber-100" },
-        { id: 3, title: "Physics: Mechanics", progress: 90, nextLesson: "Newton's Laws Review", thumbnail: "bg-indigo-100" },
-    ];
-
-    const MOCK_ASSIGNMENTS = [
-        { id: 1, title: "Algebra Mid-Term", course: "Mathematics", due: "Tomorrow, 23:59", status: "urgent" },
-        { id: 2, title: "Essay: Hamlet Analysis", course: "English Lit", due: "Dec 30", status: "pending" },
-        { id: 3, title: "Lab Report: Friction", course: "Physics", due: "Submitted", status: "completed" },
-    ];
-
-    const MOCK_BADGES = [
-        { id: 1, name: "Fast Learner", icon: "🚀" },
-        { id: 2, name: "Math Whiz", icon: "➗" },
-        { id: 3, name: "Week Warrior", icon: "🔥" },
-    ];
+    const courses = profile.courses || [];
+    const assignments: any[] = [];
+    const badges: any[] = [];
 
     return (
         <div className="min-h-screen relative font-sans text-slate-800 bg-slate-100">
@@ -153,36 +144,46 @@ export default function StudentDashboardUI() {
                                 </h2>
                                 <button className="text-sm font-bold text-indigo-600 hover:text-indigo-700 hover:underline">View All Courses</button>
                             </div>
-                            <div className="grid md:grid-cols-2 gap-5">
-                                {MOCK_COURSES.map((course) => (
-                                    <div key={course.id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg hover:translate-y-[-2px] transition-all group cursor-pointer relative overflow-hidden">
-                                        <div className={`absolute top-0 right-0 w-24 h-24 rounded-bl-full opacity-10 transition-transform group-hover:scale-110 ${course.thumbnail.replace('bg-', 'bg-')}`} />
+                            {courses.length > 0 ? (
+                                <div className="grid md:grid-cols-2 gap-5">
+                                    {courses.map((course) => (
+                                        <div key={course.id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg hover:translate-y-[-2px] transition-all group cursor-pointer relative overflow-hidden">
+                                            <div className={`absolute top-0 right-0 w-24 h-24 rounded-bl-full opacity-10 transition-transform group-hover:scale-110 ${course.thumbnail.replace('bg-', 'bg-')}`} />
 
-                                        <div className="flex justify-between items-start mb-6">
-                                            <div className={`w-12 h-12 rounded-xl ${course.thumbnail} flex items-center justify-center shadow-inner`}>
-                                                <BookOpen className="w-6 h-6 text-slate-700/50" />
+                                            <div className="flex justify-between items-start mb-6">
+                                                <div className={`w-12 h-12 rounded-xl ${course.thumbnail} flex items-center justify-center shadow-inner`}>
+                                                    <BookOpen className="w-6 h-6 text-slate-700/50" />
+                                                </div>
+                                            </div>
+
+                                            <h3 className="font-bold text-lg text-slate-800 mb-1 group-hover:text-indigo-600 transition-colors">{course.title}</h3>
+                                            <p className="text-xs text-slate-500 mb-4 font-medium uppercase tracking-wide">Next: {course.nextLesson}</p>
+
+                                            {/* Progress Bar */}
+                                            <div className="space-y-2">
+                                                <div className="flex justify-between text-xs font-bold">
+                                                    <span className="text-slate-400">Progress</span>
+                                                    <span className="text-slate-700">{course.progress}%</span>
+                                                </div>
+                                                <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                                                    <div
+                                                        className="h-full bg-slate-900 rounded-full"
+                                                        style={{ width: `${course.progress}%` }}
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
-
-                                        <h3 className="font-bold text-lg text-slate-800 mb-1 group-hover:text-indigo-600 transition-colors">{course.title}</h3>
-                                        <p className="text-xs text-slate-500 mb-4 font-medium uppercase tracking-wide">Next: {course.nextLesson}</p>
-
-                                        {/* Progress Bar */}
-                                        <div className="space-y-2">
-                                            <div className="flex justify-between text-xs font-bold">
-                                                <span className="text-slate-400">Progress</span>
-                                                <span className="text-slate-700">{course.progress}%</span>
-                                            </div>
-                                            <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                                                <div
-                                                    className="h-full bg-slate-900 rounded-full"
-                                                    style={{ width: `${course.progress}%` }}
-                                                />
-                                            </div>
-                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="bg-white p-8 rounded-2xl border border-dashed border-slate-300 flex flex-col items-center justify-center text-center">
+                                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                                        <BookOpen className="w-8 h-8 text-slate-400" />
                                     </div>
-                                ))}
-                            </div>
+                                    <h3 className="text-lg font-bold text-slate-700 mb-1">No Active Courses</h3>
+                                    <p className="text-slate-500 mb-4 text-sm max-w-xs">You haven't enrolled in any courses yet. Browse the catalog to get started!</p>
+                                </div>
+                            )}
                         </section>
 
                         {/* Recent Activity / Timeline */}
@@ -218,20 +219,30 @@ export default function StudentDashboardUI() {
                                 Pending Tasks
                                 <span className="bg-red-50 text-red-600 text-xs px-2.5 py-1 rounded-md font-bold border border-red-100">2 Urgent</span>
                             </h3>
-                            <div className="space-y-3">
-                                {MOCK_ASSIGNMENTS.map((task) => (
-                                    <div key={task.id} className="flex items-start gap-4 p-4 rounded-xl bg-slate-50 hover:bg-white hover:shadow-md border border-transparent hover:border-slate-100 transition-all cursor-pointer group">
-                                        <div className={`mt-1.5 w-2 h-2 rounded-full shrink-0 shadow-sm ${task.status === 'urgent' ? 'bg-red-500 animate-pulse' : task.status === 'completed' ? 'bg-emerald-500' : 'bg-slate-300'}`} />
-                                        <div>
-                                            <h4 className="text-sm font-bold text-slate-800 leading-snug group-hover:text-indigo-600 transition-colors">{task.title}</h4>
-                                            <p className="text-xs text-slate-500 mt-1 font-medium">{task.course}</p>
-                                            <div className={`text-[10px] font-bold mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded ${task.status === 'urgent' ? 'bg-red-100 text-red-600' : 'bg-slate-200 text-slate-500'}`}>
-                                                <Clock className="w-3 h-3" /> {task.due}
+                            {assignments.length > 0 ? (
+                                <div className="space-y-3">
+                                    {assignments.map((task) => (
+                                        <div key={task.id} className="flex items-start gap-4 p-4 rounded-xl bg-slate-50 hover:bg-white hover:shadow-md border border-transparent hover:border-slate-100 transition-all cursor-pointer group">
+                                            <div className={`mt-1.5 w-2 h-2 rounded-full shrink-0 shadow-sm ${task.status === 'urgent' ? 'bg-red-500 animate-pulse' : task.status === 'completed' ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+                                            <div>
+                                                <h4 className="text-sm font-bold text-slate-800 leading-snug group-hover:text-indigo-600 transition-colors">{task.title}</h4>
+                                                <p className="text-xs text-slate-500 mt-1 font-medium">{task.course}</p>
+                                                <div className={`text-[10px] font-bold mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded ${task.status === 'urgent' ? 'bg-red-100 text-red-600' : 'bg-slate-200 text-slate-500'}`}>
+                                                    <Clock className="w-3 h-3" /> {task.due}
+                                                </div>
                                             </div>
                                         </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-8">
+                                    <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                                        <Award className="w-6 h-6" />
                                     </div>
-                                ))}
-                            </div>
+                                    <p className="text-slate-600 font-bold">All caught up!</p>
+                                    <p className="text-xs text-slate-400 mt-1">No pending assignments.</p>
+                                </div>
+                            )}
                             <button className="w-full mt-6 py-3 text-sm font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 hover:text-slate-900 rounded-xl transition-colors border border-slate-200">
                                 View All Assignments
                             </button>
@@ -251,14 +262,18 @@ export default function StudentDashboardUI() {
                                 </div>
 
                                 <div className="flex justify-between gap-2 mb-8 px-2">
-                                    {MOCK_BADGES.map((badge) => (
+                                    {badges.length > 0 ? badges.map((badge) => (
                                         <div key={badge.id} className="flex flex-col items-center group cursor-pointer">
                                             <div className="w-14 h-14 bg-gradient-to-br from-white/10 to-white/5 rounded-2xl flex items-center justify-center text-2xl mb-2 hover:scale-110 transition-transform border border-white/10 shadow-lg group-hover:shadow-indigo-500/20 backdrop-blur-sm">
                                                 {badge.icon}
                                             </div>
                                             <span className="text-[10px] font-bold text-slate-300 group-hover:text-white transition-colors">{badge.name}</span>
                                         </div>
-                                    ))}
+                                    )) : (
+                                        <div className="w-full text-center text-slate-400 text-xs py-4">
+                                            No badges earned yet.
+                                        </div>
+                                    )}
                                     <div className="flex flex-col items-center cursor-pointer group">
                                         <div className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center text-xs border border-dashed border-white/20 text-white/40 hover:text-white hover:border-white/50 transition-all">
                                             +3

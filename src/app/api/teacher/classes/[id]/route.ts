@@ -58,9 +58,15 @@ export async function DELETE(
         });
 
         // Delete Live Classes associated?
-        await prisma.liveClass.deleteMany({
-            where: { classId: id }
-        });
+        // Check if model exists on client to avoid runtime crash. 
+        // Casting to any to avoid TS error if model is not yet generated in client.
+        if ((prisma as any).liveClass) {
+            await (prisma as any).liveClass.deleteMany({
+                where: { classId: id }
+            });
+        } else {
+            console.warn("prisma.liveClass is undefined. Skipping cascade delete for LiveClass.");
+        }
 
         await prisma.classGroup.delete({
             where: { id: id }

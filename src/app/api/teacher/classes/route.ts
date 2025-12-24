@@ -60,7 +60,8 @@ export async function POST(req: NextRequest) {
                     data: {
                         studentId: studentProfile.id,
                         classId: newClass.id,
-                        status: 'ACTIVE'
+                        status: 'ACTIVE',
+                        courseId: 'GENERAL' // Explicitly provide legacy ID to satisfy Prisma check
                     }
                 });
             } else {

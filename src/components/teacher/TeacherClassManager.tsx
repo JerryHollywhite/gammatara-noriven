@@ -236,7 +236,14 @@ export default function TeacherClassManager({ onClassCreated, classId }: Teacher
                 </div>
                 <div className="h-40 overflow-y-auto border border-slate-200 rounded-xl p-2 space-y-1">
                     {allSubjects
-                        .filter(sub => !selectedProgramId || (sub.program?.id === selectedProgramId || sub.programId === selectedProgramId))
+                        .filter(sub => {
+                            // If no program selected, show all
+                            if (!selectedProgramId) return true;
+                            // If subject has no program, show it (Universal subject)
+                            if (!sub.programId && !sub.program?.id) return true;
+                            // Otherwise, must match
+                            return sub.programId === selectedProgramId || sub.program?.id === selectedProgramId;
+                        })
                         .map(sub => (
                             <div
                                 key={sub.id}

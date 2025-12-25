@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Users, Plus, Check, Search, BookOpen, ChevronDown, ChevronRight, FileText, Youtube } from "lucide-react";
+import { Users, Plus, Check, Search, BookOpen, ChevronDown, ChevronRight, FileText, Youtube, Trash } from "lucide-react";
 import TeacherLessonManager from "./TeacherLessonManager";
 
 interface Student {
@@ -249,15 +249,42 @@ export default function TeacherClassManager({ onClassCreated, classId }: Teacher
                         .map(sub => (
                             <div
                                 key={sub.id}
-                                onClick={() => toggleSubjectSelection(sub.id)}
-                                className={`flex items-center justify-between p-2 rounded-lg cursor-pointer text-sm transition-colors
+                                className={`flex items-center justify-between p-2 rounded-lg text-sm transition-colors group
                                 ${selectedSubjectIds.includes(sub.id) ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'hover:bg-slate-50 text-slate-700 border border-transparent'}`}
                             >
-                                <span className="flex items-center gap-2">
-                                    <span className={selectedSubjectIds.includes(sub.id) ? "font-semibold" : ""}>{sub.name}</span>
-                                    <span className="text-xs opacity-70">({sub.code})</span>
-                                </span>
-                                {selectedSubjectIds.includes(sub.id) && <Check className="w-4 h-4" />}
+                                <div
+                                    className="flex-1 flex items-center cursor-pointer"
+                                    onClick={() => toggleSubjectSelection(sub.id)}
+                                >
+                                    <span className="flex items-center gap-2">
+                                        <span className={selectedSubjectIds.includes(sub.id) ? "font-semibold" : ""}>{sub.name}</span>
+                                        <span className="text-xs opacity-70">({sub.code})</span>
+                                    </span>
+                                    {selectedSubjectIds.includes(sub.id) && <Check className="w-4 h-4 ml-2" />}
+                                </div>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (confirm(`Are you sure you want to delete ${sub.name}? This cannot be undone.`)) {
+                                            setLoading(true);
+                                            fetch(`/api/teacher/subjects/${sub.id}`, { method: 'DELETE' })
+                                                .then(res => res.json())
+                                                .then(data => {
+                                                    setLoading(false);
+                                                    if (data.success) {
+                                                        alert(data.message || "Subject deleted.");
+                                                        fetch('/api/teacher/subjects').then(res => res.json()).then(d => { if (d.success) setAllSubjects(d.subjects); });
+                                                    } else {
+                                                        alert(data.error || "Failed to delete subject");
+                                                    }
+                                                });
+                                        }
+                                    }}
+                                    className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg group-hover:opacity-100 opacity-0 transition-all"
+                                    title="Delete Subject"
+                                >
+                                    <Trash className="w-4 h-4" />
+                                </button>
                             </div>
                         ))}
                 </div>

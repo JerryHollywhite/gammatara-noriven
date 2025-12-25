@@ -125,8 +125,13 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
             {/* Class Manager Modal */}
             {isClassManagerOpen && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl w-full max-w-2xl p-6 relative animate-in fade-in zoom-in duration-200 overflow-y-auto max-h-[90vh]">
-                        <button onClick={() => { setIsClassManagerOpen(false); setEditingClassId(null); }} className="absolute top-4 right-4 p-2 hover:bg-slate-100 rounded-full text-slate-400">
+                    <div className={`bg-white rounded-2xl p-6 relative animate-in fade-in zoom-in duration-200 overflow-y-auto
+                        ${editingClassId
+                            ? "w-[95vw] h-[90vh] max-w-7xl" // Full size for Manage
+                            : "w-full max-w-2xl max-h-[90vh]" // Standard size for Create
+                        }
+                    `}>
+                        <button onClick={() => { setIsClassManagerOpen(false); setEditingClassId(null); }} className="absolute top-4 right-4 p-2 hover:bg-slate-100 rounded-full text-slate-400 z-10">
                             <X className="w-5 h-5" />
                         </button>
                         {editingClassId ? (

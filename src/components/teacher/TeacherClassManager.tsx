@@ -198,9 +198,12 @@ export default function TeacherClassManager({ onClassCreated, classId }: Teacher
             {/* Subject Selection */}
             <div>
                 <div className="flex justify-between items-center mb-2">
-                    <label className="block text-sm font-medium text-slate-700">
-                        Assigned Subjects ({selectedSubjectIds.length})
-                    </label>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700">
+                            Select Subjects ({selectedSubjectIds.length} selected)
+                        </label>
+                        <p className="text-[11px] text-slate-400">Click on a subject to assign it to this class.</p>
+                    </div>
                     <button
                         onClick={() => {
                             const name = prompt("Enter new Subject Name (e.g., Mathematics):");

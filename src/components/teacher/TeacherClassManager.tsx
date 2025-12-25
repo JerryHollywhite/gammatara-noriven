@@ -237,12 +237,18 @@ export default function TeacherClassManager({ onClassCreated, classId }: Teacher
                 <div className="h-40 overflow-y-auto border border-slate-200 rounded-xl p-2 space-y-1">
                     {allSubjects
                         .filter(sub => {
-                            // If no program selected, show all
-                            if (!selectedProgramId) return true;
-                            // If subject has no program, show it (Universal subject)
-                            if (!sub.programId && !sub.program?.id) return true;
-                            // Otherwise, must match
-                            return sub.programId === selectedProgramId || sub.program?.id === selectedProgramId;
+                            const subjectProgramId = sub.programId || sub.program?.id;
+
+                            // If user hasn't selected a program yet:
+                            // ONLY show subjects that are NOT linked to any program (Universal/General subjects).
+                            // Hide subjects that belong to specific programs (TK, SD, etc.) to reduce clutter.
+                            if (!selectedProgramId) {
+                                return !subjectProgramId;
+                            }
+
+                            // If user HAS selected a program:
+                            // Show subjects for that program OR Universal subjects
+                            return subjectProgramId === selectedProgramId || !subjectProgramId;
                         })
                         .map(sub => (
                             <div

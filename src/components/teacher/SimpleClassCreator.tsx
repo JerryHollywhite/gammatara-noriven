@@ -20,7 +20,24 @@ export default function SimpleClassCreator({ onClassCreated }: SimpleClassCreato
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        fetch('/api/teacher/programs').then(res => res.json()).then(data => { if (data.success) setPrograms(data.programs); });
+        fetch('/api/teacher/programs').then(res => res.json()).then(data => {
+            if (data.success) {
+                const order = ["TK", "SD", "SMP", "SMA", "ADULT", "DEWASA"];
+                const sorted = data.programs.sort((a: Program, b: Program) => {
+                    const getIndex = (name: string) => {
+                        const upper = name.toUpperCase();
+                        if (upper.includes("TK")) return 0;
+                        if (upper.includes("SD")) return 1;
+                        if (upper.includes("SMP")) return 2;
+                        if (upper.includes("SMA")) return 3;
+                        if (upper.includes("ADULT") || upper.includes("DEWASA")) return 4;
+                        return 99;
+                    };
+                    return getIndex(a.name) - getIndex(b.name);
+                });
+                setPrograms(sorted);
+            }
+        });
     }, []);
 
     const handleCreate = async () => {
@@ -72,7 +89,7 @@ export default function SimpleClassCreator({ onClassCreated }: SimpleClassCreato
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Program (Optional)</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Program</label>
                     <select
                         value={selectedProgramId}
                         onChange={(e) => setSelectedProgramId(e.target.value)}

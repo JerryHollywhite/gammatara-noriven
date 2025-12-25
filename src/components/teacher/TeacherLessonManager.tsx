@@ -8,9 +8,19 @@ interface Subject {
     name: string;
 }
 
-export default function TeacherLessonManager() {
+interface TeacherLessonManagerProps {
+    initialSubjectId?: string;
+    onSuccess?: () => void;
+}
+
+export default function TeacherLessonManager({ initialSubjectId, onSuccess }: TeacherLessonManagerProps = {}) {
     const [subjects, setSubjects] = useState<Subject[]>([]);
-    const [selectedSubject, setSelectedSubject] = useState("");
+    const [selectedSubject, setSelectedSubject] = useState(initialSubjectId || "");
+
+    // Sync if prop changes
+    useEffect(() => {
+        if (initialSubjectId) setSelectedSubject(initialSubjectId);
+    }, [initialSubjectId]);
 
     // Form
     const [title, setTitle] = useState("");
@@ -100,6 +110,7 @@ export default function TeacherLessonManager() {
                 setDesc("");
                 setYoutube("");
                 setFiles([]);
+                if (onSuccess) onSuccess();
             } else {
                 alert(json.error || "Failed to create lesson");
             }

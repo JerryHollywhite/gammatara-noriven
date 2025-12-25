@@ -24,9 +24,11 @@
     "next": "16.1.0",
     "next-auth": "^4.24.13",
     "nodemailer": "^7.0.12",
+    "open": "^11.0.0",
     "papaparse": "^5.5.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "server-destroy": "^1.0.1",
     "tailwind-merge": "^3.4.0",
     "typeface-inter": "^3.18.1"
   },

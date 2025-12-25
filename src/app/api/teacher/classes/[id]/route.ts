@@ -113,12 +113,28 @@ export async function GET(
         // Normalize student list
         const enrolledStudentIds = classGroup.students.map(enrollment => enrollment.student.user.id);
 
+        // Fetch subjects associated with this class (via enrollments)
+        // We find subjects where at least one enrollment in this class exists
+        const associatedSubjects = await prisma.subject.findMany({
+            where: {
+                enrollments: {
+                    some: { classId: id }
+                }
+            },
+            include: {
+                lessons: {
+                    orderBy: { order: 'asc' }
+                }
+            }
+        });
+
         return NextResponse.json({
             success: true,
             class: {
                 id: classGroup.id,
                 name: classGroup.name,
-                studentIds: enrolledStudentIds
+                studentIds: enrolledStudentIds,
+                subjects: associatedSubjects
             }
         });
 

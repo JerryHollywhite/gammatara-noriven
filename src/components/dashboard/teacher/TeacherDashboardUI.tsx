@@ -11,10 +11,12 @@ import {
 import CreateAssignmentModal from "./CreateAssignmentModal";
 import GradingModal from "./GradingModal";
 import TeacherClassManager from "../../teacher/TeacherClassManager";
+import SimpleClassCreator from "../../teacher/SimpleClassCreator";
 
 import TeacherLessonManager from "../../teacher/TeacherLessonManager";
 import TeacherExamManager from "../../teacher/TeacherExamManager";
 import UnifiedProfileEditor from "../../profile/UnifiedProfileEditor";
+import SubjectManager from "../../teacher/SubjectManager";
 
 interface TeacherData {
     name: string;
@@ -42,6 +44,7 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
     const [editingClassId, setEditingClassId] = useState<string | null>(null);
     const [isLessonManagerOpen, setIsLessonManagerOpen] = useState(false);
     const [isExamManagerOpen, setIsExamManagerOpen] = useState(false);
+    const [isSubjectManagerOpen, setIsSubjectManagerOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false); // Profile Modal
 
     const fetchDashboardData = () => {
@@ -126,26 +129,23 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
                         <button onClick={() => { setIsClassManagerOpen(false); setEditingClassId(null); }} className="absolute top-4 right-4 p-2 hover:bg-slate-100 rounded-full text-slate-400">
                             <X className="w-5 h-5" />
                         </button>
-                        <TeacherClassManager
-                            classId={editingClassId}
-                            onClassCreated={() => {
-                                setIsClassManagerOpen(false);
-                                setEditingClassId(null);
-                                window.location.reload();
-                            }}
-                        />
-                    </div>
-                </div>
-            )}
-
-            {/* Lesson Manager Modal */}
-            {isLessonManagerOpen && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl w-full max-w-2xl p-6 relative animate-in fade-in zoom-in duration-200 overflow-y-auto max-h-[90vh]">
-                        <button onClick={() => setIsLessonManagerOpen(false)} className="absolute top-4 right-4 p-2 hover:bg-slate-100 rounded-full text-slate-400">
-                            <X className="w-5 h-5" />
-                        </button>
-                        <TeacherLessonManager />
+                        {editingClassId ? (
+                            <TeacherClassManager
+                                classId={editingClassId}
+                                onClassCreated={() => {
+                                    setIsClassManagerOpen(false);
+                                    setEditingClassId(null);
+                                    window.location.reload();
+                                }}
+                            />
+                        ) : (
+                            <SimpleClassCreator
+                                onClassCreated={() => {
+                                    setIsClassManagerOpen(false);
+                                    window.location.reload();
+                                }}
+                            />
+                        )}
                     </div>
                 </div>
             )}
@@ -210,16 +210,13 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
                     </div>
                     <div className="flex flex-wrap items-center gap-4">
                         <button
-                            onClick={() => setIsClassManagerOpen(true)}
+                            onClick={() => {
+                                setEditingClassId(null);
+                                setIsClassManagerOpen(true);
+                            }}
                             className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 transition-all backdrop-blur-sm"
                         >
-                            <Users className="w-4 h-4" /> Manage Classes
-                        </button>
-                        <button
-                            onClick={() => setIsLessonManagerOpen(true)}
-                            className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 transition-all backdrop-blur-sm"
-                        >
-                            <BookOpen className="w-4 h-4" /> Add Lesson
+                            <Plus className="w-4 h-4" /> Create New Class
                         </button>
                         <button
                             onClick={() => setIsExamManagerOpen(true)}
@@ -227,13 +224,13 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
                         >
                             <AlertTriangle className="w-4 h-4" /> Exams
                         </button>
-
                         <button
                             onClick={() => setIsCreateModalOpen(true)}
                             className="bg-indigo-500 hover:bg-indigo-400 text-white px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 shadow-lg shadow-indigo-500/30 transition-all hover:-translate-y-0.5"
                         >
                             <Plus className="w-4 h-4" /> Create Assignment
                         </button>
+
                         <div
                             className="relative group cursor-pointer"
                             onClick={() => setIsProfileOpen(true)}

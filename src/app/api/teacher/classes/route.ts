@@ -57,10 +57,35 @@ export async function POST(req: NextRequest) {
             data: {
                 name,
                 teacherId: teacherProfile.id,
+                programId: body.programId || null, // Optional Program Link
             }
         });
 
-        console.log("Class created:", newClass.id);
+        // Resolve Subject Data
+        let targetSubjects: { id: string; code: string; }[] = [];
+
+        if (Array.isArray(body.subjectIds) && body.subjectIds.length > 0) {
+            // New Multi-Subject Support
+            const fetchedSubjects = await prisma.subject.findMany({
+                where: { id: { in: body.subjectIds } }
+            });
+            targetSubjects = fetchedSubjects.map(s => ({ id: s.id, code: s.code }));
+        } else if (body.subjectId) {
+            // Backward Compatibility
+            const subject = await prisma.subject.findUnique({
+                where: { id: body.subjectId }
+            });
+            if (subject) {
+                targetSubjects.push({ id: subject.id, code: subject.code });
+            }
+        }
+
+        // Default if no subject selected
+        if (targetSubjects.length === 0) {
+            targetSubjects.push({ id: null as any, code: 'GENERAL' });
+        }
+
+        console.log("Creating class:", newClass.id, "Subjects:", targetSubjects.length);
 
         for (const studentId of studentIds) {
             const studentProfile = await prisma.studentProfile.findUnique({
@@ -68,14 +93,18 @@ export async function POST(req: NextRequest) {
             });
 
             if (studentProfile) {
-                await prisma.enrollment.create({
-                    data: {
-                        studentId: studentProfile.id,
-                        classId: newClass.id,
-                        status: 'ACTIVE',
-                        courseId: 'GENERAL' // Explicitly provide legacy ID to satisfy Prisma check
-                    }
-                });
+                // Create an enrollment per subject
+                for (const sub of targetSubjects) {
+                    await prisma.enrollment.create({
+                        data: {
+                            studentId: studentProfile.id,
+                            classId: newClass.id,
+                            status: 'ACTIVE',
+                            subjectId: sub.id || null,
+                            courseId: sub.code
+                        }
+                    });
+                }
             } else {
                 console.warn(`Student profile not found for user ${studentId}`);
             }

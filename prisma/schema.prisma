@@ -92,6 +92,9 @@ model ClassGroup {
   teacherId   String
   teacher     TeacherProfile @relation(fields: [teacherId], references: [id])
   
+  programId   String?  // Link to Program (TK, SD, SMP, etc.)
+  program     Program? @relation(fields: [programId], references: [id])
+
   students    Enrollment[]
   liveClasses LiveClass[]
 }
@@ -202,6 +205,7 @@ model Program {
   active      Boolean   @default(true)
   
   subjects    Subject[]
+  classes     ClassGroup[]
   
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

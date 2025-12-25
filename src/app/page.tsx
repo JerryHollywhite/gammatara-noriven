@@ -10,6 +10,8 @@ import SchedulesSection from "@/components/sections/SchedulesSection";
 import { getTeachers, getSchedules, getSiteImages, getGalleryImages, getSiteContent, getTestimonials } from "@/lib/googleSheets";
 import PromoCarousel from "@/components/sections/PromoCarousel";
 
+import HomePopup from "@/components/home/HomePopup";
+
 // Revalidate data every 60 seconds (ISR)
 export const revalidate = 60;
 
@@ -29,6 +31,7 @@ export default async function Home(props: { searchParams: Promise<{ lang?: strin
 
   return (
     <main className="min-h-screen bg-white font-sans text-slate-900">
+      <HomePopup />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

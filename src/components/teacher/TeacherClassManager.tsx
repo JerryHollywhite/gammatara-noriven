@@ -170,14 +170,25 @@ export default function TeacherClassManager({ onClassCreated, classId }: Teacher
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Program (Optional filter)</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Program</label>
                     <select
                         value={selectedProgramId}
                         onChange={(e) => setSelectedProgramId(e.target.value)}
                         className="w-full px-4 py-2 border border-slate-200 rounded-xl bg-white"
                     >
                         <option value="">-- Select Program --</option>
-                        {programs.map(p => (
+                        {programs.sort((a, b) => {
+                            const getIndex = (name: string) => {
+                                const upper = name?.toUpperCase() || "";
+                                if (upper.includes("TK")) return 0;
+                                if (upper.includes("SD")) return 1;
+                                if (upper.includes("SMP")) return 2;
+                                if (upper.includes("SMA")) return 3;
+                                if (upper.includes("ADULT") || upper.includes("DEWASA")) return 4;
+                                return 99;
+                            };
+                            return getIndex(a.name) - getIndex(b.name);
+                        }).map(p => (
                             <option key={p.id} value={p.id}>{p.name}</option>
                         ))}
                     </select>

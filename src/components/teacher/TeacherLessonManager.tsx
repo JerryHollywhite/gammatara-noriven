@@ -32,12 +32,27 @@ export default function TeacherLessonManager({ initialSubjectId, onSuccess }: Te
 
     // Fetch subjects available
     useEffect(() => {
-        setSubjects([
-            { id: "CALISTUNG", name: "Calistung" },
-            { id: "MATH_SD_1", name: "Mathematics Grade 1" },
-            { id: "ENGLISH_SD_1", name: "English Grade 1" },
-            { id: "ADAB_KARAKTER", name: "Adab & Karakter" }
-        ]);
+        async function fetchSubjects() {
+            try {
+                const res = await fetch('/api/teacher/subjects');
+                const data = await res.json();
+                if (data.success) {
+                    // API returns { success: true, subjects: [...] }
+                    // We need to map them if structure matches or not.
+                    // API subjects have: { id, name, code }
+                    // Lesson API expects 'code' as subjectId currently.
+
+                    // Filter active only (API already filters active=true usually, but checking)
+                    setSubjects(data.subjects.map((s: any) => ({
+                        id: s.code, // IMPORTANT: Use CODE as ID because CreateLesson expects code
+                        name: s.name + (s.program?.name ? ` (${s.program.name})` : " (Universal)")
+                    })));
+                }
+            } catch (e) {
+                console.error("Failed to fetch subjects", e);
+            }
+        }
+        fetchSubjects();
     }, []);
 
     const handleCreateLesson = async () => {

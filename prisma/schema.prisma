@@ -216,8 +216,8 @@ model Subject {
   code        String       @unique // e.g. "MATH_101" (was ID in Sheet)
   name        String
   description String?
-  programId   String
-  program     Program      @relation(fields: [programId], references: [id])
+  programId   String?
+  program     Program?     @relation(fields: [programId], references: [id])
   
   lessons     Lesson[]
   enrollments Enrollment[]

@@ -122,8 +122,12 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ success: true, url: publicUrl });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Avatar Upload Error:", error);
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+        // Expose the specific error message for debugging
+        return NextResponse.json({
+            error: error.message || "Internal Server Error",
+            details: error.response?.data || "No additional details"
+        }, { status: 500 });
     }
 }

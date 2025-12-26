@@ -9,7 +9,7 @@ import { Readable } from "stream";
 async function uploadToDrive(buffer: Buffer, originalFilename: string, mimeType: string, folderId: string) {
     const auth = new google.auth.GoogleAuth({
         credentials: {
-            client_email: process.env.GOOGLE_CLIENT_EMAIL,
+            client_email: process.env.GOOGLE_CLIENT_EMAIL || process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
             private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
         },
         scopes: ['https://www.googleapis.com/auth/drive.file'],
@@ -55,12 +55,23 @@ export async function POST(req: NextRequest) {
         }
 
         // Use a specific folder for Avatars, or root if not defined.
-        // For now, let's use a known Avatar folder ID or root. 
-        // Ideally checking ENV for AVATAR_FOLDER_ID
         const folderId = process.env.DRIVE_AVATAR_FOLDER_ID || process.env.DRIVE_ROOT_FOLDER_ID;
 
         if (!folderId) {
-            return NextResponse.json({ error: "Server Configuration Error: No Drive Folder" }, { status: 500 });
+            console.error("Missing Env: DRIVE_AVATAR_FOLDER_ID");
+            return NextResponse.json({
+                error: "Server Configuration Error: Missing Drive Folder ID. Please configure DRIVE_AVATAR_FOLDER_ID in Vercel."
+            }, { status: 500 });
+        }
+
+        const client_email = process.env.GOOGLE_CLIENT_EMAIL || process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+        const private_key = process.env.GOOGLE_PRIVATE_KEY;
+
+        if (!client_email || !private_key) {
+            console.error("Missing Env: Google Creds");
+            return NextResponse.json({
+                error: "Server Configuration Error: Missing Google Credentials."
+            }, { status: 500 });
         }
 
         const buffer = Buffer.from(await file.arrayBuffer());
@@ -80,7 +91,7 @@ export async function POST(req: NextRequest) {
         // This is optional but often required for direct <img> src usage
         const auth = new google.auth.GoogleAuth({
             credentials: {
-                client_email: process.env.GOOGLE_CLIENT_EMAIL,
+                client_email: process.env.GOOGLE_CLIENT_EMAIL || process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
                 private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
             },
             scopes: ['https://www.googleapis.com/auth/drive'],

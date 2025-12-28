@@ -595,7 +595,9 @@ export async function getTeacherDashboardData(userId: string) {
                 activeClasses: 0,
                 pendingGrading: 0,
                 classAverage: 0
-            }
+            },
+            _debug_error: error instanceof Error ? error.message : String(error),
+            _debug_stack: error instanceof Error ? error.stack : undefined
         };
     }
 }

@@ -144,7 +144,7 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
                             : "w-full max-w-2xl max-h-[90vh]" // Standard size for Create
                         }
                     `}>
-                        <button onClick={() => { setIsClassManagerOpen(false); setEditingClassId(null); }} className="absolute top-4 right-4 p-2 hover:bg-slate-100 rounded-full text-slate-400 z-10">
+                        <button onClick={() => { setIsClassManagerOpen(false); setEditingClassId(null); }} className="absolute top-4 right-4 p-2 bg-red-500 hover:bg-red-600 rounded-full text-white shadow-sm z-10 transition-colors">
                             <X className="w-5 h-5" />
                         </button>
                         {editingClassId ? (
@@ -190,8 +190,8 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
                         </h3>
                         <div className="flex items-center gap-2">
                             {examClassId && <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-bold">Linked to Class</span>}
-                            <button onClick={() => { setIsExamManagerOpen(false); setExamClassId(null); }} className="p-2 hover:bg-slate-100 rounded-full text-slate-500">
-                                <X className="w-6 h-6" />
+                            <button onClick={() => { setIsExamManagerOpen(false); setExamClassId(null); }} className="p-2 bg-red-500 hover:bg-red-600 rounded-full text-white shadow-sm transition-colors">
+                                <X className="w-5 h-5" />
                             </button>
                         </div>
                     </div>
@@ -222,7 +222,7 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
                             exit={{ scale: 0.9, opacity: 0 }}
                             className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl"
                         >
-                            <button onClick={() => setIsProfileOpen(false)} className="absolute top-6 right-6 z-10 p-2 bg-white/50 hover:bg-white rounded-full text-slate-500 shadow-sm backdrop-blur-sm">
+                            <button onClick={() => setIsProfileOpen(false)} className="absolute top-6 right-6 z-10 p-2 bg-red-500 hover:bg-red-600 rounded-full text-white shadow-sm backdrop-blur-sm transition-colors">
                                 <X className="w-5 h-5" />
                             </button>
                             <UnifiedProfileEditor

@@ -129,7 +129,7 @@ export default function StudentDashboardUI() {
                                 </div>
                                 <button
                                     onClick={() => setSelectedCourse(null)}
-                                    className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors"
+                                    className="p-2 bg-red-500 hover:bg-red-600 rounded-full text-white shadow-sm transition-colors"
                                 >
                                     <X className="w-5 h-5" />
                                 </button>
@@ -568,7 +568,7 @@ export default function StudentDashboardUI() {
                             exit={{ scale: 0.9, opacity: 0 }}
                             className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl"
                         >
-                            <button onClick={() => setIsProfileOpen(false)} className="absolute top-6 right-6 z-10 p-2 bg-white/50 hover:bg-white rounded-full text-slate-500 shadow-sm backdrop-blur-sm">
+                            <button onClick={() => setIsProfileOpen(false)} className="absolute top-6 right-6 z-10 p-2 bg-red-500 hover:bg-red-600 rounded-full text-white shadow-sm backdrop-blur-sm transition-colors">
                                 <X className="w-5 h-5" />
                             </button>
                             <UnifiedProfileEditor

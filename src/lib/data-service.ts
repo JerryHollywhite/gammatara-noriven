@@ -25,7 +25,8 @@ export async function getStudentDashboardData(userId: string) {
                                 subject: {
                                     include: {
                                         lessons: {
-                                            orderBy: { order: 'asc' }
+                                            orderBy: { order: 'asc' },
+                                            include: { attachments: true }
                                         }
                                     }
                                 }

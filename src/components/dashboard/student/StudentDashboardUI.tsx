@@ -2,9 +2,10 @@
 
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import {
     BookOpen, Clock, Award, TrendingUp,
-    ChevronRight, Bell, PlayCircle, X
+    ChevronRight, Bell, PlayCircle, X, MessageSquare, FileText
 } from "lucide-react";
 
 
@@ -32,6 +33,7 @@ interface DashboardData {
             progress: number;
             nextLesson: string;
             thumbnail: string;
+            lessons?: any[]; // Added lessons content
         }[];
     };
     assignments: any[];
@@ -49,6 +51,7 @@ export default function StudentDashboardUI() {
     const [loading, setLoading] = useState(true);
     const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
     const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
+    const [selectedCourse, setSelectedCourse] = useState<any>(null); // For Lesson Modal
 
     const [earnedBadge, setEarnedBadge] = useState<any>(null); // New State
     const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -102,6 +105,125 @@ export default function StudentDashboardUI() {
                 />
             )}
 
+            {/* Course / Subject Detail Modal */}
+            <AnimatePresence>
+                {selectedCourse && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+                        onClick={() => setSelectedCourse(null)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-white w-full h-full overflow-hidden flex flex-col"
+                        >
+                            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-indigo-50 to-purple-50">
+                                <div>
+                                    <h3 className="text-2xl font-bold text-slate-800">{selectedCourse.title}</h3>
+                                    <p className="text-sm text-slate-500">{selectedCourse.description || "Course Materials"}</p>
+                                </div>
+                                <button
+                                    onClick={() => setSelectedCourse(null)}
+                                    className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            <div className="overflow-y-auto p-8 flex-1 bg-slate-50">
+                                {selectedCourse.lessons && selectedCourse.lessons.length > 0 ? (
+                                    (() => {
+                                        // Group lessons by subject
+                                        const grouped: { [key: string]: any[] } = {};
+                                        selectedCourse.lessons.forEach((lesson: any) => {
+                                            const subjectName = lesson.subjectName || 'General';
+                                            if (!grouped[subjectName]) {
+                                                grouped[subjectName] = [];
+                                            }
+                                            grouped[subjectName].push(lesson);
+                                        });
+
+                                        return Object.entries(grouped).map(([subjectName, lessons]) => (
+                                            <div key={subjectName} className="mb-8 last:mb-0">
+                                                {/* Subject Header */}
+                                                <div className="mb-4 pb-3 border-b-2 border-indigo-200 bg-white rounded-lg p-4 shadow-sm">
+                                                    <h4 className="text-lg font-bold text-indigo-700 flex items-center gap-2">
+                                                        <BookOpen className="w-5 h-5" />
+                                                        {subjectName}
+                                                    </h4>
+                                                    <p className="text-xs text-slate-500 mt-1">{lessons.length} lesson{lessons.length !== 1 ? 's' : ''}</p>
+                                                </div>
+
+                                                {/* Lessons */}
+                                                <div className="space-y-3">
+                                                    {lessons.map((lesson: any, index: number) => (
+                                                        <div key={lesson.id} className="flex items-start gap-4 p-5 rounded-xl border border-slate-200 bg-white hover:border-indigo-300 hover:shadow-md transition-all group">
+                                                            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-indigo-100 text-indigo-700 rounded-full font-bold">
+                                                                {index + 1}
+                                                            </div>
+                                                            <div className="flex-1">
+                                                                <h5 className="font-bold text-lg text-slate-800 group-hover:text-indigo-700 transition-colors">{lesson.title}</h5>
+                                                                {lesson.description && <p className="text-sm text-slate-600 mt-2 leading-relaxed">{lesson.description}</p>}
+                                                                <div className="flex gap-3 mt-4">
+                                                                    {(() => {
+                                                                        const videos = [];
+                                                                        if (lesson.videoUrl) videos.push({ url: lesson.videoUrl, title: "Watch Video" });
+                                                                        lesson.attachments?.forEach((att: any) => {
+                                                                            if (att.type === 'video/youtube' || att.url.includes('youtube') || att.url.includes('youtu.be')) {
+                                                                                videos.push({ url: att.url, title: att.name || "Extra Video" });
+                                                                            }
+                                                                        });
+                                                                        // Dedupe by URL
+                                                                        const unique = videos.filter((v, i, a) => a.findIndex(t => t.url === v.url) === i);
+
+                                                                        return unique.map((vid, idx) => (
+                                                                            <a
+                                                                                key={idx}
+                                                                                href={vid.url}
+                                                                                target="_blank"
+                                                                                rel="noopener noreferrer"
+                                                                                className="text-sm bg-red-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-red-600 shadow-sm transition-colors font-medium"
+                                                                            >
+                                                                                <PlayCircle className="w-4 h-4" /> {vid.title}
+                                                                            </a>
+                                                                        ));
+                                                                    })()}
+                                                                    {lesson.fileUrl && (
+                                                                        <a
+                                                                            href={`https://drive.google.com/file/d/${lesson.fileUrl}/view`}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="text-sm bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-600 shadow-sm transition-colors font-medium"
+                                                                        >
+                                                                            <FileText className="w-4 h-4" /> View PDF
+                                                                        </a>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ));
+                                    })()
+                                ) : (
+                                    <div className="text-center py-20 text-slate-400">
+                                        <BookOpen className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                                        <p className="text-lg font-medium">No lessons available yet</p>
+                                        <p className="text-sm mt-2">Check back soon for new content!</p>
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <BadgeNotification
                 badge={earnedBadge}
                 onClose={() => setEarnedBadge(null)}
@@ -130,17 +252,17 @@ export default function StudentDashboardUI() {
             )}
 
             {/* Header Section with Gradient Accent - Placed absolutely with z-0 */}
-            <div className="absolute top-0 left-0 w-full h-80 bg-gradient-to-b from-slate-900 to-slate-100 z-0" />
+            <div className="absolute top-0 left-0 w-full h-60 bg-gradient-to-b from-slate-900 to-slate-100 z-0" />
 
             {/* Content Wrapper - Relative and z-10 */}
-            <div className="relative z-10 pt-28 pb-12 px-6 md:px-12">
+            <div className="relative z-10 pt-16 pb-6 px-6 md:px-12">
 
-                <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 text-white">
+                <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 text-white">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">
+                        <h1 className="text-2xl font-bold tracking-tight">
                             Welcome back, <span className="text-yellow-400">{profile.name}</span>
                         </h1>
-                        <p className="text-slate-300 mt-1 font-medium flex items-center gap-2">
+                        <p className="text-slate-300 mt-1 text-sm font-medium flex items-center gap-2">
                             <span className="bg-white/20 px-2 py-0.5 rounded text-xs">Level {profile.level}</span>
                             {profile.gradeLevel}
                         </p>
@@ -173,7 +295,7 @@ export default function StudentDashboardUI() {
                                 <img
                                     src={profile.avatar}
                                     alt="Profile"
-                                    className="relative w-12 h-12 rounded-full border-2 border-slate-900 object-cover"
+                                    className="relative w-10 h-10 rounded-full border-2 border-slate-900 object-cover"
                                 />
                             </div>
                         </div>
@@ -221,7 +343,11 @@ export default function StudentDashboardUI() {
                             {courses.length > 0 ? (
                                 <div className="grid md:grid-cols-2 gap-5">
                                     {courses.map((course) => (
-                                        <div key={course.id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg hover:translate-y-[-2px] transition-all group cursor-pointer relative overflow-hidden">
+                                        <div
+                                            key={course.id}
+                                            onClick={() => setSelectedCourse(course)}
+                                            className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg hover:translate-y-[-2px] transition-all group cursor-pointer relative overflow-hidden"
+                                        >
                                             <div className={`absolute top-0 right-0 w-24 h-24 rounded-bl-full opacity-10 transition-transform group-hover:scale-110 ${course.thumbnail.replace('bg-', 'bg-')}`} />
 
                                             <div className="flex justify-between items-start mb-6">
@@ -245,6 +371,18 @@ export default function StudentDashboardUI() {
                                                         style={{ width: `${course.progress}%` }}
                                                     />
                                                 </div>
+                                            </div>
+
+                                            {/* Forum Button */}
+                                            <div className="mt-4 pt-4 border-t border-slate-100">
+                                                <Link
+                                                    href={`/student/forum/${course.id}`}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                    className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg font-bold text-sm transition-colors"
+                                                >
+                                                    <MessageSquare className="w-4 h-4" />
+                                                    Class Forum
+                                                </Link>
                                             </div>
                                         </div>
                                     ))}
@@ -275,7 +413,7 @@ export default function StudentDashboardUI() {
                                             <div>
                                                 <h3 className="font-bold text-slate-800">{exam.title}</h3>
                                                 <div className="flex gap-4 text-xs text-slate-500 mt-1">
-                                                    <span className="flex items-center gap-1"><BookOpen className="w-3 h-3" /> {exam.subject.name}</span>
+                                                    <span className="flex items-center gap-1"><BookOpen className="w-3 h-3" /> {exam.subject?.name || 'General'}</span>
                                                     <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {exam.durationMinutes}m</span>
                                                 </div>
                                             </div>

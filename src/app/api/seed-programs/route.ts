@@ -12,11 +12,11 @@ export async function GET(request: Request) {
 
     try {
         const programs = [
-            { code: 'TK', name: 'TK (Kindergarten)', description: 'Early childhood education' },
-            { code: 'SD', name: 'SD (Elementary)', description: 'Grades 1-6' },
-            { code: 'SMP', name: 'SMP (Junior High)', description: 'Grades 7-9' },
-            { code: 'SMA', name: 'SMA (Senior High)', description: 'Grades 10-12' },
-            { code: 'ADULT', name: 'Adult Learners', description: 'Professional skills & languages' },
+            { code: 'TK', name: 'Kindergarten', description: 'Early childhood education' },
+            { code: 'SD', name: 'Primary School', description: 'Grades 1-6' },
+            { code: 'SMP', name: 'Secondary School', description: 'Grades 7-9' },
+            { code: 'SMA', name: 'High School', description: 'Grades 10-12' },
+            { code: 'ADULT', name: 'Adult Education', description: 'Professional skills & languages' },
         ];
 
         const results = [];
@@ -24,7 +24,10 @@ export async function GET(request: Request) {
         for (const p of programs) {
             const program = await prisma.program.upsert({
                 where: { code: p.code },
-                update: {},
+                update: {
+                    name: p.name,
+                    description: p.description
+                },
                 create: p,
             });
             results.push(program);

@@ -123,7 +123,7 @@ export default function TeacherAssignmentsWidget({ onRefresh }: { onRefresh?: ()
                                                 </p>
                                                 {assignment.dueDate && (
                                                     <p className="text-xs text-slate-600 mt-2">
-                                                        📅 Due: {new Date(assignment.dueDate).toLocaleDateString('id-ID', {
+                                                        📅 Due: {new Date(assignment.dueDate).toLocaleString('id-ID', {
                                                             dateStyle: 'medium',
                                                             timeStyle: 'short'
                                                         })}

@@ -515,10 +515,17 @@ export default function StudentDashboardUI() {
                                         <div
                                             key={task.id}
                                             onClick={() => handleOpenSubmission(task.id)}
-                                            className="flex items-start gap-4 p-4 rounded-xl bg-slate-50 hover:bg-white hover:shadow-md border border-transparent hover:border-slate-100 transition-all cursor-pointer group"
+                                            className={`relative flex items-start gap-4 p-4 rounded-xl transition-all cursor-pointer group overflow-hidden ${task.status === 'urgent'
+                                                    ? 'bg-red-50 border border-red-200'
+                                                    : 'bg-slate-50 hover:bg-white hover:shadow-md border border-transparent hover:border-slate-100'
+                                                }`}
                                         >
-                                            <div className={`mt-1.5 w-2 h-2 rounded-full shrink-0 shadow-sm ${task.status === 'urgent' ? 'bg-red-500 animate-pulse' : task.status === 'completed' ? 'bg-emerald-500' : 'bg-slate-300'}`} />
-                                            <div>
+                                            {task.status === 'urgent' && (
+                                                <div className="absolute inset-0 bg-red-100/50 animate-pulse pointer-events-none" />
+                                            )}
+
+                                            <div className={`mt-1.5 w-2 h-2 rounded-full shrink-0 shadow-sm z-10 ${task.status === 'urgent' ? 'bg-red-500 animate-pulse' : task.status === 'completed' ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+                                            <div className="z-10 relative">
                                                 <h4 className="text-sm font-bold text-slate-800 leading-snug group-hover:text-indigo-600 transition-colors">{task.title}</h4>
                                                 <p className="text-xs text-slate-500 mt-1 font-medium">{task.course}</p>
                                                 <div className={`text-[10px] font-bold mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded ${task.status === 'urgent' ? 'bg-red-100 text-red-600' : 'bg-slate-200 text-slate-500'}`}>

@@ -4,34 +4,32 @@ import { getTeacherDashboardData } from "@/lib/data-service";
 
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 
 export async function GET() {
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-    const userId = (session.user as any).id;
-    const data = await getTeacherDashboardData(userId);
-
-    // Fetch latest profile info for Editor
-    // Fetch latest profile info for Editor
-    let user = null;
     try {
-        user = await prisma.user.findUnique({
-            where: { id: userId },
-            select: { phone: true, email: true } as any
-        });
-    } catch (e) {
-        console.error("Failed to fetch profile info:", e);
-        // Fallback or ignore
-    }
+        const session = await getServerSession(authOptions);
+        if (!session || !session.user) {
+            console.error("Teacher dashboard: No session");
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
 
-    return NextResponse.json({
-        success: true,
-        data: {
-            ...data,
-            email: user?.email,
-            phone: user?.phone
-        } as any
-    });
+        const userId = (session.user as any).id;
+        console.log("Teacher dashboard: Fetching data for user", userId);
+
+        const data = await getTeacherDashboardData(userId);
+
+        if (!data) {
+            console.error("Teacher dashboard: getTeacherDashboardData returned null for user", userId);
+            return NextResponse.json({ error: "Failed to load dashboard data" }, { status: 500 });
+        }
+
+        console.log("Teacher dashboard: Success for user", userId);
+        return NextResponse.json({
+            success: true,
+            data
+        });
+    } catch (error) {
+        console.error("Teacher dashboard API error:", error);
+        return NextResponse.json({ error: "Internal server error", details: String(error) }, { status: 500 });
+    }
 }

@@ -7,7 +7,10 @@ import { getLevel, BADGES } from "./gamification";
 */
 
 export async function getStudentDashboardData(userId: string) {
-    if (!userId) return null;
+    if (!userId) {
+        console.error("getStudentDashboardData: No userId provided");
+        return null;
+    }
 
     try {
         const user = await prisma.user.findUnique({
@@ -15,40 +18,81 @@ export async function getStudentDashboardData(userId: string) {
             include: {
                 studentProfile: {
                     include: {
-                        enrollments: true,
+                        enrollments: {
+                            include: {
+                                class: true,
+                                subject: {
+                                    include: {
+                                        lessons: {
+                                            orderBy: { order: 'asc' }
+                                        }
+                                    }
+                                }
+                            }
+                        },
                         badges: true,
-                        // submissions: true // Not using yet
                     }
                 }
             }
         });
 
-        if (!user) return null;
+        if (!user) {
+            console.error("getStudentDashboardData: User not found for ID:", userId);
+            return null;
+        }
 
-        // Default shell if no specific student profile exists yet
-        const profile = user.studentProfile || {
-            id: "", // Add dummy ID to satisfy type if needed, though we should guard
-            gradeLevel: "Not Set",
-            xp: 0,
-            level: 1,
-            streakDays: 0,
-            enrollments: [],
-            badges: []
-        };
+        // If no student profile exists, create empty dashboard data
+        if (!user.studentProfile) {
+            console.warn("getStudentDashboardData: No studentProfile for user:", user.email);
+            return {
+                profile: {
+                    id: user.id,
+                    name: user.name || "Student",
+                    gradeLevel: "Not Set",
+                    xp: 0,
+                    streakDays: 0,
+                    avatar: user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name || 'User'}`,
+                    level: 1,
+                    levelProgress: 0,
+                    nextLevelXp: 100,
+                    currentLevelXp: 0,
+                    courses: []
+                },
+                assignments: [],
+                newBadge: null,
+                stats: {
+                    courses: 0,
+                    assignmentsDue: 0,
+                    avgGrade: 0,
+                    badges: 0
+                }
+            };
+        }
 
-        // Fetch assignments for enrolled courses
+        const profile = user.studentProfile;
+
+        // Fetch assignments for enrolled classes
         let mappedAssignments: any[] = [];
 
-        if (user.studentProfile) {
-            const enrolledCourseIds = user.studentProfile.enrollments.map(e => e.courseId);
+        // Get all class IDs the student is enrolled in
+        const enrolledClassIds = profile.enrollments
+            .map(e => e.classId)
+            .filter(id => id !== null) as string[];
 
+        if (enrolledClassIds.length > 0) {
+            // Fetch assignments for those classes
             const assignmentsData = await prisma.assignment.findMany({
                 where: {
-                    courseId: { in: enrolledCourseIds }
+                    classId: { in: enrolledClassIds }
                 },
                 include: {
                     submissions: {
-                        where: { studentId: user.studentProfile.id }
+                        where: { studentId: profile.id }
+                    },
+                    class: {
+                        select: {
+                            name: true
+                        }
                     }
                 },
                 orderBy: { dueDate: 'asc' }
@@ -71,7 +115,7 @@ export async function getStudentDashboardData(userId: string) {
                 return {
                     id: asg.id,
                     title: asg.title,
-                    course: asg.courseId,
+                    course: asg.class.name,
                     due: asg.dueDate ? asg.dueDate.toLocaleDateString() : "No Due Date",
                     status,
                     grade: submission?.grade
@@ -93,15 +137,83 @@ export async function getStudentDashboardData(userId: string) {
                 levelProgress: levelStats.progress,
                 nextLevelXp: levelStats.nextLevelXp,
                 currentLevelXp: levelStats.currentLevelXp,
+                courses: (() => {
+                    const classMap = new Map<string, any>();
+                    const standaloneSubjects: any[] = [];
+
+                    profile.enrollments.forEach(e => {
+                        // If enrollment has a class, group by class
+                        if (e.classId && e.class) {
+                            if (!classMap.has(e.classId)) {
+                                classMap.set(e.classId, {
+                                    id: e.classId,
+                                    title: e.class.name,
+                                    description: "Class",
+                                    progress: 0,
+                                    nextLesson: "Continue",
+                                    thumbnail: "bg-indigo-500",
+                                    lessons: []
+                                });
+                            }
+
+                            // If this enrollment also has a subject, collect its lessons
+                            if (e.subject && e.subject.lessons) {
+                                const classData = classMap.get(e.classId);
+                                const lessonsWithSubject = e.subject.lessons.map((lesson: any) => ({
+                                    ...lesson,
+                                    subjectId: e.subject.id,
+                                    subjectName: e.subject.name
+                                }));
+                                classData.lessons.push(...lessonsWithSubject);
+                                if (classData.nextLesson === "Continue" && e.subject.lessons.length > 0) {
+                                    classData.nextLesson = e.subject.lessons[0].title;
+                                }
+                            }
+                        }
+                        // If enrollment has only subject (no class), show as standalone
+                        else if (e.subject) {
+                            standaloneSubjects.push({
+                                id: e.subject.id,
+                                title: e.subject.name,
+                                description: "Subject",
+                                progress: 0,
+                                nextLesson: e.subject.lessons?.[0]?.title || "Start Learning",
+                                thumbnail: "bg-purple-500",
+                                lessons: e.subject.lessons || []
+                            });
+                        }
+                        // Legacy courseId enrollments
+                        else if (e.courseId) {
+                            standaloneSubjects.push({
+                                id: e.courseId,
+                                title: e.courseId,
+                                description: "Legacy Course",
+                                progress: 0,
+                                nextLesson: "Continue",
+                                thumbnail: "bg-slate-500",
+                                lessons: []
+                            });
+                        }
+                    });
+
+                    return [...Array.from(classMap.values()), ...standaloneSubjects];
+                })() || []
             },
             assignments: mappedAssignments,
-            newBadge: null, // Placeholder for notification logic
-            stats: {
-                courses: profile.enrollments.length,
-                assignmentsDue: mappedAssignments.filter(a => a.status === 'urgent' || a.status === 'pending').length,
-                avgGrade: 0,
-                badges: profile.badges.length
-            }
+            newBadge: null,
+            stats: (() => {
+                const uniqueClassIds = new Set<string>();
+                profile.enrollments.forEach(e => {
+                    if (e.classId) uniqueClassIds.add(e.classId);
+                });
+
+                return {
+                    courses: uniqueClassIds.size,
+                    assignmentsDue: mappedAssignments.filter(a => a.status === 'urgent' || a.status === 'pending').length,
+                    avgGrade: 0,
+                    badges: profile.badges.length
+                };
+            })()
         };
 
     } catch (error) {
@@ -281,9 +393,13 @@ export async function saveQuizResult(userId: string, lessonId: string, score: nu
 
 
 export async function getTeacherDashboardData(userId: string) {
-    if (!userId) return null;
+    if (!userId) {
+        console.error("getTeacherDashboardData: No userId provided");
+        return null;
+    }
 
     try {
+        console.log("📊 [Teacher Dashboard] Step 1: Fetching user data for", userId);
         const user = await prisma.user.findUnique({
             where: { id: userId },
             include: {
@@ -291,7 +407,8 @@ export async function getTeacherDashboardData(userId: string) {
                     include: {
                         classes: {
                             include: {
-                                students: true
+                                students: true,
+                                program: true
                             }
                         },
                         assignments: {
@@ -310,54 +427,146 @@ export async function getTeacherDashboardData(userId: string) {
             }
         });
 
-        if (!user) return null;
+        if (!user) {
+            console.error("getTeacherDashboardData: User not found for ID:", userId);
+            return null;
+        }
 
-        // Default shell if no teacher profile exists
-        const profile = user.teacherProfile || {
-            specialty: "General Education",
-            classes: [],
-            assignments: []
-        };
+        console.log("📊 [Teacher Dashboard] Step 2: User found, has teacherProfile:", !!user.teacherProfile);
+
+        // If no teacher profile exists, return empty dashboard
+        if (!user.teacherProfile) {
+            console.warn("getTeacherDashboardData: No teacherProfile for user:", user.email);
+            return {
+                name: user.name || "Teacher",
+                role: "Teacher",
+                subject: "Not Set",
+                avatar: user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name || 'Teacher'}`,
+                email: user.email,
+                phone: user.phone,
+                classes: [],
+                gradingQueue: [],
+                assignments: [],
+                stats: {
+                    totalStudents: 0,
+                    activeClasses: 0,
+                    pendingGrading: 0,
+                    classAverage: 0
+                }
+            };
+        }
+
+        const profile = user.teacherProfile;
+        console.log("📊 [Teacher Dashboard] Step 3: Profile found, classes count:", profile.classes.length);
 
         // Calculate stats from real data
-        const totalStudents = profile.classes.reduce((acc, cls) => acc + cls.students.length, 0);
+        const allStudentIds = new Set<string>();
+        profile.classes.forEach(cls => {
+            cls.students.forEach(enrollment => allStudentIds.add(enrollment.studentId));
+        });
+        const totalStudents = allStudentIds.size;
+
         const activeClasses = profile.classes.length;
         const pendingGrading = profile.assignments.reduce((acc, asg) =>
             acc + asg.submissions.filter(s => s.grade === null).length, 0);
 
-        // Map classes to UI structure
-        const mappedClasses = profile.classes.map(cls => ({
-            id: cls.id,
-            name: cls.name,
-            subject: profile.specialty || "General",
-            students: cls.students.length,
-            avgGrade: 0, // Placeholder
-            nextSession: "TBD" // Placeholder
+        console.log("📊 [Teacher Dashboard] Step 4: Stats calculated, mapping", profile.classes.length, "classes");
+
+        // Map classes to UI structure with next session calculation
+        const mappedClasses = await Promise.all(profile.classes.map(async (cls, index) => {
+            try {
+                console.log(`📊 [Teacher Dashboard] Step 4.${index + 1}: Mapping class ${cls.name}`);
+                const uniqueClassStudentIds = new Set(cls.students.map(e => e.studentId));
+
+                // Calculate next session
+                const { getNextSession, formatNextSession } = await import('./schedule-utils');
+                const nextSessionDate = await getNextSession(cls.id);
+                const formatted = formatNextSession(nextSessionDate);
+
+                const nextSession = formatted
+                    ? `${formatted.day} ${formatted.time}`
+                    : "No upcoming sessions";
+
+                // Calculate per-class average grade
+                const classStudentIds = Array.from(uniqueClassStudentIds);
+
+                const gradedSubmissions = await prisma.assignmentSubmission.findMany({
+                    where: {
+                        studentId: { in: classStudentIds },
+                        grade: { not: null }
+                    },
+                    select: { grade: true }
+                });
+
+                let avgGrade = 0;
+                let gradedCount = 0;
+                if (gradedSubmissions.length > 0) {
+                    const totalGrades = gradedSubmissions.reduce((sum, s) => sum + (s.grade || 0), 0);
+                    gradedCount = gradedSubmissions.length;
+                    avgGrade = Math.round(totalGrades / gradedCount);
+                }
+
+                console.log(`📊 [Teacher Dashboard] Step 4.${index + 1}: Class ${cls.name} mapped successfully`);
+                return {
+                    id: cls.id,
+                    name: cls.name,
+                    subject: (cls as any).program?.name || "General",
+                    students: uniqueClassStudentIds.size,
+                    avgGrade,
+                    gradedCount,
+                    nextSession
+                };
+            } catch (classError) {
+                console.error(`❌ Error mapping class ${cls.name}:`, classError);
+                throw classError;
+            }
         }));
 
-        // Fetch real assignments linked to teacher
-        // Note: In real app we might fetch separately or include. 
-        // Currently schema has `assignments` on TeacherProfile, so we already have them from `profile.assignments`.
+        console.log("📊 [Teacher Dashboard] Step 5: All classes mapped, building grading queue");
 
-        // Map submissions to grading queue
-        const gradingQueue = profile.assignments.flatMap(asg =>
-            asg.submissions.filter(s => s.grade === null).map(sub => ({
-                id: sub.id,
-                student: sub.student?.user?.name || "Student",
-                assignment: asg.title,
-                submitted: sub.submittedAt.toLocaleDateString(),
-                status: "pending"
-            }))
-        ).slice(0, 5);
+        // Map submissions to grading queue with urgency sorting
+        const now = new Date();
+        const gradingQueue = profile.assignments
+            .flatMap(asg =>
+                asg.submissions
+                    .filter(s => s.grade === null)
+                    .map(sub => {
+                        const daysOld = Math.floor(
+                            (now.getTime() - sub.submittedAt.getTime()) / (1000 * 60 * 60 * 24)
+                        );
+                        const isUrgent = daysOld > 3;
+
+                        return {
+                            id: sub.id,
+                            studentName: sub.student?.user?.name || "Student",
+                            assignment: asg.title,
+                            submitted: daysOld === 0 ? 'Today' :
+                                daysOld === 1 ? '1 day ago' :
+                                    `${daysOld} days ago`,
+                            daysOld,
+                            isUrgent,
+                            status: isUrgent ? 'urgent' : 'pending'
+                        };
+                    })
+            )
+            .sort((a, b) => {
+                if (a.isUrgent !== b.isUrgent) return a.isUrgent ? -1 : 1;
+                return b.daysOld - a.daysOld;
+            })
+            .slice(0, 10);
+
+        console.log("📊 [Teacher Dashboard] Step 6: Grading queue built, returning data");
 
         return {
             name: user.name || "Teacher",
             role: "Teacher",
             subject: profile.specialty || "Education",
             avatar: user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name || 'Teacher'}`,
+            email: user.email,
+            phone: user.phone,
             classes: mappedClasses,
             gradingQueue: gradingQueue,
-            assignments: profile.assignments || [], // Pass raw assignments for management list
+            assignments: profile.assignments || [],
             stats: {
                 totalStudents,
                 activeClasses,
@@ -367,7 +576,8 @@ export async function getTeacherDashboardData(userId: string) {
         };
 
     } catch (error) {
-        console.error("Error fetching teacher dashboard:", error);
+        console.error("❌ Error fetching teacher dashboard:", error);
+        console.error("Error stack:", error instanceof Error ? error.stack : 'No stack trace');
         return null;
     }
 }

@@ -12,7 +12,12 @@ interface ProfileData {
     role: string;
 }
 
-export default function UnifiedProfileEditor({ initialData }: { initialData: ProfileData }) {
+interface UnifiedProfileEditorProps {
+    initialData: ProfileData;
+    onSave?: () => void;
+}
+
+export default function UnifiedProfileEditor({ initialData, onSave }: UnifiedProfileEditorProps) {
     const [data, setData] = useState(initialData);
     const [activeTab, setActiveTab] = useState<'INFO' | 'SECURITY'>('INFO');
     const [loading, setLoading] = useState(false);
@@ -95,8 +100,11 @@ export default function UnifiedProfileEditor({ initialData }: { initialData: Pro
             if (json.success) {
                 setData(prev => ({ ...prev, image: json.url }));
                 setMessage({ type: 'success', text: "Avatar updated!" });
-                // Optional: Force reload to show new image in header
-                setTimeout(() => window.location.reload(), 1000);
+
+                // Call onSave callback if provided, instead of reloading
+                if (onSave) {
+                    onSave();
+                }
             } else {
                 setMessage({ type: 'error', text: json.error || "Upload failed" });
             }

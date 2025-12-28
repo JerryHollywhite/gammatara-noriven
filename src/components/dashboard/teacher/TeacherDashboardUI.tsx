@@ -12,6 +12,7 @@ import CreateAssignmentModal from "./CreateAssignmentModal";
 import GradingModal from "./GradingModal";
 import TeacherClassManager from "../../teacher/TeacherClassManager";
 import SimpleClassCreator from "../../teacher/SimpleClassCreator";
+import TeacherAssignmentsWidget from "../../teacher/TeacherAssignmentsWidget";
 
 import TeacherLessonManager from "../../teacher/TeacherLessonManager";
 import TeacherExamManager from "../../teacher/TeacherExamManager";
@@ -37,15 +38,20 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isGradingModalOpen, setIsGradingModalOpen] = useState(false);
-    const [selectedSubmission, setSelectedSubmission] = useState<{ id: string, name: string, title: string } | null>(null);
+    const [selectedSubmission, setSelectedSubmission] = useState<{ id: string, studentName: string, assignment: string, submitted: string } | null>(null);
 
     // New Tool Modals
     const [isClassManagerOpen, setIsClassManagerOpen] = useState(false);
     const [editingClassId, setEditingClassId] = useState<string | null>(null);
     const [isLessonManagerOpen, setIsLessonManagerOpen] = useState(false);
     const [isExamManagerOpen, setIsExamManagerOpen] = useState(false);
+    const [examClassId, setExamClassId] = useState<string | null>(null);
     const [isSubjectManagerOpen, setIsSubjectManagerOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false); // Profile Modal
+
+    // ...
+
+
 
     const fetchDashboardData = () => {
         setLoading(true);
@@ -56,6 +62,16 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
                 setLoading(false);
             })
             .catch(err => setLoading(false));
+    };
+
+    // Silent refresh without loading overlay
+    const fetchDashboardDataSilent = () => {
+        fetch('/api/teacher/dashboard')
+            .then(res => res.json())
+            .then(json => {
+                if (json.success) setData(json.data);
+            })
+            .catch(err => console.error('Silent refresh error:', err));
     };
 
     useEffect(() => {
@@ -72,8 +88,9 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
     const handleGradeOpen = (item: any) => {
         setSelectedSubmission({
             id: item.id,
-            name: item.studentName || item.student,
-            title: item.assignment
+            studentName: item.studentName || item.student,
+            assignment: item.assignment,
+            submitted: item.submitted || new Date().toLocaleDateString()
         });
         setIsGradingModalOpen(true);
     };
@@ -106,19 +123,15 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
             <CreateAssignmentModal
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
-                courseId="DEMO_COURSE" // This should be dynamic based on selected class
-                onCreated={() => window.location.reload()}
+                onCreated={fetchDashboardDataSilent}
             />
 
             {/* Grading Modal */}
             {selectedSubmission && (
                 <GradingModal
-                    isOpen={isGradingModalOpen}
-                    onClose={() => setIsGradingModalOpen(false)}
-                    submissionId={selectedSubmission.id}
-                    studentName={selectedSubmission.name}
-                    assignmentTitle={selectedSubmission.title}
-                    onGraded={() => window.location.reload()}
+                    submission={selectedSubmission}
+                    onClose={() => setSelectedSubmission(null)}
+                    onGraded={fetchDashboardDataSilent} // Silent refresh after grading
                 />
             )}
 
@@ -140,14 +153,15 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
                                 onClassCreated={() => {
                                     setIsClassManagerOpen(false);
                                     setEditingClassId(null);
-                                    window.location.reload();
+                                    fetchDashboardDataSilent(); // Silent refresh
                                 }}
+                                onDataChange={fetchDashboardDataSilent} // Silent refresh for schedule changes
                             />
                         ) : (
                             <SimpleClassCreator
                                 onClassCreated={() => {
                                     setIsClassManagerOpen(false);
-                                    window.location.reload();
+                                    fetchDashboardDataSilent(); // Silent refresh
                                 }}
                             />
                         )}
@@ -155,15 +169,40 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
                 </div>
             )}
 
+            {/* Loading Overlay (Global) */}
+            {loading && (
+                <div className="fixed inset-0 bg-white/80 z-[100] flex items-center justify-center backdrop-blur-sm">
+                    <div className="flex flex-col items-center">
+                        <div className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-3"></div>
+                        <p className="text-slate-600 font-bold">Please wait...</p>
+                    </div>
+                </div>
+            )}
+
             {/* Exam Manager Modal */}
             {isExamManagerOpen && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl w-full max-w-2xl p-6 relative animate-in fade-in zoom-in duration-200 overflow-y-auto max-h-[90vh]">
-                        <button onClick={() => setIsExamManagerOpen(false)} className="absolute top-4 right-4 p-2 hover:bg-slate-100 rounded-full text-slate-400">
-                            <X className="w-5 h-5" />
-                        </button>
-                        <TeacherExamManager subjectId="MATH_101" />
-                        {/* NOTE: Hardcoded subjectId 'MATH_101' for demo. Real app should select subject. */}
+                <div className="fixed inset-0 bg-slate-100 z-50 flex flex-col">
+                    {/* Full Screen Mode for Google Forms Vibe */}
+                    <div className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center shadow-sm z-10">
+                        <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <AlertTriangle className="w-6 h-6 text-purple-600" />
+                            Exam Creator {examClassId ? "(Class Mode)" : ""}
+                        </h3>
+                        <div className="flex items-center gap-2">
+                            {examClassId && <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-bold">Linked to Class</span>}
+                            <button onClick={() => { setIsExamManagerOpen(false); setExamClassId(null); }} className="p-2 hover:bg-slate-100 rounded-full text-slate-500">
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto bg-purple-50/50 p-4 md:p-8">
+                        <div className="max-w-4xl mx-auto pb-20">
+                            <TeacherExamManager
+                                subjectId={undefined}
+                                classId={examClassId || undefined}
+                            />
+                        </div>
                     </div>
                 </div>
             )}
@@ -194,6 +233,7 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
                                     image: avatar,
                                     role: "TEACHER"
                                 }}
+                                onSave={fetchDashboardDataSilent}
                             />
                         </motion.div>
                     </motion.div>
@@ -201,14 +241,14 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
             </AnimatePresence>
 
             {/* Header Gradient */}
-            <div className="absolute top-0 left-0 w-full h-80 bg-gradient-to-br from-indigo-900 via-slate-900 to-indigo-900 z-0" />
+            <div className="absolute top-0 left-0 w-full h-60 bg-gradient-to-br from-indigo-900 via-slate-900 to-indigo-900 z-0" />
 
             {/* Content Wrapper */}
-            <div className="relative z-10 pt-28 pb-12 px-6 md:px-12">
-                <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 text-white">
+            <div className="relative z-10 pt-16 pb-6 px-6 md:px-12">
+                <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 text-white">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Teacher Dashboard</h1>
-                        <p className="text-indigo-200 mt-1 flex items-center gap-2">
+                        <h1 className="text-2xl font-bold tracking-tight">Teacher Dashboard</h1>
+                        <p className="text-indigo-200 mt-1 text-sm flex items-center gap-2">
                             <span className="bg-white/10 px-2 py-0.5 rounded text-xs border border-white/10">Senior Instructor</span>
                             Welcome, {name}. Ready to inspire?
                         </p>
@@ -224,7 +264,10 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
                             <Plus className="w-4 h-4" /> Create New Class
                         </button>
                         <button
-                            onClick={() => setIsExamManagerOpen(true)}
+                            onClick={() => {
+                                setExamClassId(null);
+                                setIsExamManagerOpen(true);
+                            }}
                             className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-5 py-2.5 rounded-full font-bold text-sm flex items-center gap-2 transition-all backdrop-blur-sm"
                         >
                             <AlertTriangle className="w-4 h-4" /> Exams
@@ -319,19 +362,50 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
                                             </button>
                                         </div>
 
+
                                         <div className="flex items-center gap-6 text-sm text-slate-500 mb-6 relative">
                                             <span className="flex items-center gap-1.5 font-medium"><Users className="w-4 h-4 text-indigo-400" /> {cls.students} Students</span>
-                                            <span className="flex items-center gap-1.5 font-medium"><BarChart3 className="w-4 h-4 text-emerald-400" /> Avg: {cls.avgGrade}%</span>
+                                            <span className="flex items-center gap-1.5 font-medium">
+                                                <BarChart3 className="w-4 h-4 text-emerald-400" />
+                                                {cls.gradedCount > 0 ? (
+                                                    <span
+                                                        className={`px-2 py-1 rounded text-white text-xs font-bold ${cls.avgGrade >= 80 ? 'bg-emerald-500' :
+                                                            cls.avgGrade >= 60 ? 'bg-yellow-500' :
+                                                                'bg-red-500'
+                                                            }`}
+                                                        title={` Calculated from ${cls.gradedCount} graded submission${cls.gradedCount > 1 ? 's' : ''}`}
+                                                    >
+                                                        Avg: {cls.avgGrade}%
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-slate-400 text-xs italic">(No grades yet)</span>
+                                                )}
+                                            </span>
                                         </div>
 
-                                        <div className="pt-4 border-t border-slate-100 flex justify-between items-center relative">
+                                        <div className="pt-4 border-t border-slate-100 flex items-center justify-between relative">
                                             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                                                <Calendar className="w-3 h-3" /> Next: <span className="text-slate-600">{cls.nextSession}</span>
+                                                <Calendar className="w-3 h-3" /> <span className="text-slate-600">{cls.nextSession}</span>
                                             </span>
-                                            <button onClick={() => {
-                                                setEditingClassId(cls.id);
-                                                setIsClassManagerOpen(true);
-                                            }} className="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors">Manage Class</button>
+
+                                            <div className="flex items-center gap-2">
+                                                <Link
+                                                    href={`/teacher/forum/${cls.id}`}
+                                                    className="text-xs font-bold text-green-600 hover:text-green-800 bg-green-50 hover:bg-green-100 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
+                                                >
+                                                    <MessageSquare className="w-3 h-3" /> Forum
+                                                </Link>
+                                                <button onClick={() => {
+                                                    setExamClassId(cls.id);
+                                                    setIsExamManagerOpen(true);
+                                                }} className="text-xs font-bold text-purple-600 hover:text-purple-800 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
+                                                    <AlertTriangle className="w-3 h-3" /> Exams
+                                                </button>
+                                                <button onClick={() => {
+                                                    setEditingClassId(cls.id);
+                                                    setIsClassManagerOpen(true);
+                                                }} className="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors">Manage Class</button>
+                                            </div>
                                         </div>
                                     </div>
                                 )) : (
@@ -345,6 +419,8 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
                                 )}
                             </div>
                         </section>
+
+                        <TeacherAssignmentsWidget onRefresh={fetchDashboardDataSilent} />
                     </div>
 
                     {/* RIGHT: Grading & Attention (1/3) */}
@@ -356,11 +432,19 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
                             </h3>
                             <div className="space-y-1">
                                 {gradingQueue.length > 0 ? gradingQueue.map((item: any, i: number) => (
-                                    <div key={item.id} className="p-3 hover:bg-slate-50 rounded-xl transition-all cursor-pointer border border-transparent hover:border-slate-100 group">
+                                    <div key={item.id} className={`p-3 hover:bg-slate-50 rounded-xl transition-all cursor-pointer border ${item.isUrgent ? 'border-red-100 bg-red-50/30' : 'border-transparent hover:border-slate-100'
+                                        } group`}>
                                         <div className="flex justify-between items-start mb-1">
-                                            <span className="font-bold text-slate-700 text-sm group-hover:text-indigo-600 transition-colors">
-                                                {item.studentName || item.student}
-                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                {item.isUrgent && (
+                                                    <span className="px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-bold rounded uppercase">
+                                                        Urgent
+                                                    </span>
+                                                )}
+                                                <span className="font-bold text-slate-700 text-sm group-hover:text-indigo-600 transition-colors">
+                                                    {item.studentName || item.student}
+                                                </span>
+                                            </div>
                                             <span className="text-[10px] text-slate-400 font-mono">{item.submitted}</span>
                                         </div>
                                         <p className="text-xs text-slate-500 mb-3">{item.assignment}</p>
@@ -391,6 +475,6 @@ export default function TeacherDashboardUI({ data: initialData }: { data?: Teach
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

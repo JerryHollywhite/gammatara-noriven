@@ -26,10 +26,10 @@ export default function SimpleClassCreator({ onClassCreated }: SimpleClassCreato
                 const sorted = data.programs.sort((a: Program, b: Program) => {
                     const getIndex = (name: string) => {
                         const upper = name.toUpperCase();
-                        if (upper.includes("TK")) return 0;
-                        if (upper.includes("SD")) return 1;
-                        if (upper.includes("SMP")) return 2;
-                        if (upper.includes("SMA")) return 3;
+                        if (upper.includes("TK") || upper.includes("KINDERGARTEN")) return 0;
+                        if (upper.includes("SD") || upper.includes("PRIMARY")) return 1;
+                        if (upper.includes("SMP") || upper.includes("SECONDARY")) return 2;
+                        if (upper.includes("SMA") || upper.includes("HIGH SCHOOL")) return 3;
                         if (upper.includes("ADULT") || upper.includes("DEWASA")) return 4;
                         return 99;
                     };

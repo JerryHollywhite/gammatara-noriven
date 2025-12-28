@@ -470,7 +470,7 @@ export default function TeacherClassManager({ onClassCreated, classId, onDataCha
                                                     <span className="text-sm font-medium text-slate-700">{lesson.title}</span>
                                                 </div>
 
-                                                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <div className="flex items-center gap-2">
                                                     <button
                                                         onClick={() => setEditingLesson(lesson)}
                                                         className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded-lg"

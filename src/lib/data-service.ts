@@ -100,7 +100,7 @@ export async function getStudentDashboardData(userId: string) {
                 orderBy: { dueDate: 'asc' }
             });
 
-            mappedAssignments = assignmentsData.map(asg => {
+            mappedAssignments = (assignmentsData as any[]).map(asg => {
                 const submission = asg.submissions[0];
                 let status = "pending";
                 if (submission) {
@@ -117,6 +117,9 @@ export async function getStudentDashboardData(userId: string) {
                 return {
                     id: asg.id,
                     title: asg.title,
+                    description: asg.description,
+                    attachmentUrl: asg.attachmentUrl,
+                    maxScore: asg.maxScore,
                     course: asg.class.name,
                     due: asg.dueDate ? asg.dueDate.toLocaleDateString() : "No Due Date",
                     status,

@@ -100,7 +100,7 @@ export default function StudentDashboardUI() {
                 <AssignmentSubmissionModal
                     isOpen={isSubmissionModalOpen}
                     onClose={() => setIsSubmissionModalOpen(false)}
-                    assignmentId={selectedAssignmentId}
+                    assignment={assignments.find((a: any) => a.id === selectedAssignmentId)}
                     onSubmitted={() => window.location.reload()}
                 />
             )}
@@ -285,7 +285,9 @@ export default function StudentDashboardUI() {
                         <div className="flex items-center gap-4">
                             <button className="p-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white transition-all relative border border-white/10">
                                 <Bell className="w-5 h-5" />
-                                <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-slate-900" />
+                                {stats.assignmentsDue > 0 && (
+                                    <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-slate-900 animate-pulse" />
+                                )}
                             </button>
                             <div
                                 className="relative group cursor-pointer"
@@ -306,7 +308,7 @@ export default function StudentDashboardUI() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                     {[
                         { label: "Active Courses", value: stats.courses, icon: BookOpen, color: "text-blue-600", bg: "bg-blue-50" },
-                        { label: "Assignments Due", value: stats.assignmentsDue, icon: Clock, color: "text-orange-600", bg: "bg-orange-50" },
+                        { label: "Assignments Due", value: stats.assignmentsDue, icon: Clock, color: "text-pink-600", bg: "bg-pink-50" },
                         { label: "Average Grade", value: `${stats.avgGrade}%`, icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-50" },
                         { label: "Total Badges", value: stats.badges, icon: Award, color: "text-purple-600", bg: "bg-purple-50" }
                     ].map((stat, idx) => (

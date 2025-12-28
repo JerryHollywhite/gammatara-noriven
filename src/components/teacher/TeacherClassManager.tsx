@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Users, Plus, Check, Search, BookOpen, ChevronDown, ChevronRight, FileText, Youtube, Trash } from "lucide-react";
+import { Users, Plus, Check, Search, BookOpen, ChevronDown, ChevronRight, FileText, Youtube, Trash, Pencil } from "lucide-react";
 import TeacherLessonManager from "./TeacherLessonManager";
+import ScheduleTab from "./ScheduleTab";
 
 interface Student {
     id: string;
@@ -14,6 +15,10 @@ interface Lesson {
     id: string;
     title: string;
     order: number;
+    description?: string;
+    videoUrl?: string; // Optional
+    subjectId?: string; // Optional
+    attachments?: any[]; // Allow attachments to pass through
 }
 
 interface Subject {
@@ -34,11 +39,12 @@ interface Program {
 interface TeacherClassManagerProps {
     onClassCreated?: () => void;
     classId?: string | null;
+    onDataChange?: () => void; // Optional callback for refreshing parent data
 }
 
-export default function TeacherClassManager({ onClassCreated, classId }: TeacherClassManagerProps) {
-    // Tabs: 'settings' | 'curriculum'
-    const [activeTab, setActiveTab] = useState<'settings' | 'curriculum'>('settings');
+export default function TeacherClassManager({ onClassCreated, classId, onDataChange }: TeacherClassManagerProps) {
+    // Tabs: 'settings' | 'curriculum' | 'schedule'
+    const [activeTab, setActiveTab] = useState<'settings' | 'curriculum' | 'schedule'>('settings');
 
     // Data State
     const [students, setStudents] = useState<Student[]>([]);
@@ -55,9 +61,14 @@ export default function TeacherClassManager({ onClassCreated, classId }: Teacher
     const [classSubjects, setClassSubjects] = useState<Subject[]>([]);
     const [expandedSubjectId, setExpandedSubjectId] = useState<string | null>(null);
     const [addingLessonSubjectId, setAddingLessonSubjectId] = useState<string | null>(null);
+    const [editingLesson, setEditingLesson] = useState<any | null>(null);
 
     const [loading, setLoading] = useState(false);
     const [search, setSearch] = useState("");
+
+    // Subject Creator Modal State
+    const [isSubjectCreatorOpen, setIsSubjectCreatorOpen] = useState(false);
+    const [newSubjectName, setNewSubjectName] = useState("");
 
     // Fetch initial data (Students, All Subjects, Programs)
     useEffect(() => {
@@ -81,6 +92,12 @@ export default function TeacherClassManager({ onClassCreated, classId }: Teacher
                             setClassSubjects(json.class.subjects);
                             // Pre-fill selected subjects for the settings form
                             setSelectedSubjectIds(json.class.subjects.map((s: any) => s.id));
+                        }
+                        // Pre-fill Program
+                        if (json.class.programId) {
+                            setSelectedProgramId(json.class.programId);
+                        } else {
+                            setSelectedProgramId("");
                         }
                     }
                     setLoading(false);
@@ -205,32 +222,11 @@ export default function TeacherClassManager({ onClassCreated, classId }: Teacher
                         <p className="text-[11px] text-slate-400">Click on a subject to assign it to this class.</p>
                     </div>
                     <button
-                        onClick={() => {
-                            const name = prompt("Enter new Subject Name (e.g., Mathematics):");
-                            if (!name) return;
-                            const code = prompt("Enter Subject Code (e.g., MATH-101):");
-                            if (!code) return;
-
-                            // Optimistic UI or API call to create
-                            setLoading(true);
-                            fetch('/api/teacher/subjects', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ name, code, programId: selectedProgramId || undefined })
-                            })
-                                .then(res => res.json())
-                                .then(data => {
-                                    setLoading(false);
-                                    if (data.success) {
-                                        alert("Subject created!");
-                                        // Refresh existing subjects
-                                        fetch('/api/teacher/subjects').then(res => res.json()).then(d => { if (d.success) setAllSubjects(d.subjects); });
-                                        // Auto-select
-                                        if (data.subject?.id) toggleSubjectSelection(data.subject.id);
-                                    } else {
-                                        alert(data.error || "Failed to create subject");
-                                    }
-                                });
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            setIsSubjectCreatorOpen(true);
+                            setNewSubjectName("");
                         }}
                         className="text-xs flex items-center gap-1 text-indigo-600 hover:text-indigo-800 font-bold bg-indigo-50 px-2 py-1 rounded-lg"
                     >
@@ -261,33 +257,63 @@ export default function TeacherClassManager({ onClassCreated, classId }: Teacher
                                 >
                                     <span className="flex items-center gap-2">
                                         <span className={selectedSubjectIds.includes(sub.id) ? "font-semibold" : ""}>{sub.name}</span>
-                                        <span className="text-xs opacity-70">({sub.code})</span>
                                     </span>
                                     {selectedSubjectIds.includes(sub.id) && <Check className="w-4 h-4 ml-2" />}
                                 </div>
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (confirm(`Are you sure you want to delete ${sub.name}? This cannot be undone.`)) {
-                                            setLoading(true);
-                                            fetch(`/api/teacher/subjects/${sub.id}`, { method: 'DELETE' })
-                                                .then(res => res.json())
-                                                .then(data => {
-                                                    setLoading(false);
-                                                    if (data.success) {
-                                                        alert(data.message || "Subject deleted.");
-                                                        fetch('/api/teacher/subjects').then(res => res.json()).then(d => { if (d.success) setAllSubjects(d.subjects); });
-                                                    } else {
-                                                        alert(data.error || "Failed to delete subject");
-                                                    }
-                                                });
-                                        }
-                                    }}
-                                    className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg group-hover:opacity-100 opacity-0 transition-all"
-                                    title="Delete Subject"
-                                >
-                                    <Trash className="w-4 h-4" />
-                                </button>
+                                <div className="flex items-center gap-1">
+                                    <div className="flex items-center gap-1">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                const newName = prompt("Rename Subject:", sub.name);
+                                                if (newName && newName !== sub.name) {
+                                                    setLoading(true);
+                                                    fetch(`/api/teacher/subjects/${sub.id}`, {
+                                                        method: 'PUT',
+                                                        headers: { 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify({ name: newName })
+                                                    })
+                                                        .then(res => res.json())
+                                                        .then(data => {
+                                                            setLoading(false);
+                                                            if (data.success) {
+                                                                fetch('/api/teacher/subjects').then(res => res.json()).then(d => { if (d.success) setAllSubjects(d.subjects); });
+                                                            } else {
+                                                                alert(data.error || "Failed to update subject");
+                                                            }
+                                                        });
+                                                }
+                                            }}
+                                            className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                                            title="Rename Subject"
+                                        >
+                                            <Pencil className="w-3.5 h-3.5" />
+                                        </button>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (confirm(`Are you sure you want to delete ${sub.name}? This cannot be undone.`)) {
+                                                    setLoading(true);
+                                                    fetch(`/api/teacher/subjects/${sub.id}`, { method: 'DELETE' })
+                                                        .then(res => res.json())
+                                                        .then(data => {
+                                                            setLoading(false);
+                                                            if (data.success) {
+                                                                alert(data.message || "Subject deleted.");
+                                                                fetch('/api/teacher/subjects').then(res => res.json()).then(d => { if (d.success) setAllSubjects(d.subjects); });
+                                                            } else {
+                                                                alert(data.error || "Failed to delete subject");
+                                                            }
+                                                        });
+                                                }
+                                            }}
+                                            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg group-hover:opacity-100 opacity-0 transition-all"
+                                            title="Delete Subject"
+                                        >
+                                            <Trash className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         ))}
                 </div>
@@ -338,7 +364,37 @@ export default function TeacherClassManager({ onClassCreated, classId }: Teacher
     const renderCurriculum = () => {
         if (!classId) return <div className="text-center py-10 text-slate-500">Please create the class first in Settings.</div>;
 
+        if (editingLesson) {
+            return (
+                <div className="animate-in slide-in-from-right duration-300">
+                    <button
+                        onClick={() => setEditingLesson(null)}
+                        className="mb-4 text-sm text-slate-500 hover:text-indigo-600 flex items-center gap-1"
+                    >
+                        ← Back to Subject
+                    </button>
+                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <h4 className="font-bold text-slate-800 mb-2">Edit Lesson: {editingLesson.title}</h4>
+                        <TeacherLessonManager
+                            // Resolve Subject Code from ID
+                            initialSubjectId={classSubjects.find(s => s.id === editingLesson.subjectId)?.code}
+                            initialData={editingLesson}
+
+                            onSuccess={() => {
+                                setEditingLesson(null);
+                                fetchClassDetails();
+                            }}
+                            onCancel={() => setEditingLesson(null)}
+                        />
+                    </div>
+                </div>
+            );
+        }
+
         if (addingLessonSubjectId) {
+            // Find the subject to get its CODE
+            const targetSubject = classSubjects.find(s => s.id === addingLessonSubjectId);
+
             // Render Inline Lesson Manager
             return (
                 <div className="animate-in slide-in-from-right duration-300">
@@ -346,12 +402,12 @@ export default function TeacherClassManager({ onClassCreated, classId }: Teacher
                         onClick={() => setAddingLessonSubjectId(null)}
                         className="mb-4 text-sm text-slate-500 hover:text-indigo-600 flex items-center gap-1"
                     >
-                        ← Back to Curriculum
+                        ← Back to Subject
                     </button>
                     <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
                         <h4 className="font-bold text-slate-800 mb-2">Add New Lesson</h4>
                         <TeacherLessonManager
-                            initialSubjectId={addingLessonSubjectId}
+                            initialSubjectId={targetSubject?.code} // Pass CODE, not ID
                             onSuccess={() => {
                                 setAddingLessonSubjectId(null);
                                 fetchClassDetails(); // Refresh to show new lesson
@@ -365,7 +421,7 @@ export default function TeacherClassManager({ onClassCreated, classId }: Teacher
         return (
             <div className="space-y-4 animate-in fade-in duration-300">
                 <div className="flex justify-between items-center mb-2">
-                    <h3 className="font-bold text-slate-800">Subjects & Lessons</h3>
+                    <h3 className="font-bold text-slate-800">Subject</h3>
                     <button
                         onClick={() => setActiveTab('settings')} // Direct user to settings to add subjects
                         className="text-xs text-indigo-600 hover:underline"
@@ -406,11 +462,44 @@ export default function TeacherClassManager({ onClassCreated, classId }: Teacher
                                     {/* List */}
                                     {subject.lessons && subject.lessons.length > 0 ? (
                                         subject.lessons.map(lesson => (
-                                            <div key={lesson.id} className="bg-white p-3 rounded-lg border border-slate-200 flex items-center gap-3">
-                                                <div className="p-1.5 bg-emerald-50 text-emerald-600 rounded">
-                                                    <FileText className="w-4 h-4" />
+                                            <div key={lesson.id} className="bg-white p-3 rounded-lg border border-slate-200 flex items-center justify-between group">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-1.5 bg-emerald-50 text-emerald-600 rounded">
+                                                        <FileText className="w-4 h-4" />
+                                                    </div>
+                                                    <span className="text-sm font-medium text-slate-700">{lesson.title}</span>
                                                 </div>
-                                                <span className="text-sm font-medium text-slate-700">{lesson.title}</span>
+
+                                                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button
+                                                        onClick={() => setEditingLesson(lesson)}
+                                                        className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded-lg"
+                                                        title="Edit Lesson"
+                                                    >
+                                                        <Pencil className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            if (confirm("Are you sure you want to delete this lesson?")) {
+                                                                setLoading(true);
+                                                                fetch(`/api/teacher/lessons/${lesson.id}`, { method: 'DELETE' })
+                                                                    .then(res => res.json())
+                                                                    .then(data => {
+                                                                        setLoading(false);
+                                                                        if (data.success) {
+                                                                            fetchClassDetails();
+                                                                        } else {
+                                                                            alert(data.error || "Failed to delete lesson");
+                                                                        }
+                                                                    });
+                                                            }
+                                                        }}
+                                                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                                                        title="Delete Lesson"
+                                                    >
+                                                        <Trash className="w-4 h-4" />
+                                                    </button>
+                                                </div>
                                             </div>
                                         ))
                                     ) : (
@@ -454,20 +543,139 @@ export default function TeacherClassManager({ onClassCreated, classId }: Teacher
                     Settings & Students
                 </button>
                 <button
-                    onClick={() => {
-                        if (classId) setActiveTab('curriculum');
-                        else alert("Please save the class first to manage curriculum.");
+                    onClick={async () => {
+                        if (classId) {
+                            // AUTO-SAVE Check
+                            const savedIds = classSubjects.map(s => s.id).sort().join(',');
+                            const currIds = selectedSubjectIds.slice().sort().join(',');
+
+                            // If changes detected, save first
+                            if (savedIds !== currIds) {
+                                if (confirm("Saving changes to subjects before viewing curriculum...")) {
+                                    await handleSaveClass();
+                                }
+                            }
+                            setActiveTab('curriculum');
+                        } else {
+                            alert("Please save the class first to manage lessons.");
+                        }
                     }}
                     className={`flex-1 py-1.5 text-sm font-medium rounded-lg transition-all ${activeTab === 'curriculum' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'} ${!classId ? 'opacity-50 cursor-not-allowed' : ''}`}
                     title={!classId ? "Save class first" : ""}
                 >
-                    Curriculum
+                    Lessons
+                    {!classId && <span className="ml-2 text-[10px] bg-slate-200 px-1 rounded text-slate-500">Locked</span>}
+                </button>
+                <button
+                    onClick={() => {
+                        if (classId) {
+                            setActiveTab('schedule');
+                        } else {
+                            alert("Please save the class first to manage schedule.");
+                        }
+                    }}
+                    className={`flex-1 py-1.5 text-sm font-medium rounded-lg transition-all ${activeTab === 'schedule' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'} ${!classId ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    title={!classId ? "Save class first" : ""}
+                >
+                    Schedule
                     {!classId && <span className="ml-2 text-[10px] bg-slate-200 px-1 rounded text-slate-500">Locked</span>}
                 </button>
             </div>
 
             {/* Content */}
-            {activeTab === 'settings' ? renderSettings() : renderCurriculum()}
+            {activeTab === 'settings' ? renderSettings() : activeTab === 'curriculum' ? renderCurriculum() : classId ? <ScheduleTab classId={classId} onScheduleChange={onDataChange} /> : null}
+
+            {/* Local Loading Overlay */}
+            {loading && (
+                <div className="absolute inset-0 bg-white/80 z-50 flex items-center justify-center backdrop-blur-sm rounded-2xl">
+                    <div className="flex flex-col items-center animate-in fade-in duration-200">
+                        <div className="w-8 h-8 border-3 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-2"></div>
+                        <p className="text-sm font-bold text-slate-600">Please wait...</p>
+                    </div>
+                </div>
+            )}
+            {/* Subject Creator Modal */}
+            {isSubjectCreatorOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 backdrop-blur-sm"
+                    onClick={() => setIsSubjectCreatorOpen(false)}
+                >
+                    <div
+                        className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl animate-in zoom-in-95 duration-200"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <h4 className="text-lg font-bold text-slate-800 mb-4">Create New Subject</h4>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Subject Name</label>
+                                <input
+                                    type="text"
+                                    autoFocus
+                                    value={newSubjectName}
+                                    onChange={(e) => setNewSubjectName(e.target.value)}
+                                    placeholder="e.g. Mathematics"
+                                    className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-medium"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            // Handle create logic here or click button
+                                            const btn = document.getElementById('create-subject-btn');
+                                            btn?.click();
+                                        }
+                                    }}
+                                />
+                            </div>
+
+                            <div className="flex gap-2 pt-2">
+                                <button
+                                    onClick={() => setIsSubjectCreatorOpen(false)}
+                                    className="flex-1 py-2 text-slate-500 font-bold hover:bg-slate-50 rounded-xl transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    id="create-subject-btn"
+                                    onClick={() => {
+                                        if (!newSubjectName.trim()) return;
+
+                                        const name = newSubjectName;
+                                        const code = name.substring(0, 3).toUpperCase() + "-" + Math.floor(100 + Math.random() * 900);
+
+                                        setLoading(true);
+                                        // Close modal immediately or wait? user prefers immediate feedback usually
+                                        setIsSubjectCreatorOpen(false);
+
+                                        fetch('/api/teacher/subjects', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({
+                                                name,
+                                                code,
+                                                programId: selectedProgramId || undefined
+                                            })
+                                        })
+                                            .then(res => res.json())
+                                            .then(data => {
+                                                setLoading(false);
+                                                if (data.success) {
+                                                    // Auto-select
+                                                    if (data.subject?.id) toggleSubjectSelection(data.subject.id);
+                                                } else {
+                                                    alert(data.error || "Failed to create subject");
+                                                }
+                                                // Refresh existing subjects
+                                                fetch('/api/teacher/subjects').then(res => res.json()).then(d => { if (d.success) setAllSubjects(d.subjects); });
+                                            });
+                                    }}
+                                    disabled={!newSubjectName.trim()}
+                                    className="flex-1 py-2 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-200 disabled:opacity-50 disabled:shadow-none"
+                                >
+                                    Create
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

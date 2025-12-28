@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
     return NextResponse.json({
-        version: "v9",
+        version: "v11",
         timestamp: new Date().toISOString(),
-        fixes: ["student-dashboard", "teacher-dashboard", "profile-refresh-fix", "seed-programs-english"]
+        fixes: ["student-dashboard", "teacher-dashboard", "profile-refresh-fix", "seed-programs-english", "subject-modal"]
     });
 }

@@ -10,6 +10,7 @@ import {
 
 
 import AssignmentSubmissionModal from "./AssignmentSubmissionModal";
+import AllAssignmentsModal from "./AllAssignmentsModal";
 import LeaderboardWidget from "../../gamification/LeaderboardWidget";
 import BadgeNotification from "../../gamification/BadgeNotification";
 import ExamRunner from "../../student/ExamRunner";
@@ -60,6 +61,7 @@ export default function StudentDashboardUI() {
     // Exams
     const [exams, setExams] = useState<any[]>([]);
     const [activeExamId, setActiveExamId] = useState<string | null>(null);
+    const [showAllAssignments, setShowAllAssignments] = useState(false);
 
     useEffect(() => {
         // Fetch Dashboard Data
@@ -105,6 +107,14 @@ export default function StudentDashboardUI() {
                     onSubmitted={() => window.location.reload()}
                 />
             )}
+
+            {/* All Assignments Modal */}
+            <AllAssignmentsModal
+                isOpen={showAllAssignments}
+                onClose={() => setShowAllAssignments(false)}
+                assignments={assignments}
+                onSelectAssignment={handleOpenSubmission}
+            />
 
             {/* Course / Subject Detail Modal */}
             <AnimatePresence>
@@ -372,12 +382,17 @@ export default function StudentDashboardUI() {
                     <div className="lg:col-span-2 space-y-8">
 
                         {/* My Courses */}
-                        <section>
+                        <section id="current-studies">
                             <div className="flex items-center justify-between mb-5">
                                 <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                                     <BookOpen className="w-5 h-5 text-indigo-600" /> Current Studies
                                 </h2>
-                                <button className="text-sm font-bold text-indigo-600 hover:text-indigo-700 hover:underline">View All Courses</button>
+                                <button
+                                    onClick={() => window.scrollTo({ top: document.getElementById('current-studies')?.offsetTop || 0, behavior: 'smooth' })}
+                                    className="text-sm font-bold text-indigo-600 hover:text-indigo-700 hover:underline"
+                                >
+                                    View All Courses
+                                </button>
                             </div>
                             {courses.length > 0 ? (
                                 <div className="grid md:grid-cols-2 gap-5">
@@ -516,8 +531,8 @@ export default function StudentDashboardUI() {
                                             key={task.id}
                                             onClick={() => handleOpenSubmission(task.id)}
                                             className={`relative flex items-start gap-4 p-4 rounded-xl transition-all cursor-pointer group overflow-hidden ${task.status === 'urgent'
-                                                    ? 'bg-red-50 border border-red-200'
-                                                    : 'bg-slate-50 hover:bg-white hover:shadow-md border border-transparent hover:border-slate-100'
+                                                ? 'bg-red-50 border border-red-200'
+                                                : 'bg-slate-50 hover:bg-white hover:shadow-md border border-transparent hover:border-slate-100'
                                                 }`}
                                         >
                                             {task.status === 'urgent' && (
@@ -544,7 +559,10 @@ export default function StudentDashboardUI() {
                                     <p className="text-xs text-slate-400 mt-1">No pending assignments.</p>
                                 </div>
                             )}
-                            <button className="w-full mt-6 py-3 text-sm font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 hover:text-slate-900 rounded-xl transition-colors border border-slate-200">
+                            <button
+                                onClick={() => setShowAllAssignments(true)}
+                                className="w-full mt-6 py-3 text-sm font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 hover:text-slate-900 rounded-xl transition-colors border border-slate-200"
+                            >
                                 View All Assignments
                             </button>
                         </div>

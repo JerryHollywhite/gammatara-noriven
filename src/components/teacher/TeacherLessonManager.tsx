@@ -167,7 +167,16 @@ export default function TeacherLessonManager({ initialSubjectId, initialData, on
             fileUrl = uploadedAttachments.length > 0 ? uploadedAttachments[0].url : "";
 
             // Prepare Video Attachments
-            const videoAttachments = extraVideos.map(v => ({
+            let finalVideos = [...extraVideos];
+            // Auto-add if input has value
+            if (newVideoUrl && (newVideoUrl.includes('youtube.com') || newVideoUrl.includes('youtu.be'))) {
+                finalVideos.push({
+                    name: newVideoTitle || `Video ${finalVideos.length + 1}`,
+                    url: newVideoUrl
+                });
+            }
+
+            const videoAttachments = finalVideos.map(v => ({
                 name: v.name,
                 url: v.url,
                 type: 'video/youtube',

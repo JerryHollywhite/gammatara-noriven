@@ -198,7 +198,18 @@ export async function getStudentDashboardData(userId: string) {
                         }
                     });
 
-                    return [...Array.from(classMap.values()), ...standaloneSubjects];
+                    const allCourses = [...Array.from(classMap.values()), ...standaloneSubjects];
+
+                    // Sort lessons alphanumerically
+                    allCourses.forEach(course => {
+                        if (course.lessons && Array.isArray(course.lessons)) {
+                            course.lessons.sort((a: any, b: any) =>
+                                a.title.localeCompare(b.title, undefined, { numeric: true, sensitivity: 'base' })
+                            );
+                        }
+                    });
+
+                    return allCourses;
                 })() || []
             },
             assignments: mappedAssignments,

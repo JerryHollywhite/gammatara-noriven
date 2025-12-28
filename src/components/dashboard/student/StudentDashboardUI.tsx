@@ -169,7 +169,7 @@ export default function StudentDashboardUI() {
                                                             <div className="flex-1">
                                                                 <h5 className="font-bold text-lg text-slate-800 group-hover:text-indigo-700 transition-colors">{lesson.title}</h5>
                                                                 {lesson.description && <p className="text-sm text-slate-600 mt-2 leading-relaxed">{lesson.description}</p>}
-                                                                <div className="flex gap-3 mt-4">
+                                                                <div className="flex flex-wrap gap-3 mt-4">
                                                                     {(() => {
                                                                         const videos = [];
                                                                         if (lesson.videoUrl) videos.push({ url: lesson.videoUrl, title: "Watch Video" });

@@ -295,35 +295,38 @@ export default function TeacherLessonManager({ initialSubjectId, initialData, on
                             </div>
                         ))}
 
-                        <div className="flex gap-2 items-start mt-2">
-                            <div className="flex-1 space-y-2">
+                        <div className="mt-3 p-2 bg-slate-100 rounded-lg border border-slate-200">
+                            <p className="text-[10px] uppercase font-bold text-slate-400 mb-2">Add New Video</p>
+                            <div className="space-y-2">
                                 <input
                                     type="text"
                                     value={newVideoTitle}
                                     onChange={(e) => setNewVideoTitle(e.target.value)}
-                                    placeholder="Title (e.g. Part 2)"
-                                    className="w-full px-3 py-1.5 text-xs border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-indigo-500"
+                                    placeholder="Video Title (e.g. Part 2)"
+                                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none focus:ring-1 focus:ring-indigo-500 bg-white"
                                 />
-                                <input
-                                    type="text"
-                                    value={newVideoUrl}
-                                    onChange={(e) => setNewVideoUrl(e.target.value)}
-                                    placeholder="https://youtube.com/..."
-                                    className="w-full px-3 py-1.5 text-xs border border-slate-200 rounded-lg outline-none focus:ring-1 focus:ring-indigo-500"
-                                />
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        value={newVideoUrl}
+                                        onChange={(e) => setNewVideoUrl(e.target.value)}
+                                        placeholder="https://youtube.com/..."
+                                        className="flex-1 px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none focus:ring-1 focus:ring-indigo-500 bg-white"
+                                    />
+                                    <button
+                                        onClick={() => {
+                                            if (!newVideoUrl) return;
+                                            setExtraVideos(prev => [...prev, { name: newVideoTitle || `Video ${prev.length + 2}`, url: newVideoUrl }]);
+                                            setNewVideoUrl("");
+                                            setNewVideoTitle("");
+                                        }}
+                                        disabled={!newVideoUrl}
+                                        className="px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:bg-slate-400 transition-colors"
+                                    >
+                                        Add
+                                    </button>
+                                </div>
                             </div>
-                            <button
-                                onClick={() => {
-                                    if (!newVideoUrl) return;
-                                    setExtraVideos(prev => [...prev, { name: newVideoTitle || `Video ${prev.length + 2}`, url: newVideoUrl }]);
-                                    setNewVideoUrl("");
-                                    setNewVideoTitle("");
-                                }}
-                                disabled={!newVideoUrl}
-                                className="h-[70px] w-10 flex items-center justify-center bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:bg-slate-300"
-                            >
-                                <Plus className="w-5 h-5" />
-                            </button>
                         </div>
                     </div>
                 </div>

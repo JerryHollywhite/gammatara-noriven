@@ -55,6 +55,7 @@ export default function StudentDashboardUI() {
 
     const [earnedBadge, setEarnedBadge] = useState<any>(null); // New State
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
     // Exams
     const [exams, setExams] = useState<any[]>([]);
@@ -283,12 +284,48 @@ export default function StudentDashboardUI() {
                         </div>
 
                         <div className="flex items-center gap-4">
-                            <button className="p-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white transition-all relative border border-white/10">
-                                <Bell className="w-5 h-5" />
-                                {stats.assignmentsDue > 0 && (
-                                    <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-slate-900 animate-pulse" />
+                            <div className="relative">
+                                <button
+                                    onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                                    className="p-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white transition-all relative border border-white/10"
+                                >
+                                    <Bell className="w-5 h-5" />
+                                    {stats.assignmentsDue > 0 && (
+                                        <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-slate-900 animate-pulse" />
+                                    )}
+                                </button>
+                                {isNotificationsOpen && (
+                                    <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-xl border border-slate-100 p-4 z-50 animate-in fade-in zoom-in-95 duration-200">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <h4 className="text-sm font-bold text-slate-800">Notifications</h4>
+                                            <button onClick={() => setIsNotificationsOpen(false)} className="text-slate-400 hover:text-slate-600">
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                        {assignments.length > 0 ? (
+                                            <div className="space-y-2 max-h-60 overflow-y-auto">
+                                                {assignments.map((task: any) => (
+                                                    <div key={`notif-${task.id}`} className="p-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-indigo-50 transition-colors border border-slate-100 hover:border-indigo-100" onClick={() => { setIsNotificationsOpen(false); handleOpenSubmission(task.id); }}>
+                                                        <div className="flex items-start justify-between">
+                                                            <p className="text-xs font-bold text-slate-700">{task.title}</p>
+                                                            {task.status === 'urgent' && <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse shrink-0 ml-2" />}
+                                                        </div>
+                                                        <p className="text-[10px] text-slate-500 mt-1">{task.course} • {task.due}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="text-center py-6">
+                                                <div className="w-10 h-10 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                                                    <Bell className="w-5 h-5" />
+                                                </div>
+                                                <p className="text-xs text-slate-400">No new notifications</p>
+                                            </div>
+                                        )}
+                                    </div>
                                 )}
-                            </button>
+                            </div>
+
                             <div
                                 className="relative group cursor-pointer"
                                 onClick={() => setIsProfileOpen(true)}
@@ -466,7 +503,11 @@ export default function StudentDashboardUI() {
                         <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
                             <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center justify-between">
                                 Pending Tasks
-                                <span className="bg-red-50 text-red-600 text-xs px-2.5 py-1 rounded-md font-bold border border-red-100">2 Urgent</span>
+                                {assignments.filter((t: any) => t.status === 'urgent').length > 0 && (
+                                    <span className="bg-red-50 text-red-600 text-xs px-2.5 py-1 rounded-md font-bold border border-red-100 animate-pulse">
+                                        {assignments.filter((t: any) => t.status === 'urgent').length} Urgent
+                                    </span>
+                                )}
                             </h3>
                             {assignments.length > 0 ? (
                                 <div className="space-y-3">

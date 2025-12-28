@@ -20,6 +20,12 @@ enum UserRole {
   ADMIN
 }
 
+enum ScheduleType {
+  RECURRING  // Weekly recurring schedule
+  ONE_TIME   // Single session
+  EXCEPTION  // Override/cancel specific date
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -37,6 +43,10 @@ model User {
   
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  createdExams  Exam[]    @relation("ExamCreator")
+  forumPosts    ForumPost[]
+  forumReplies  ForumReply[]
 }
 
 model StudentProfile {
@@ -97,6 +107,10 @@ model ClassGroup {
 
   students    Enrollment[]
   liveClasses LiveClass[]
+  exams       Exam[]
+  forumPosts  ForumPost[]
+  schedules   ClassSchedule[] // Class schedules
+  assignments Assignment[]    // Class assignments
 }
 
 model Enrollment {
@@ -136,29 +150,77 @@ model LessonProgress {
 model Assignment {
   id          String   @id @default(cuid())
   teacherId   String
-  teacher     TeacherProfile @relation(fields: [teacherId], references: [id])
+  teacher     TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  
+  // Link to specific class
+  classId     String
+  class       ClassGroup @relation(fields: [classId], references: [id], onDelete: Cascade)
   
   title       String
   description String?
+  
+  // Resource attachment
+  attachmentUrl String?  // Google Drive, YouTube, etc.
+  
+  // Grading configuration
+  maxScore    Int @default(100)
+  
   dueDate     DateTime?
-  courseId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   
   submissions AssignmentSubmission[]
+}
+
+// Class Scheduling
+model ClassSchedule {
+  id          String   @id @default(cuid())
+  classId     String
+  class       ClassGroup @relation(fields: [classId], references: [id], onDelete: Cascade)
+  
+  type        ScheduleType @default(RECURRING)
+  
+  // For RECURRING: day of week (1=Mon, 2=Tue, ..., 7=Sun)
+  dayOfWeek   Int?     
+  
+  // Time (stored as HH:mm format, e.g. "10:00", "14:30")
+  startTime   String
+  endTime     String
+  
+  // For ONE_TIME or EXCEPTION: specific date
+  date        DateTime?
+  
+  // For EXCEPTION: reference to recurring schedule being overridden
+  overridesId String?
+  overrides   ClassSchedule? @relation("ScheduleOverride", fields: [overridesId], references: [id], onDelete: SetNull)
+  exceptions  ClassSchedule[] @relation("ScheduleOverride")
+  
+  // Cancellation flag
+  isCancelled Boolean @default(false)
+  
+  // Audit fields
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model AssignmentSubmission {
   id           String   @id @default(cuid())
   assignmentId String
-  assignment   Assignment @relation(fields: [assignmentId], references: [id])
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
   
   studentId    String
-  student      StudentProfile @relation(fields: [studentId], references: [id])
+  student      StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
   
-  contentUrl   String?  // Drive Link
+  // Submission content
+  contentUrl   String?  // Link to student's work
+  contentText  String?  // Text submission
   submittedAt  DateTime @default(now())
   
+  // Grading
   grade        Int?
   feedback     String?
+  gradedAt     DateTime?  // When graded
 }
 
 // --- GAMIFICATION ---
@@ -295,14 +357,23 @@ model Exam {
   id          String    @id @default(cuid())
   title       String
   description String?
-  subjectId   String
-  subject     Subject   @relation(fields: [subjectId], references: [id])
+  subjectId   String?
+  subject     Subject?   @relation(fields: [subjectId], references: [id])
+  
+  createdById String?
+  createdBy   User?      @relation("ExamCreator", fields: [createdById], references: [id])
+  
+  classId     String?
+  class       ClassGroup? @relation(fields: [classId], references: [id])
   
   durationMinutes Int   @default(60)
   passingGrade    Int   @default(75)
   
   maxAttempts     Int   @default(1)
   active          Boolean @default(true)
+  
+  startTime       DateTime?
+  endTime         DateTime?
   
 
   
@@ -326,8 +397,17 @@ model ExamQuestion {
   exam          Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
   
   questionText  String
-  type          String   @default("MCQ") // MCQ, ESSAY
+  type          String   @default("MCQ") // MCQ, ESSAY, GRID, RATING, SCALE
   options       Json     // ["A", "B", "C", "D"]
+  
+  // New Fields for Grid / Scale
+  rows          Json?    // ["Row 1", "Row 2"]
+  cols          Json?    // ["Col 1", "Col 2"]
+  scaleMin      Int?
+  scaleMax      Int?
+  scaleMinLabel String?
+  scaleMaxLabel String?
+
   correctAnswer String
   points        Int      @default(1)
 }
@@ -335,7 +415,7 @@ model ExamQuestion {
 model ExamAttempt {
   id          String   @id @default(cuid())
   examId      String
-  exam        Exam     @relation(fields: [examId], references: [id])
+  exam        Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
   
   studentId   String
   student     StudentProfile @relation(fields: [studentId], references: [id])
@@ -381,3 +461,41 @@ model Payment {
   
   createdAt   DateTime @default(now())
 }
+
+// --- FORUM / DISCUSSION ---
+
+model ForumPost {
+  id          String   @id @default(cuid())
+  classId     String
+  class       ClassGroup @relation(fields: [classId], references: [id], onDelete: Cascade)
+  
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+  authorType  String   // "TEACHER" | "STUDENT"
+  
+  title       String
+  content     String   @db.Text
+  imageUrl    String?  // Optional image attachment
+  
+  replies     ForumReply[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ForumReply {
+  id          String   @id @default(cuid())
+  postId      String
+  post        ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+  authorType  String   // "TEACHER" | "STUDENT"
+  
+  content     String   @db.Text
+  imageUrl    String?  // Optional image attachment
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+

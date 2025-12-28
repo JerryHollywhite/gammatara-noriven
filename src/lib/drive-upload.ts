@@ -17,7 +17,7 @@ const getAuth = async () => {
     }
 
     // 2. Fallback to Service Account (Workspace / Shared Drive Support)
-    const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+    const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || process.env.GOOGLE_CLIENT_EMAIL;
     const key = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
 
     if (email && key) {
@@ -74,7 +74,7 @@ export async function uploadTeacherFile(
         if (!rootFolderId) {
             // Fallback to legacy behavior (Search/Create in Root)
             // This fails for Service Accounts without storage
-            rootFolderId = await findFolder("Teacher Uploads");
+            rootFolderId = (await findFolder("Teacher Uploads")) || undefined;
             if (!rootFolderId) {
                 try {
                     rootFolderId = await createFolder("Teacher Uploads");
@@ -209,6 +209,21 @@ export async function uploadPaymentProof(
     } catch (error: any) {
         console.error("Error uploading proof:", error);
         throw new Error(error.message || "Proof upload failed");
+    }
+}
+
+export async function deleteFileFromDrive(fileId: string): Promise<void> {
+    try {
+        const drive = await getDrive();
+        await drive.files.delete({
+            fileId: fileId
+        });
+    } catch (error: any) {
+        console.error("Error deleting file from Drive:", error);
+        // If file not found (404), maybe already deleted? We can ignore or throw.
+        // Safer to log and ignore if strictly cleaning up.
+        if (error.code === 404) return;
+        throw new Error("Failed to delete file from Drive");
     }
 }
 

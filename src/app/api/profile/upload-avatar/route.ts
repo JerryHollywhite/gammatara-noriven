@@ -7,13 +7,30 @@ import { Readable } from "stream";
 
 // Helper to stream buffer to Google Drive
 async function uploadToDrive(buffer: Buffer, originalFilename: string, mimeType: string, folderId: string) {
-    const auth = new google.auth.GoogleAuth({
-        credentials: {
-            client_email: process.env.GOOGLE_CLIENT_EMAIL || process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-            private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-        },
-        scopes: ['https://www.googleapis.com/auth/drive.file'],
-    });
+    // Auth Strategy: Prefer OAuth2 (Refresh Token) to use User's Quota
+    // Fallback to Service Account (requires SA to have quota or Workspace)
+
+    let auth: any;
+
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
+
+    if (clientId && clientSecret && refreshToken) {
+        // OAuth2 Flow
+        const oAuth2Client = new google.auth.OAuth2(clientId, clientSecret);
+        oAuth2Client.setCredentials({ refresh_token: refreshToken });
+        auth = oAuth2Client;
+    } else {
+        // Service Account Flow
+        auth = new google.auth.GoogleAuth({
+            credentials: {
+                client_email: process.env.GOOGLE_CLIENT_EMAIL || process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+                private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+            },
+            scopes: ['https://www.googleapis.com/auth/drive.file'],
+        });
+    }
 
     const drive = google.drive({ version: 'v3', auth });
 
@@ -89,14 +106,27 @@ export async function POST(req: NextRequest) {
 
         // Let's set public permission for the avatar
         // This is optional but often required for direct <img> src usage
-        const auth = new google.auth.GoogleAuth({
-            credentials: {
-                client_email: process.env.GOOGLE_CLIENT_EMAIL || process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-                private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-            },
-            scopes: ['https://www.googleapis.com/auth/drive'],
-        });
-        const drive = google.drive({ version: 'v3', auth });
+        // Auth for Permissions
+        let permissionAuth: any;
+        const clientId = process.env.GOOGLE_CLIENT_ID;
+        const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+        const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
+
+        if (clientId && clientSecret && refreshToken) {
+            const oAuth2Client = new google.auth.OAuth2(clientId, clientSecret);
+            oAuth2Client.setCredentials({ refresh_token: refreshToken });
+            permissionAuth = oAuth2Client;
+        } else {
+            permissionAuth = new google.auth.GoogleAuth({
+                credentials: {
+                    client_email: process.env.GOOGLE_CLIENT_EMAIL || process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+                    private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+                },
+                scopes: ['https://www.googleapis.com/auth/drive'],
+            });
+        }
+
+        const drive = google.drive({ version: 'v3', auth: permissionAuth });
 
         if (driveFile.id) {
             await drive.permissions.create({

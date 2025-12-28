@@ -43,3 +43,34 @@ export async function DELETE(
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
+
+export async function PUT(
+    req: NextRequest,
+    props: { params: Promise<{ id: string }> }
+) {
+    const params = await props.params;
+    const session = await getServerSession(authOptions);
+    if (!session || (session.user.role !== "TEACHER" && session.user.role !== "ADMIN")) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = params;
+    const { name } = await req.json();
+
+    if (!name || name.trim().length === 0) {
+        return NextResponse.json({ error: "Name is required" }, { status: 400 });
+    }
+
+    try {
+        const updated = await prisma.subject.update({
+            where: { id },
+            data: { name: name.trim() }
+        });
+
+        return NextResponse.json({ success: true, subject: updated });
+
+    } catch (error) {
+        console.error("Update Subject Error:", error);
+        return NextResponse.json({ error: "Failed to update subject" }, { status: 500 });
+    }
+}

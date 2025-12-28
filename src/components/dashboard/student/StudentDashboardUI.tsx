@@ -38,6 +38,7 @@ interface DashboardData {
         }[];
     };
     assignments: any[];
+    recentActivity: any[]; // Add recentActivity
     newBadge: any; // Add to type
     stats: {
         courses: number;
@@ -57,11 +58,11 @@ export default function StudentDashboardUI() {
     const [earnedBadge, setEarnedBadge] = useState<any>(null); // New State
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+    const [isAllAssignmentsOpen, setIsAllAssignmentsOpen] = useState(false); // New State
 
     // Exams
     const [exams, setExams] = useState<any[]>([]);
     const [activeExamId, setActiveExamId] = useState<string | null>(null);
-    const [showAllAssignments, setShowAllAssignments] = useState(false);
 
     useEffect(() => {
         // Fetch Dashboard Data
@@ -107,14 +108,6 @@ export default function StudentDashboardUI() {
                     onSubmitted={() => window.location.reload()}
                 />
             )}
-
-            {/* All Assignments Modal */}
-            <AllAssignmentsModal
-                isOpen={showAllAssignments}
-                onClose={() => setShowAllAssignments(false)}
-                assignments={assignments}
-                onSelectAssignment={handleOpenSubmission}
-            />
 
             {/* Course / Subject Detail Modal */}
             <AnimatePresence>
@@ -382,17 +375,12 @@ export default function StudentDashboardUI() {
                     <div className="lg:col-span-2 space-y-8">
 
                         {/* My Courses */}
-                        <section id="current-studies">
+                        <section>
                             <div className="flex items-center justify-between mb-5">
                                 <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                                     <BookOpen className="w-5 h-5 text-indigo-600" /> Current Studies
                                 </h2>
-                                <button
-                                    onClick={() => window.scrollTo({ top: document.getElementById('current-studies')?.offsetTop || 0, behavior: 'smooth' })}
-                                    className="text-sm font-bold text-indigo-600 hover:text-indigo-700 hover:underline"
-                                >
-                                    View All Courses
-                                </button>
+                                <button className="text-sm font-bold text-indigo-600 hover:text-indigo-700 hover:underline">View All Courses</button>
                             </div>
                             {courses.length > 0 ? (
                                 <div className="grid md:grid-cols-2 gap-5">
@@ -493,20 +481,31 @@ export default function StudentDashboardUI() {
                                 <Clock className="w-5 h-5 text-indigo-600" /> Learning Timeline
                             </h2>
                             <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-                                {[1, 2, 3].map((_, i) => (
-                                    <div key={i} className="flex gap-4 relative group">
-                                        <div className="flex flex-col items-center">
-                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 border-2 border-white shadow-sm ${i === 0 ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
-                                                <PlayCircle className="w-4 h-4" />
+                                {data.recentActivity && data.recentActivity.length > 0 ? (
+                                    data.recentActivity.map((activity, i) => (
+                                        <div key={activity.id} className="flex gap-4 relative group">
+                                            <div className="flex flex-col items-center">
+                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 border-2 border-white shadow-sm ${i === 0 ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                                                    <PlayCircle className="w-4 h-4" />
+                                                </div>
+                                                {i !== data.recentActivity.length - 1 && <div className="w-0.5 h-full bg-slate-100 -my-2" />}
                                             </div>
-                                            {i !== 2 && <div className="w-0.5 h-full bg-slate-100 -my-2" />}
+                                            <div className="pb-8 group-last:pb-0">
+                                                <p className="text-sm font-bold text-slate-800 group-hover:text-indigo-600 transition-colors cursor-pointer">Completed "{activity.lessonTitle}"</p>
+                                                <p className="text-xs text-slate-500 font-medium mt-0.5">{activity.subjectName} • {activity.completedAt ? new Date(activity.completedAt).toLocaleDateString() : 'Just now'}</p>
+                                                {activity.score && (
+                                                    <span className="inline-block mt-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
+                                                        Score: {activity.score}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
-                                        <div className="pb-8 group-last:pb-0">
-                                            <p className="text-sm font-bold text-slate-800 group-hover:text-indigo-600 transition-colors cursor-pointer">Watched "Intro to Vectors"</p>
-                                            <p className="text-xs text-slate-500 font-medium mt-0.5">Mathematics • 2 hours ago</p>
-                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-8 text-slate-400 text-sm">
+                                        No recent activity. Start a lesson!
                                     </div>
-                                ))}
+                                )}
                             </div>
                         </section>
                     </div>
@@ -560,7 +559,7 @@ export default function StudentDashboardUI() {
                                 </div>
                             )}
                             <button
-                                onClick={() => setShowAllAssignments(true)}
+                                onClick={() => setIsAllAssignmentsOpen(true)}
                                 className="w-full mt-6 py-3 text-sm font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 hover:text-slate-900 rounded-xl transition-colors border border-slate-200"
                             >
                                 View All Assignments
@@ -620,6 +619,14 @@ export default function StudentDashboardUI() {
                     </div>
                 </div>
             </div>
+
+            {/* All Assignments Modal */}
+            <AllAssignmentsModal
+                isOpen={isAllAssignmentsOpen}
+                onClose={() => setIsAllAssignmentsOpen(false)}
+                assignments={assignments}
+                onSelectAssignment={(id) => handleOpenSubmission(id)}
+            />
 
             {/* Profile Manager Modal */}
             <AnimatePresence>

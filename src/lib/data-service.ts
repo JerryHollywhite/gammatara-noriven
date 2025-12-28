@@ -128,9 +128,35 @@ export async function getStudentDashboardData(userId: string) {
             });
         }
 
+        // Fetch Recent Activity (Completed Lessons)
+        const recentActivityData = await prisma.lessonProgress.findMany({
+            where: {
+                studentId: profile.id,
+                completedAt: { not: null }
+            },
+            include: {
+                lesson: {
+                    include: {
+                        subject: true
+                    }
+                }
+            },
+            orderBy: { completedAt: 'desc' },
+            take: 3
+        });
+
+        const recentActivity = (recentActivityData as any[]).map(log => ({
+            id: log.id,
+            lessonTitle: log.lesson.title,
+            subjectName: log.lesson.subject.name,
+            completedAt: log.completedAt ? log.completedAt.toISOString() : null, // String for JSON serialization
+            score: log.score
+        }));
+
         const levelStats = getLevel(profile.xp);
 
         return {
+            recentActivity,
             profile: {
                 id: user.id,
                 name: user.name || "Student",

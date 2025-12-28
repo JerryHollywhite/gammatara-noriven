@@ -1,3 +1,4 @@
+import { getNextSession, formatNextSession } from "./schedule-utils";
 import { prisma } from "@/lib/prisma";
 import { getLevel, BADGES } from "./gamification";
 
@@ -479,7 +480,6 @@ export async function getTeacherDashboardData(userId: string) {
                 const uniqueClassStudentIds = new Set(cls.students.map(e => e.studentId));
 
                 // Calculate next session
-                const { getNextSession, formatNextSession } = await import('./schedule-utils');
                 const nextSessionDate = await getNextSession(cls.id);
                 const formatted = formatNextSession(nextSessionDate);
 

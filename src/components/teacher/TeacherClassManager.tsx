@@ -81,7 +81,7 @@ export default function TeacherClassManager({ onClassCreated, classId, onDataCha
     const fetchClassDetails = () => {
         if (classId) {
             setLoading(true);
-            fetch(`/api/teacher/classes/${classId}`)
+            fetch(`/api/teacher/classes/${classId}`, { cache: 'no-store' })
                 .then(res => res.json())
                 .then(json => {
                     if (json.success) {
